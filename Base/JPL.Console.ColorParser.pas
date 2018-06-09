@@ -1,4 +1,4 @@
-unit JPL.Console.ColorParser;
+﻿unit JPL.Console.ColorParser;
 
 {
   Jacek Pazera
@@ -64,7 +64,9 @@ unit JPL.Console.ColorParser;
 
  }
 
-{$mode objfpc}{$H+}
+{$IFDEF FPC}
+  {$mode objfpc}{$H+}
+{$ENDIF}
 //{$MODESWITCH ADVANCEDRECORDS}
 
 interface
@@ -97,7 +99,7 @@ type
     function GetHighlightedTextCount: integer;
     procedure SetText(AValue: string);
     procedure AddResult(const Text: string; TextColor, BgColor: Byte);
-    function ResultStr: string; // for debug purposes. Can be deleted.
+    //function ResultStr: string; // for debug purposes. Can be deleted.
   public
     constructor Create;
     destructor Destroy; override;
@@ -236,7 +238,7 @@ type
 var
   i, x, xStartPos: integer;
   s, us, sub, sr: string;
-  ArrRanges: TRangesArray = nil;
+  ArrRanges: TRangesArray {$IFDEF FPC} = nil{$ENDIF};
   cptr: TConParTextRec;
   Range: TRange;
   ArrL: TLetterArray;
@@ -310,7 +312,7 @@ begin
       PrevColorB := Letter.BgColor;
     end
     else
-      sr += Letter.Znak;
+      sr := sr + Letter.Znak;
 
   end;
 
@@ -392,13 +394,13 @@ begin
   end;
 end;
 
-function TConColorParser.ResultStr: string;
-var
-  i: integer;
-begin
-  Result := '';
-  for i := 0 to High(FArrResults) do Result += FArrResults[i].Text;
-end;
+//function TConColorParser.ResultStr: string;
+//var
+//  i: integer;
+//begin
+//  Result := '';
+//  for i := 0 to High(FArrResults) do Result := Result + FArrResults[i].Text;
+//end;
 
 end.
 
