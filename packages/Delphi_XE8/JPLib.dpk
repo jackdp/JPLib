@@ -1,0 +1,57 @@
+package JPLib;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS OFF}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE RELEASE}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'JPLib Runtime Package'}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl;
+
+contains
+  JPL.Console.ColorParser in '..\..\Base\JPL.Console.ColorParser.pas',
+  JPL.Console in '..\..\Base\JPL.Console.pas',
+  JPL.ConsoleApp in '..\..\Base\JPL.ConsoleApp.pas',
+  JPL.Conversion in '..\..\Base\JPL.Conversion.pas',
+  JPL.DateTime in '..\..\Base\JPL.DateTime.pas',
+  JPL.Files in '..\..\Base\JPL.Files.pas',
+  JPL.FileSearch in '..\..\Base\JPL.FileSearch.pas',
+  JPL.Language in '..\..\Base\JPL.Language.pas',
+  JPL.Math in '..\..\Base\JPL.Math.pas',
+  JPL.StrHash in '..\..\Base\JPL.StrHash.pas',
+  JPL.Strings in '..\..\Base\JPL.Strings.pas',
+  JPL.Utils in '..\..\Base\JPL.Utils.pas',
+  JPL.Win.VersionInfo in '..\..\Base\JPL.Win.VersionInfo.pas',
+  JPL.CmdLineParser in '..\..\Base\JPL.CmdLineParser.pas',
+  JPL.SimpleLogger in '..\..\Logging\JPL.SimpleLogger.pas',
+  JPL.TimeLogger in '..\..\Logging\JPL.TimeLogger.pas',
+  JPL.Colors.ColorClass in '..\..\Graphics\JPL.Colors.ColorClass.pas',
+  JPL.Colors in '..\..\Graphics\JPL.Colors.pas',
+  JPL.ColorArrays in '..\..\Graphics\JPL.ColorArrays.pas';
+
+end.
