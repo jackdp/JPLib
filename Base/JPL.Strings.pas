@@ -50,6 +50,7 @@ function RemoveNum(s: string): string;
 function GetLastBIndex(s: string): integer;
 //function AddSlashes(Text: string): string;
 function RemoveSlashes(Text: string): string;
+function RemoveSpaces(s: string): string;
 function ReplaceSpecialChars(s: string; sc: CHar = '_'): string;
 
 function RemoveAll(const Text, ToRemove: string; IgnoreCase: Boolean = False): string;
@@ -73,7 +74,7 @@ function FillStrToLen(s: string; Len: integer; FillValue: Char = ' '): string;
 function AnsiUpCase(zn: Char; Default: Char = #0): Char;
 function AnsiLowCase(zn: Char; Default: Char = #0): Char;
 function RemoveChars(const SrcStr, CharsToRemove: string; IgnoreCase: Boolean = False): string; overload;
-function RemoveChars(const SrcStr: string; Chars: TCharArray; IgnoreCase: Boolean = False): string; overload;
+function RemoveChars(const SrcStr: string; Chars: array of Char; IgnoreCase: Boolean = False): string; overload;
 function LeaveChars(SrcStr: string; CharsToLeave: string): string;
 function CutStrBefore(s, CutBeforeText: string; IgnoreCase: Boolean = False): string;
 function CutStrAfter(s, CutAfterText: string; IgnoreCase: Boolean = False; IncludeSearchText: Boolean = True): string;
@@ -92,7 +93,6 @@ function StrRemove(s: string; StringToRemove: string): string;
 function GetFileSizeString(const FileSize: int64; BytesStr: string = ' bytes'): string;
 
 function TrimUp(s: string): string;
-function TrimFromEnd(InStr, StrToRemove: string): string;
 function InsertNumSep(NumStr: string; Separator: string = ' '; NumBlockSize: integer = 3): string;
 function CopyString(const s: string; Copies: integer = 2): string;
 
@@ -109,7 +109,79 @@ function GetRandomIntStr(Len: integer = 10): string;
 
 function PosCS(const substr, s: string; bCaseSensitive: Boolean = False): integer;
 
+
+//function TrimFromEnd(InStr, StrToRemove: string): string;
+function TrimFromEnd(const s: string; const StringToCut: string): string;
+function TrimFromStart(const s: string; const StringToCut: string): string;
+function TrimExtDot(const FileExtension: string): string;
+function AddFileNameSuffix(const FileName, Suffix: string): string;
+function AddFileNamePrefix(const FileName, Prefix: string): string;
+procedure SplitFileName(fName: string; out Dir, BaseFileName, Ext: string; bIncludePathDelimiter: Boolean = True; bRemoveDotFromExt: Boolean = False);
+
+
 implementation
+
+
+procedure SplitFileName(fName: string; out Dir, BaseFileName, Ext: string; bIncludePathDelimiter: Boolean = True; bRemoveDotFromExt: Boolean = False);
+begin
+  Dir := ExtractFileDir(fName);
+  if bIncludePathDelimiter then Dir := IncludeTrailingPathDelimiter(Dir) else Dir := ExcludeTrailingPathDelimiter(Dir);
+
+  BaseFileName := ExtractFileName(fName);
+  BaseFileName := ChangeFileExt(BaseFileName, '');
+
+  //Ext := GetFileExt(BaseFileName, bRemoveDotFromExt);
+  Ext := GetFileExt(fName, bRemoveDotFromExt);
+end;
+
+function AddFileNameSuffix(const FileName, Suffix: string): string;
+var
+  Dir, ShortName, Ext: string;
+begin
+  if Suffix = '' then Exit(FileName);
+//  Dir := Rbs(ExtractFileDir(FileName));
+//  ShortName := ExtractFileName(FileName);
+//  Ext := ExtractFileExt(ShortName);
+//  ShortName := ChangeFileExt(ShortName, '');
+  SplitFileName(FileName, Dir, ShortName, Ext, False, False);
+  Result := Dir + PathDelim + ShortName + Suffix + Ext;
+end;
+
+function AddFileNamePrefix(const FileName, Prefix: string): string;
+var
+  Dir, ShortName, Ext: string;
+begin
+  if Prefix = '' then Exit(FileName);
+  SplitFileName(FileName, Dir, ShortName, Ext, False, False);
+  Result := Dir + PathDelim + Prefix + ShortName + Ext;
+end;
+
+function TrimExtDot(const FileExtension: string): string;
+begin
+  Result := TrimFromStart(FileExtension, '.');
+end;
+
+function TrimFromStart(const s: string; const StringToCut: string): string;
+begin
+  if Copy(s, 1, Length(StringToCut)) = StringToCut then Result := Copy(s, Length(StringToCut) + 1, Length(s))
+  else Result := s;
+end;
+
+function TrimFromEnd(const s: string; const StringToCut: string): string;
+begin
+  if Copy(s, Length(s) - Length(StringToCut) + 1, Length(StringToCut)) = StringToCut then Result := Copy(s, 1, Length(s) - Length(StringToCut))
+  else Result := s;
+end;
+
+//function TrimFromEnd(InStr, StrToRemove: string): string;
+//var
+//  xIn, xR: integer;
+//begin
+//  xIn := Length(InStr);
+//  xR := Length(StrToRemove);
+//  if Copy(InStr, xIn - xR + 1, xR) = StrToRemove then Result := Copy(InStr, 1, xIn - xR)
+//  else Result := InStr;
+//end;
 
 
 function PosCS(const substr, s: string; bCaseSensitive: Boolean = False): integer;
@@ -200,17 +272,6 @@ begin
     SetLength(Arr, Length(Arr) + 1);
     Arr[High(Arr)] := s;
   end;
-end;
-
-
-function TrimFromEnd(InStr, StrToRemove: string): string;
-var
-  xIn, xR: integer;
-begin
-  xIn := Length(InStr);
-  xR := Length(StrToRemove);
-  if Copy(InStr, xIn - xR + 1, xR) = StrToRemove then Result := Copy(InStr, 1, xIn - xR)
-  else Result := InStr;
 end;
 
 function CopyString(const s: string; Copies: integer = 2): string;
@@ -452,7 +513,7 @@ begin
     Result := StringReplace(Result, CharsToRemove[i], '', rf);
 end;
 
-function RemoveChars(const SrcStr: string; Chars: TCharArray; IgnoreCase: Boolean): string;
+function RemoveChars(const SrcStr: string; Chars: array of Char; IgnoreCase: Boolean): string;
 var
   i: integer;
   rf: TReplaceFlags;
@@ -658,6 +719,11 @@ begin
   s := StringReplace(s, '\n', ENDL, [rfReplaceAll]);
 
   Result := s;
+end;
+
+function RemoveSpaces(s: string): string;
+begin
+  Result := StringReplace(s, ' ', '', [rfReplaceAll]);
 end;
 
 function GetLastBIndex(s: string): integer;
@@ -936,4 +1002,5 @@ end;
 
 
 end.
+
 
