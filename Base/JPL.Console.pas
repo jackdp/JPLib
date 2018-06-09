@@ -1,4 +1,4 @@
-unit JPL.Console;
+﻿unit JPL.Console;
 
 {
   Jacek Pazera
@@ -99,6 +99,10 @@ uses
 
 
 const
+
+  {$IFDEF DCC}
+  ENABLE_VIRTUAL_TERMINAL_PROCESSING = $0004;
+  {$ENDIF}
 
   // Console application exit codes
   CON_EXIT_CODE_OK = 0;
@@ -1151,7 +1155,7 @@ begin
   FOutputCodePage := GetConsoleOutputCP;
 end;
 
-class function TConsole.GetOutputCodePage: Cardinal; static;
+class function TConsole.GetOutputCodePage: Cardinal; {$IFDEF FPC}static;{$ENDIF}
 begin
   Result := GetConsoleOutputCP;
 end;
@@ -1164,7 +1168,7 @@ begin
 end;
 {$ENDIF}
 
-class procedure TConsole.SetTextCodePage(AValue: Cardinal); static;
+class procedure TConsole.SetTextCodePage(AValue: Cardinal); {$IFDEF FPC}static;{$ENDIF}
 begin
   System.SetTextCodePage(Output, AValue);
 end;

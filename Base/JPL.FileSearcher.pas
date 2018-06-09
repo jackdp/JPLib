@@ -1,4 +1,4 @@
-unit JPL.FileSearcher;
+﻿unit JPL.FileSearcher;
 
 {
   Jacek Pazera
@@ -8,6 +8,8 @@ unit JPL.FileSearcher;
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
   {$modeswitch ADVANCEDRECORDS}
+{$ELSE}
+For FPC only!
 {$ENDIF}
 
 interface
@@ -17,7 +19,7 @@ uses
   Classes, SysUtils,
 
   {$IFDEF FPC}fgl,{$ENDIF}
-  JP_Strings, JP_FileSearch, JP_Files;
+  JPL.Strings, JPL.FileSearch, JPL.Files;
 
 
 type

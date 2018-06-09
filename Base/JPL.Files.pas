@@ -1,19 +1,21 @@
-unit JPL.Files;
+﻿unit JPL.Files;
 
 {
   Jacek Pazera
   http://www.pazera-software.com
 }
 
-{$mode objfpc}{$H+}
-{$WARN 5057 off : Local variable "$1" does not seem to be initialized}
+{$IFDEF FPC}
+  {$mode objfpc}{$H+}
+  {$WARN 5057 off : Local variable "$1" does not seem to be initialized}
+{$ENDIF}
 interface
 
 uses
-  SysUtils, //Classes,
+  SysUtils, Classes,
   {$IFDEF MSWINDOWS}Windows,{$ENDIF}
   {$IFDEF LINUX}BaseUnix,{$ENDIF}
-  MFPC.Classes.Streams,
+  //MFPC.Classes.Streams,
   {%H-}JPL.Strings;
 
 type
@@ -27,10 +29,10 @@ type
     Extension: string;
 
     StatOK: Boolean;
-    DeviceNo: QWord;
+    DeviceNo: UInt64; // QWord;
     InodeNo: Cardinal;
     FileMode: Cardinal;
-    HardLinks: QWord;
+    HardLinks: UInt64; // QWord;
     OwnerUserID: Cardinal;
     OwnerGroupID: Cardinal;
     Size: Int64;
@@ -78,12 +80,12 @@ end;
 
 function _FileSizeInt(const FileName: string): int64;
 var
-  fs: TM_FileStream;
+  fs: TFileStream;
 begin
   Result := 0;
   if not FileExists(FileName) then Exit;
 
-  fs := TM_FileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
+  fs := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
   try
     Result := fs.Size;
   finally
@@ -97,7 +99,7 @@ var
   fir: TFileInfoRec;
 {$ENDIF}
 begin
-  Result := 0;
+  //Result := 0;
   try
     Result := _FileSizeInt(FileName);
   except
@@ -116,6 +118,7 @@ begin
 end;
 
 {$IFDEF MSWINDOWS}
+{$WARN SYMBOL_PLATFORM OFF}
 // http://forum.lazarus.freepascal.org/index.php/topic,6705.0.html
 function FileGetCreationTime(const FileName: string): TDateTime;
 var
@@ -156,6 +159,7 @@ begin
   end
   else Result := False;
 end;
+{$WARN SYMBOL_PLATFORM ON}
 {$ENDIF}
 
 procedure ClearFileInfoRec(var fir: TFileInfoRec);

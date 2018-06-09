@@ -38,7 +38,7 @@ interface
 
 uses 
   Windows, SysUtils,
-  JPL.Strings, JPL.Language;
+  JPL.Strings, JPL.Language, JPL.Conversion;
 
 
 const
@@ -289,7 +289,7 @@ begin
         sii.TranslateRec.wCodePage := PTranslate^.wCodePage;
 
         sii.LanguageName := LanguageIDToStr(sii.TranslateRec.wLanguage);
-        sii.CodePageStr := sii.TranslateRec.wCodePage.ToString + ' - ' + GetCodePageDesc(sii.TranslateRec.wCodePage);
+        sii.CodePageStr := IntToStr(sii.TranslateRec.wCodePage) + ' - ' + GetCodePageDesc(sii.TranslateRec.wCodePage);
 
 
 
@@ -392,19 +392,19 @@ begin
 
   if bIncludeTranslationRec then
   begin
-    Result +=
-      PadStr + 'Translation - Language: ' + sii.TranslateRec.wLanguage.ToString + ENDL +
-      PadStr + 'Translation - CodePage: ' + sii.TranslateRec.wCodePage.ToString + ENDL;
+    Result := Result +
+      PadStr + 'Translation - Language: ' + IntToStr(sii.TranslateRec.wLanguage) + ENDL +
+      PadStr + 'Translation - CodePage: ' + IntToStr(sii.TranslateRec.wCodePage) + ENDL;
   end;
 
   if bIncludeLangInfo then
   begin
-    Result +=
+    Result := Result +
       PadStr + 'Language name: ' + sii.LanguageName + ENDL +
       PadStr + 'Code page: ' + sii.CodePageStr + ENDL;
   end;
 
-  Result +=
+  Result := Result +
     PadStr + 'ProductName: ' + sii.ProductName + ENDL +
     PadStr + 'ProductVersion: ' + sii.ProductVersion + ENDL +
     PadStr + 'FileVersion: ' + sii.FileVersion + ENDL +
@@ -415,16 +415,16 @@ begin
     PadStr + 'LegalCopyright: ' + sii.LegalCopyright + ENDL;
 
     s := sii.LegalTrademarks;
-    if s<> '' then Result += PadStr + 'LegalTrademarks: ' + s + ENDL;
+    if s<> '' then Result := Result + PadStr + 'LegalTrademarks: ' + s + ENDL;
 
     s := sii.PrivateBuild;
-    if s <> '' then Result += PadStr + 'PrivateBuild: ' + s + ENDL;
+    if s <> '' then Result := Result + PadStr + 'PrivateBuild: ' + s + ENDL;
 
     s := sii.SpecialBuild;
-    if s <> '' then Result += PadStr + 'SpecialBuild: ' + s + ENDL;
+    if s <> '' then Result := Result + PadStr + 'SpecialBuild: ' + s + ENDL;
 
     s := sii.Comments;
-    if s <> '' then Result += PadStr + 'Comments: ' + s;
+    if s <> '' then Result := Result + PadStr + 'Comments: ' + s;
 
     Result := TrimRight(Result);
 end;
@@ -432,10 +432,10 @@ end;
 function VIFileVersionToStr(const fv: TVIFileVersion): string;
 begin
   Result :=
-    fv.MajorVersion.ToString + '.' +
-    fv.MinorVersion.ToString + '.' +
-    fv.Revision.ToString + '.' +
-    fv.Build.ToString;
+    itos(fv.MajorVersion) + '.' +
+    itos(fv.MinorVersion) + '.' +
+    itos(fv.Revision) + '.' +
+    itos(fv.Build);
 end;
 
 

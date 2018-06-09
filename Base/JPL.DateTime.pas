@@ -11,6 +11,7 @@ interface
 
 
 uses
+  {$IFDEF DCC}Windows,{$ENDIF}
   SysUtils,
   //Classes,
   DateUtils,

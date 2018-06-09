@@ -1,4 +1,4 @@
-unit JPL.ConsoleApp;
+﻿unit JPL.ConsoleApp;
 
 {
   Jacek Pazera
@@ -378,7 +378,7 @@ end;
 
 procedure TJPConsoleApp.DisplayTaggedText(const TaggedText: string);
 var
-  Arr: TStringArray;
+  Arr: {$IFDEF DCC}TArray<string>; {$ELSE}TStringArray; {$ENDIF}
   i: integer;
   s: string;
 begin
@@ -434,7 +434,7 @@ end;
 
 procedure TJPConsoleApp.DisplayColoredText(const s: string; const cc: TConsoleColors);
 var
-  Arr: array of string;
+  Arr: {$IFDEF FPC}array of string;{$ELSE}TArray<string>;{$ENDIF}
   i: integer;
   s2: string;
 begin
