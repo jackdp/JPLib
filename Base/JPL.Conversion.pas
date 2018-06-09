@@ -75,6 +75,7 @@ function MSecToTimeStr(xmsec: int64; bShowMSec: Boolean = True): string;
 
 function GetIntInRange(const Value, Min, Max: integer): integer; overload;
 function GetIntInRange(const Value, Min, Max: Int64): Int64; overload;
+function GetFloatInRange(const Value, Min, Max: Single): Single; overload;
 function GetFloatInRange(const Value, Min, Max: Real): Real; overload;
 function GetFloatInRange(const Value, Min, Max: Double): Double; overload;
 
@@ -84,11 +85,38 @@ function IsValidIntStr(IntStr: string; IgnoreSpaces: Boolean = False): Boolean;
 function IsValidFloatStr(FloatStr: string; IgnoreSpaces: Boolean = False): Boolean;
 
 function TryStrToByte(s: string; var bt: Byte): Boolean;
+function TryHexToInt(Hex: string; var xInt: Int64): Boolean;
+function TryHexToByte(Hex: string; var xb: Byte): Boolean;
 
 
 
 implementation
 
+
+function TryHexToByte(Hex: string; var xb: Byte): Boolean;
+var
+  x: Int64;
+begin
+  Result := False;
+  x := 0;
+  if not TryHexToInt(Hex, x) then Exit;
+  if (x < 0) or (x > 255) then Exit;
+  Result := True;
+  xb := Byte(x);
+end;
+
+function TryHexToInt(Hex: string; var xInt: Int64): Boolean;
+var
+  Code: integer;
+  i64: int64;
+begin
+  Result := True;
+  if Hex = '' then Exit(False);
+  if Hex[1] <> '$' then Hex := '$' + Hex;
+  Val(Hex, i64, Code);
+  if Code = 0 then xInt := i64
+  else Result := False;
+end;
 
 function TryStrToByte(s: string; var bt: Byte): Boolean;
 var
@@ -110,6 +138,13 @@ begin
 end;
 
 function GetFloatInRange(const Value, Min, Max: Real): Real;
+begin
+  if Value < Min then Result := Min
+  else if Value > Max then Result := Max
+  else Result := Value;
+end;
+
+function GetFloatInRange(const Value, Min, Max: Single): Single;
 begin
   if Value < Min then Result := Min
   else if Value > Max then Result := Max
