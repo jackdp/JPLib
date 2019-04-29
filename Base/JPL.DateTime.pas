@@ -75,8 +75,26 @@ function GetDateTime(const Year, Month, Day: Word; Hour: Word = 0; Min: Word = 0
 
 function GetDateTimeStr(dt: TDateTime; Format: string = '$Y.$M.$D-$H;$MIN;$S,$MS'): string;
 
+function SecToMs(const Sec: integer): integer;
+function MsToSecStr(const Ms: integer; PaddingS: Byte = 4; PaddingMs: Byte = 3): string;
+
 
 implementation
+
+
+function SecToMs(const Sec: integer): integer;
+begin
+  Result := Sec * 1000;
+end;
+
+function MsToSecStr(const Ms: integer; PaddingS: Byte = 4; PaddingMs: Byte = 3): string;
+var
+  sec, msec: integer;
+begin
+  sec := ms div 1000;
+  msec := ms mod 1000;
+  Result := Pad(IntToStr(sec), PaddingS, '0') + '.' + Pad(IntToStr(msec), 3, '0');
+end;
 
 function GetDateTimeStr(dt: TDateTime; Format: string = '$Y.$M.$D-$H;$MIN;$S,$MS'): string;
 var
