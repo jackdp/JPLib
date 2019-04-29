@@ -3,7 +3,7 @@
 {
   Jacek Pazera
   http://www.pazera-software.com
-  Last mod: 2018.03.18
+  Last mod: 2019.04.28
 
   =================================================================
 
@@ -408,7 +408,7 @@ procedure ConWriteColoredTextEx(const cce: TConsoleColorEx);
 procedure ConWriteColoredTextLineEx(const cce: TConsoleColorEx);
 
 procedure ConGetColorsFromStr(const sColors: string; out TextColor, BgColor: Byte);
-function ConColorToStr(const Color: Byte; AddFgBgSuffix: Boolean = False): string;
+function ConColorToStr(const Color: Byte {$IFDEF UNIX}; AddFgBgSuffix: Boolean = False{$ENDIF}): string;
 
 procedure ConWriteTaggedText(s: string);
 procedure ConWriteTaggedTextLine(s: string);
@@ -473,6 +473,7 @@ var
 begin
   Result := False;
   if not ConOK then Exit;
+  dwMode := 0; // FPC-LAZ: Supress stupid warning
   if not GetConsoleMode(ConStdOut, dwMode) then Exit;
   if Enable then dwMode := dwMode or ENABLE_VIRTUAL_TERMINAL_PROCESSING
   else dwMode := dwMode and (not ENABLE_VIRTUAL_TERMINAL_PROCESSING);
@@ -750,7 +751,7 @@ end;
 {$endregion ConGetColorsFromStr}
 
 {$region '                  ConColorToStr                                 '}
-function ConColorToStr(const Color: Byte; AddFgBgSuffix: Boolean = False): string;
+function ConColorToStr(const Color: Byte {$IFDEF UNIX}; AddFgBgSuffix: Boolean = False{$ENDIF}): string;
 {$IFDEF UNIX}
 var
   s_FG, s_BG: string;
@@ -1334,6 +1335,7 @@ begin
   ConStdOut := GetStdHandle(STD_OUTPUT_HANDLE);
   if ConStdOut = INVALID_HANDLE_VALUE then Exit;
 
+  csbi.wAttributes := 0; // FPC-LAZ: Supress stupid warning
   FillChar(csbi, SizeOf(csbi), 0);
   if not GetConsoleScreenBufferInfo(ConStdOut, csbi) then Exit;
 
