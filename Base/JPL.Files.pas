@@ -52,9 +52,94 @@ function FileGetCreationTime(const FileName: string): TDateTime;
 function FileGetTimes(const FileName: string; out CreationTime, LastAccessTime, LastWriteTime: TDateTime): Boolean;
 {$ENDIF}
 
+function DelFile(const FileName: string): Boolean;
+function GetIncFileName(const fName: string; NumPrefix: string = '_'; xpad: integer = 3): string;
+function GetUniqueFileName(Prefix: string = ''; Len: BYTE = 10; Ext: string = ''): string;
+
 
 implementation
 
+
+
+function GetIncFileName(const fName: string; NumPrefix: string = '_'; xpad: integer = 3): string;
+var
+  i: integer;
+  ShortName, Ext, fOut: string;
+begin
+  Result := '';
+
+  if not FileExists(fName) then
+  begin
+    Result := fName;
+    Exit;
+  end;
+
+  Ext := ExtractFileExt(fName);
+  ShortName := ChangeFileExt(fName, '');
+
+  for i := 1 to 100000 do
+  begin
+    fOut := ShortName + NumPrefix + Pad(IntToStr(i), xpad, '0') + Ext;
+    if not FileExists(fOut) then
+    begin
+      Result := fOut;
+      Break;
+    end;
+  end;
+end;
+
+function GetUniqueFileName(Prefix: string = ''; Len: BYTE = 10; Ext: string = ''): string;
+var
+  x: integer;
+  bt: BYTE;
+  s: string;
+begin
+  x := 0;
+  s := '';
+  Randomize;
+
+  while x < Len do
+  begin
+    bt := Random(254) + 1;
+    if not ( (bt in [48..57]) or (x in [65..90]) or (x in [97..122]) ) then Continue;
+    Inc(x);
+    s := s + Char(bt);
+  end;
+
+  s := Prefix + s;
+  if (Ext <> '') and (Ext[1] <> '.') then Ext := '.' + Ext;
+  Result := ChangeFileExt(s, Ext);
+end;
+
+
+function DelFile(const FileName: string): Boolean;
+var
+  w: WORD;
+begin
+  Result := True;
+  try
+
+    {$IFDEF MSWINDOWS}
+    if not SysUtils.DeleteFile(FileName) then
+    try
+      {$WARNINGS OFF}
+      w := 0 and not faReadOnly and not faSysFile and not faHidden;
+      FileSetAttr(FileName, w);
+      {$WARNINGS ON}
+      SysUtils.DeleteFile(FileName);
+    except
+      Result := not FileExists(FileName);
+    end;
+    {$ELSE}
+    SysUtils.DeleteFile(FileName);
+    {$ENDIF}
+
+    Result := not FileExists(FileName);
+
+  except
+    Result := not FileExists(FileName);
+  end;
+end;
 
 
 {$IFDEF MSWINDOWS}
