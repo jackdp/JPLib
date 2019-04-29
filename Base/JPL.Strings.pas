@@ -3,7 +3,7 @@ unit JPL.Strings;
 {
   Jacek Pazera
   http://www.pazera-software.com
-  Last mod: 2018.01.24
+  Last mod: 2019.04.28
 
   To jest mój stary modu³ z roku 2000 dla Borland Pascala 7.0
   W kolejnych latach rozbudowywany i dostosowywany do nowszych wersji Delphi i FPC.
@@ -17,7 +17,6 @@ interface
 
 uses
   SysUtils;
-  //, Classes;
 
 const
   CR = #13;
@@ -34,15 +33,15 @@ function Rbs(Dir: string): string;
 function Qs(const s: string): string;
 //function Capitalize(s: string): string;
 function FixFileName(fName: string; s: string = '_'; ZamieniajCudzyslowy: Boolean = True): string;
-function FixString(Text: string; i: integer; znak: char = ' '): string;
-function IsValidShortFileName(const FileName: string): Boolean;
+function IsValidShortFileName(const ShortFileName: string): Boolean;
+function IsValidLongFileName(const LongFileName: string): Boolean;
 function FixFileNameSlashes(const FileName: string): string;
 function PadString(Text: string; i: integer; znak: char = ' '): string;
 function Pad(Text: string; i: integer; znak: char = ' '): string;
 function PadRight(Text: string; i: integer; znak: char = ' '): string;
 function UnquoteStr(s: string; bDoubleQuote: Boolean = True): string;
-function IntToStrEx(x: int64; c: Char = ' '): string; overload;
-function IntToStrEx(x: integer; c: Char = ' '): string; overload;
+function IntToStrEx(const x: int64; c: Char = ' '): string; overload;
+function IntToStrEx(const x: integer; c: Char = ' '): string; overload;
 function GetLastCharIndex(s: string; c: Char): integer;
 function DelFirstCharInString(s: string; ToDelete: Char): string;
 function DelLastCharInString(s: string; ToDelete: Char): string;
@@ -56,6 +55,7 @@ function ReplaceSpecialChars(s: string; sc: CHar = '_'): string;
 function RemoveAll(const Text, ToRemove: string; IgnoreCase: Boolean = False): string;
 function RemoveNonLetters(s: string): string;
 function ReplaceAll(const SrcStr, OldStr, NewStr: string; IgnoreCase: Boolean = False): string;
+function ReplaceDecimalSeparator(FloatStr: string; NewSeparator: string = '.'): string;
 
 function RemovePolishChars(s: string): string;
 function IsBigLetterPL(c: Char): Boolean;
@@ -119,7 +119,10 @@ function AddFileNamePrefix(const FileName, Prefix: string): string;
 procedure SplitFileName(fName: string; out Dir, BaseFileName, Ext: string; bIncludePathDelimiter: Boolean = True; bRemoveDotFromExt: Boolean = False);
 
 
+
 implementation
+
+
 
 
 procedure SplitFileName(fName: string; out Dir, BaseFileName, Ext: string; bIncludePathDelimiter: Boolean = True; bRemoveDotFromExt: Boolean = False);
@@ -692,6 +695,10 @@ begin
   Result := StringReplace(SrcStr, OldStr, NewStr, rf);
 end;
 
+function ReplaceDecimalSeparator(FloatStr: string; NewSeparator: string = '.'): string;
+begin
+  Result := StringReplace(FloatStr, FormatSettings.DecimalSeparator, NewSeparator, [rfReplaceAll, rfIgnoreCase]);
+end;
 
 {$hints off}
 function ReplaceSpecialChars(s: string; sc: CHar): string;
@@ -855,8 +862,14 @@ begin
 end;
 {$hints on}
 
+
+function PadString(Text: string; i: integer; znak: char = ' '): string;
+begin
+  Result := Pad(Text, i, znak);
+end;
+
 {$hints off}
-function FixString(Text: string; i: integer; znak: char = ' '): string;
+function Pad(Text: string; i: integer; znak: char = ' '): string;
 var
   x, y, k: integer;
   s: string;
@@ -873,18 +886,6 @@ begin
   Result := Text;
 end;
 {$hints on}
-
-
-
-function PadString(Text: string; i: integer; znak: char = ' '): string;
-begin
-  Result := FixString(Text, i, znak);
-end;
-
-function Pad(Text: string; i: integer; znak: char = ' '): string;
-begin
-  Result := FixString(Text, i, znak);
-end;
 
 {$hints off}
 function PadRight(Text: string; i: integer; znak: char = ' '): string;
@@ -923,24 +924,68 @@ begin
 end;
 {$hints on}
 
-function IsValidShortFileName(const FileName: string): Boolean;
+//function IsValidShortFileName(const FileName: string): Boolean;
+//var
+//  s: string;
+//  x: integer;
+//begin
+//  s := FileName;
+//  x := GetLastCharIndex(s, PathDelim);
+//  if x > 0 then s := Copy(s, x + 1, Length(s));
+//  Result :=
+//    (Trim(FileName) <> '') and
+//    (Pos('?', s) = 0) and
+//    (Pos('*', s) = 0) and
+//    (Pos(':', s) = 0) and
+//    (Pos('/', s) = 0) and
+//    (Pos('\', s) = 0) and
+//    (Pos('<', s) = 0) and
+//    (Pos('>', s) = 0) and
+//    (Pos('|', s) = 0);
+//end;
+
+function IsValidShortFileName(const ShortFileName: string): Boolean;
+const
+  InvalidChars: set of AnsiChar = ['\', '/', ':', '*', '?', '"', '<', '>', '|'];
 var
-  s: string;
-  x: integer;
+  i: integer;
 begin
-  s := FileName;
-  x := GetLastCharIndex(s, PathDelim);
-  if x > 0 then s := Copy(s, x + 1, Length(s));
-  Result :=
-    (Trim(FileName) <> '') and
-    (Pos('?', s) = 0) and
-    (Pos('*', s) = 0) and
-    (Pos(':', s) = 0) and
-    (Pos('/', s) = 0) and
-    (Pos('\', s) = 0) and
-    (Pos('<', s) = 0) and
-    (Pos('>', s) = 0) and
-    (Pos('|', s) = 0);
+  Result := False;
+  if (ShortFileName = '') then Exit;
+
+  for i := 1 to Length(ShortFileName) do
+    if CharInSet(ShortFileName[i], InvalidChars) then Exit;
+
+  Result := True;
+end;
+
+function IsValidLongFileName(const LongFileName: string): Boolean;
+const
+  InvalidChars: set of AnsiChar = ['*', '?', '"', '<', '>', '|'];
+  {$IFDEF MSWINDOWS}DirSeparators : set of Char = ['\','/'];{$ENDIF}
+var
+  i: integer;
+  {$IFDEF MSWINDOWS}c: Char;{$ENDIF}
+begin
+  Result := False;
+  if (LongFileName = '') then Exit;
+
+  for i := 1 to Length(LongFileName) do
+    if CharInSet(LongFileName[i], InvalidChars) then Exit;
+
+  {$IFDEF MSWINDOWS}
+  i := Pos(':', LongFileName);
+  if (i > 0) then
+  begin
+    if i <> 2 then Exit;
+    c := LongFileName[1];
+    if (not CharInSet(c, ['A'..'Z'])) and (not CharInSet(c, ['a'..'z'])) then Exit;
+    if Length(LongFileName) < 4 then Exit;
+    c := LongFileName[3];
+    if not (CharInSet(c, DirSeparators)) then Exit;
+  end;
+  {$ENDIF}
+  Result := True;
 end;
 
 function FixFileNameSlashes(const FileName: string): string;
@@ -966,7 +1011,7 @@ end;
 {$hints on}
 
 
-function IntToStrEx(x: int64; c: Char = ' '): string;
+function IntToStrEx(const x: int64; c: Char = ' '): string;
 var
   s: string;
   i, k, Len: integer;
@@ -975,15 +1020,12 @@ begin
 
   k := Length(s) div 3;
   Len := Length(s);
-  for i := 1 to k do
-  begin
-    Insert(c, s, Len - (i * 3) + 1);
-  end;
+  for i := 1 to k do Insert(c, s, Len - (i * 3) + 1);
 
   Result := Trim(s);
 end;
 
-function IntToStrEx(x: integer; c: Char): string;
+function IntToStrEx(const x: integer; c: Char): string;
 var
   s: string;
   i, k, Len: integer;
