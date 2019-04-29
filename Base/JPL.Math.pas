@@ -1,4 +1,4 @@
-unit JPL.Math;
+﻿unit JPL.Math;
 
 
 interface
@@ -6,48 +6,45 @@ interface
 uses SysUtils;
 
 
-function pot(liczba: Extended; wykladnik: Extended): Extended;
+function pot(const liczba, wykladnik: Extended): Extended;
 
-function sinSt(x: Extended): Extended;
-function cosSt(x: Extended): Extended;
-function tgSt(x: Extended): Extended;
-function ctgSt(x: Extended): Extended;
+function SinDeg(const x: Extended): Extended;
+function CosDeg(const x: Extended): Extended;
+function TgDeg(const x: Extended): Extended;
+function CtgDeg(const x: Extended): Extended;
 
-function sinGr(x: Extended): Extended;
-function cosGr(x: Extended): Extended;
-function tgGr(x: Extended): Extended;
-function ctgGr(x: Extended): Extended;
+function SinGrad(const x: Extended): Extended;
+function CosGrad(const x: Extended): Extended;
+function TgGrad(const x: Extended): Extended;
+function CtgGrad(const x: Extended): Extended;
 
-function sinRad(x: Extended): Extended;
-function cosRad(x: Extended): Extended;
-function tgRad(x: Extended): Extended;
-function ctgRad(x: Extended): Extended;
+function SinRad(const x: Extended): Extended;
+function CosRad(const x: Extended): Extended;
+function TgRad(const x: Extended): Extended;
+function CtgRad(const x: Extended): Extended;
 
-function tg(x: Extended): Extended;
-function ctg(x: Extended): Extended;
+//function tg(const x: Extended): Extended;
+//function ctg(const x: Extended): Extended;
 
 function GetNearestMultiple(xNum, xMultiple: integer): integer;
 
 
 // Jaki procent wartości x100Percent stanowi Value
-function PercentValue(Value, x100Percent: Double): Real;
-function PercentValueStr(Value, x100Percent: Double; Digits: integer = 2): string;
+function PercentValue(const Value, x100Percent: Double): Double;
+function PercentValueStr(const Value, x100Percent: Double; Digits: integer = 2): string;
 
 // Ile wynosi procent Percent wartości x100Percent
-function PercentOf(Percent: Double; x100PercentValue: Double): Double; overload;
-function PercentOf(Percent: integer; x100PercentValue: Double): integer; overload;
+function PercentOf(const Percent, x100PercentValue: Double): Double; overload;
+function PercentOf(const Percent: integer; const x100PercentValue: Double): integer; overload;
 
 function InRange(const Value, Min, Max: integer): Boolean;
-
-var
-  rad: Extended;
 
 
 
 implementation
 
 
-function PercentOf(Percent: integer; x100PercentValue: Double): integer;
+function PercentOf(const Percent: integer; const x100PercentValue: Double): integer;
 begin
   Result := Round(Percent * x100PercentValue / 100);
 end;
@@ -57,18 +54,18 @@ begin
   Result := (Value >= Min) and (Value <= Max);
 end;
 
-function PercentOf(Percent: Double; x100PercentValue: Double): Double;
+function PercentOf(const Percent, x100PercentValue: Double): Double;
 begin
   Result := (Percent * x100PercentValue) / 100;
 end;
 
-function PercentValue(Value, x100Percent: Double): Real;
+function PercentValue(const Value, x100Percent: Double): Double;
 begin
   if x100Percent = 0 then Result := 0
   else Result := Value * 100 / x100Percent;
 end;
 
-function PercentValueStr(Value, x100Percent: Double; Digits: integer = 2): string;
+function PercentValueStr(const Value, x100Percent: Double; Digits: integer = 2): string;
 var
   s: string;
   i: integer;
@@ -89,7 +86,7 @@ end;
 
 {------------------------------------------------------------}
 
-function pot(liczba: Extended; wykladnik: Extended): Extended;
+function pot(const liczba, wykladnik: Extended): Extended;
 begin
   pot := exp(wykladnik * ln(liczba));
 end;
@@ -98,81 +95,72 @@ end;
 
 {------------------------------------------------------------}
 
-function sinSt(x: Extended): Extended;
+function SinDeg(const x: Extended): Extended;
+var
+  rad: Extended;
 begin
   rad := x * pi / 180;
-  sinSt := sin(rad);
+  SinDeg := sin(rad);
 end;
 
-function cosSt(x: Extended): Extended;
+function CosDeg(const x: Extended): Extended;
+var
+  rad: Extended;
 begin
   rad := x * pi / 180;
-  cosSt := cos(rad);
+  CosDeg := cos(rad);
 end;
 
-function tgSt(x: Extended): Extended;
+function TgDeg(const x: Extended): Extended;
+var
+  rad: Extended;
 begin
   rad := x * pi / 180;
-  tgSt := sin(rad) / cos(rad);
+  TgDeg := sin(rad) / cos(rad);
 end;
 
-function ctgSt(x: Extended): Extended;
+function CtgDeg(const x: Extended): Extended;
+var
+  rad: Extended;
 begin
   rad := x * pi / 180;
-  ctgSt := cos(rad) / sin(rad);
+  CtgDeg := cos(rad) / sin(rad);
 end;
 
 
 
 {------------------------------------------------------------}
 
-function sinGr(x: Extended): Extended;
+function SinGrad(const x: Extended): Extended;
+var
+  rad: Extended;
 begin
   rad := x * pi / 200;
-  sinGr := sin(rad);
+  SinGrad := sin(rad);
 end;
 
-function cosGr(x: Extended): Extended;
+function CosGrad(const x: Extended): Extended;
+var
+  rad: Extended;
 begin
   rad := x * pi / 200;
-  cosGr := cos(rad);
+  CosGrad := cos(rad);
 end;
 
-function tgGr(x: Extended): Extended;
+function TgGrad(const x: Extended): Extended;
+var
+  rad: Extended;
 begin
   rad := x * pi / 200;
-  tgGr := sin(rad) / cos(rad);
+  TgGrad := sin(rad) / cos(rad);
 end;
 
-function ctgGr(x: Extended): Extended;
+function CtgGrad(const x: Extended): Extended;
+var
+  rad: Extended;
 begin
   rad := x * pi / 200;
-  ctgGr := cos(rad) / sin(rad);
-end;
-
-
-
-
-{------------------------------------------------------------}
-
-function sinRad(x: Extended): Extended;
-begin
-  sinRad := sin(x);
-end;
-
-function cosRad(x: Extended): Extended;
-begin
-  cosRad := cos(x);
-end;
-
-function tgRad(x: Extended): Extended;
-begin
-  tgRad := sin(x) / cos(x);
-end;
-
-function ctgRad(x: Extended): Extended;
-begin
-  ctgRad := cos(x) / sin(x);
+  CtgGrad := cos(rad) / sin(rad);
 end;
 
 
@@ -180,15 +168,40 @@ end;
 
 {------------------------------------------------------------}
 
-function tg(x: Extended): Extended;
+function SinRad(const x: Extended): Extended;
 begin
-  tg := sin(x) / cos(x);
+  SinRad := sin(x);
 end;
 
-function ctg(x: Extended): Extended;
+function CosRad(const x: Extended): Extended;
 begin
-  ctg := cos(x) / sin(x);
+  CosRad := cos(x);
 end;
+
+function TgRad(const x: Extended): Extended;
+begin
+  TgRad := sin(x) / cos(x);
+end;
+
+function CtgRad(const x: Extended): Extended;
+begin
+  CtgRad := cos(x) / sin(x);
+end;
+
+
+
+
+{------------------------------------------------------------}
+
+//function tg(const x: Extended): Extended;
+//begin
+//  tg := sin(x) / cos(x);
+//end;
+//
+//function ctg(const x: Extended): Extended;
+//begin
+//  ctg := cos(x) / sin(x);
+//end;
 
 
 
