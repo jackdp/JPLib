@@ -170,13 +170,21 @@ function ModifyColorRedChannel(const Color: TColor; const DeltaRed: integer): TC
 function ModifyColorGreenChannel(const Color: TColor; const DeltaGreen: integer): TColor;
 function ModifyColorBlueChannel(const Color: TColor; const DeltaBlue: integer): TColor;
 function ModifyColorRGBChannels(const Color: TColor; const DeltaRed, DeltaGreen, DeltaBlue: integer): TColor;
+function RgbDelta(const Color: TColor; const DeltaRed, DeltaGreen, DeltaBlue: integer): TColor; overload;
+function RgbDelta(const Color: TColor; const DeltaRGB: integer): TColor; overload;
 
+function HiByte(w: Longint): Byte; overload;
 
 
 implementation
 
 
 
+
+function HiByte(w: Longint): Byte;
+begin
+  Result := Byte(((Word(w)) shr 8) and $FF);
+end;
 
 function ModifyColorRedChannel(const Color: TColor; const DeltaRed: integer): TColor;
 var
@@ -220,6 +228,15 @@ begin
   Result := RGB(r, g, b);
 end;
 
+function RgbDelta(const Color: TColor; const DeltaRed, DeltaGreen, DeltaBlue: integer): TColor;
+begin
+  Result := ModifyColorRGBChannels(Color, DeltaRed, DeltaGreen, DeltaBlue);
+end;
+
+function RgbDelta(const Color: TColor; const DeltaRGB: integer): TColor;
+begin
+  Result := ModifyColorRGBChannels(Color, DeltaRGB, DeltaRGB, DeltaRGB);
+end;
 
 
 function SetColorRedChannel(const Color: TColor; const RedValue: Byte): TColor;
@@ -279,15 +296,21 @@ end;
 function MediumColor(Color1, Color2: TColor): TColor;
 var
   r,g,b: Integer;
+  Rec1, Rec2: TRGBRec;
 begin
   if Color1 <> Color2 then
   begin
     Color1 := ColorToRGB(Color1);
     Color2 := ColorToRGB(Color2);
 
-    r := ( GetRValue(Color1) + GetRValue(Color2) ) div 2;
-    g := ( GetGValue(Color1) + GetGValue(Color2) ) div 2;
-    b := ( GetBValue(Color1) + GetBValue(Color2) ) div 2;
+    GetRgbChannels(Color1, Rec1.R, Rec1.G, Rec1.B);
+    GetRgbChannels(Color2, Rec2.R, Rec2.G, Rec2.B);
+    r := (Rec1.R + Rec2.R) div 2;
+    g := (Rec1.G + Rec2.G) div 2;
+    b := (Rec1.B + Rec2.B) div 2;
+    //r := ( GetRValue(Color1) + GetRValue(Color2) ) div 2;
+    //g := ( GetGValue(Color1) + GetGValue(Color2) ) div 2;
+    //b := ( GetBValue(Color1) + GetBValue(Color2) ) div 2;
 //    RESULT := TColor( RGB(r, g, b) );
     RESULT := RGB(r, g, b);
   end
@@ -458,10 +481,11 @@ end;
 
 function FadeToGray(Color: TColor): TColor;
 var
-  LBytGray: byte;
+  LBytGray, r, g, b: Byte;
 begin
   Color := ColorToRGB(Color);
-  LBytGray := HiByte(GetRValue(Color) * 74 {%H-}+ GetGValue(Color) * 146 {%H-}+ GetBValue(Color) * 36);
+  GetRgbChannels(Color, r, g, b);
+  LBytGray := HiByte(r * 74 {%H-}+ g * 146 {%H-}+ b * 36);
   Result := RGB(LBytGray, LBytGray, LBytGray);
 end;
 
