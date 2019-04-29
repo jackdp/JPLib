@@ -3,19 +3,44 @@
 {
   Jacek Pazera
   http://www.pazera-software.com
+  Last mod: 26.04.2019
+
+  A class that allows you to search for files in many specified locations (local HDD, UNC paths) and for different file masks.
+  Long file names (over 255 characters) are not a problem.
+
+  How to play with TJPFileSearcher:
+  1: Set FileInfoMode to desired value. Default = fimOnlyFileNames - returns only file names (without checking the file sizes and dates).
+  2. Add the starting directory and the file masks to be searched using the AddInput method. You can call AddInput many times, with different input data.
+         Eg.: AddInput('C:\Windows', ['*.ini', '*.exe']);
+              AddInput('\\nas\shared_music\', ['*.mp3', '*.flac', '*.ape', '*.mpc', '*.ogg']);  // UNC paths are OK!
+              AddInput('\\192.168.0.184\web\public_html\', ['.htaccess']);
+  3. Call Search method.
+  4. You can get a list of found files using GetFileList(TStrings) OR GetFirstFile + GetNextFile OR Items[Index].Results
+     OutputCount - the number of found files
+
+
+  Metoda postępowania z TJPFileSearcher:
+  1. Ustawić FileInfoMode (domyślnie fimOnlyFileNames - tylko nazwy plików).
+  2. Dodać pliki do wyszukania za pomocą AddInput.
+  3. Wywołać Search.
+  4: Pobrać listę znalezionych plików: GetFileList lub GetFirstFile + GetNextFile, lub Items[Index].Results.
+     OutputCount zwraca liczbę znalezionych plików.
+
 }
+
+// TODO: Migracja fgl -> generics.collections
 
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
   {$modeswitch ADVANCEDRECORDS}
 {$ELSE}
-For FPC only!
+Sorry Delphi! This is for FPC only!
 {$ENDIF}
 
 interface
 
 uses
-  {$IFDEF FPC}LazUTF8,{$ENDIF}
+  {$IFDEF FPC}LazUTF8,{$ENDIF} // czy to jeszcze jest potrzebne?
   Classes, SysUtils,
 
   {$IFDEF FPC}fgl,{$ENDIF}
@@ -53,11 +78,14 @@ type
   TFSResults = specialize TFPGMap<integer,TFSResultItem>;
   TFSFilesToSerach = specialize TFPGList<string>;
 
+  // Input item
   TFSItem = record
     Directory: string;
     RecurseDepth: WORD;
     FilesToSearch: TFSFilesToSerach;
     Results: TFSResults;
+    Tag: integer;
+    TagStr: string;
     function ResultCount: integer;
   end;
 
@@ -74,47 +102,48 @@ type
   end;
 
 
-  {
-    Metoda postępowania z TJPFileSearcher:
-    1. Ustawić FileInfoMode (domyślnie fimOnlyFileNames - tylko nazwy plików).
-    2. Dodać pliki do wyszukania za pomocą AddInput.
-    3. Wywołać Search.
-    4: Pobrać listę znalezionych plików: GetFileList lub GetFirstFile + GetNextFile, lub Items[Index].
-       OutputCount zwraca liczbę znalezionych plików.
-  }
-
 
   TJPFileSearcher = class
   private
+    FAcceptDirectorySymLinks: Boolean;
+    FAcceptFileSymLinks: Boolean;
     FFileCountLimit: DWORD;
     FFileInfoMode: TFSFileInfoMode;
     FItems: TFSItems;
+    FOnFoundDirectory: TJPEnumDirsProcObj;
+    FOnFoundFile: TJPEnumFilesProcObj;
     FRecurseDepth: WORD;
     FSearchRec: TFSSearchRec;
     FStats: TFSStats;
     function GetInputCount: integer;
     function GetItems(Index: integer): TFSItem;
     function GetOutputCount: integer;
+    procedure SetAcceptDirectorySymLinks(AValue: Boolean);
+    procedure SetAcceptFileSymLinks(AValue: Boolean);
     procedure SetFileCountLimit(AValue: DWORD);
 
     procedure SetFileInfoMode(AValue: TFSFileInfoMode);
+    procedure SetOnFoundDirectory(AValue: TJPEnumDirsProcObj);
+    procedure SetOnFoundFile(AValue: TJPEnumFilesProcObj);
     procedure SetRecurseDepth(AValue: WORD);
   public
 
     constructor Create;
     destructor Destroy; override;
 
-    // Starts the search. First, provide the input for the search using Addinput.
+    // Starts the search. First, provide the input for the search using AddInput.
     procedure Search;
 
-    // Ustawianie wartości domyślnych zmiennych i czyszczenie list.
+    // Clears the result list and restores default values
     procedure ClearAll;
 
-    // Tutaj podaje się dane wejściowe dla wyszukiwania:
+    // The input data for the search is given here:
     // Dir - Directory to search.
     // FileMasks - An array with file masks.
     // Returns the index of the newly added item in the FItems dictionary (map).
     function AddInput(const Dir: string; FileMasks: array of string; RecurseDepth: integer = FS_DEAFULT_RECURSE_DEPTH): integer;
+    function AddInputWithTag(const Dir: string; FileMasks: array of string; RecurseDepth: integer = FS_DEAFULT_RECURSE_DEPTH; Tag: integer = -1;
+      TagStr: string = ''): integer;
 
     // An attempt to retrieve an FSInputItem element with the given index.
     function TryGetInputItem(const Index: integer; out FSInputItem: TFSItem): Boolean;
@@ -127,7 +156,7 @@ type
     function GetFirstFile(var FileName: string): Boolean;
     function GetNextFile(var FileName: string): Boolean;
 
-    function InputAsStr: string; // for debug purposes
+    function InputAsStr: string; // for debug purposes // TODO: Remove or comment out InputAsStr
 
     // Fills the Stats record.
     procedure UpdateStats;
@@ -150,10 +179,27 @@ type
     property Items[Index: integer]: TFSItem read GetItems {write SetItems}; default;
 
     // To read the fields of this record, first call the procedure UpdateStats.
+    // TFSStats - this record contains several statistical information about found files: number of found files, total size of all files, max file size...
     property Stats: TFSStats read FStats;
 
     // The search stops when FileCountLimit files are found. 0 = no limit (default)
     property FileCountLimit: DWORD read FFileCountLimit write SetFileCountLimit;
+
+    // When searching, include symbolic links/junctions to directories.
+    // Przeszukuj także linki symboliczne do katalogów.
+    property AcceptDirectorySymLinks: Boolean read FAcceptDirectorySymLinks write SetAcceptDirectorySymLinks;
+
+    // Przeszukuj także linki symboliczne do plików.
+    property AcceptFileSymLinks: Boolean read FAcceptFileSymLinks write SetAcceptFileSymLinks;
+
+    // This callback function is called after finding each directory. To continue searching, this function must return True.
+    // To stop seraching - return False.
+    property OnFoundDirectory: TJPEnumDirsProcObj read FOnFoundDirectory write SetOnFoundDirectory;
+
+    // This callback function is called after finding each file. To continue searching, this function must return True.
+    // To stop seraching - return False.
+    property OnFoundFile: TJPEnumFilesProcObj read FOnFoundFile write SetOnFoundFile;
+
   end;
 
 
@@ -177,6 +223,10 @@ end;
 constructor TJPFileSearcher.Create;
 begin
   FItems := TFSItems.Create;
+  FOnFoundDirectory := nil;
+  FOnFoundFile := nil;
+  FAcceptDirectorySymLinks := True;
+  FAcceptFileSymLinks := True;
   ClearAll;
 end;
 
@@ -206,6 +256,30 @@ end;
 
 {$endregion Create, Clear, Destroy}
 
+
+procedure TJPFileSearcher.SetOnFoundDirectory(AValue: TJPEnumDirsProcObj);
+begin
+  if FOnFoundDirectory = AValue then Exit;
+  FOnFoundDirectory := AValue;
+end;
+
+procedure TJPFileSearcher.SetOnFoundFile(AValue: TJPEnumFilesProcObj);
+begin
+  if FOnFoundFile = AValue then Exit;
+  FOnFoundFile := AValue;
+end;
+
+
+function EnumDirsProc(CurrentDirNo: integer; CurrentDir: string): Boolean;
+begin
+  Result := True;
+end;
+
+function EnumFilesProc(Dirs, CurrentFileNo, CurrentDirNo: integer; CurrentFile: string): Boolean;
+begin
+  Result := True;
+end;
+
 {$region '                          Search                            '}
 procedure TJPFileSearcher.Search;
 var
@@ -231,6 +305,7 @@ begin
     begin
 
       ii := FItems.Data[i];
+      if ii.FilesToSearch.Count = 0 then Continue;
       Dir := ii.Directory;
       Dir := Trim(Dir);
       if Dir = '' then Continue;
@@ -245,7 +320,7 @@ begin
         if fMask = '' then Continue;
         sl.Clear;
 
-        JPGetFileList(fMask, Dir, sl, ii.RecurseDepth, True, True, nil, nil, nil);
+        JPGetFileListObj(fMask, Dir, sl, ii.RecurseDepth, FAcceptDirectorySymLinks, FAcceptFileSymLinks, FOnFoundDirectory, FOnFoundFile, nil);
         for y := 0 to sl.Count - 1 do
         begin
           Inc(xFiles);
@@ -282,12 +357,19 @@ end;
 {$endregion Search}
 
 function TJPFileSearcher.AddInput(const Dir: string; FileMasks: array of string; RecurseDepth: integer): integer;
+begin
+  Result := AddInputWithTag(Dir, FileMasks, RecurseDepth, -1, '');
+end;
+
+function TJPFileSearcher.AddInputWithTag(const Dir: string; FileMasks: array of string; RecurseDepth: integer; Tag: integer = -1; TagStr: string = ''): integer;
 var
   ii: TFSItem;
   i: integer;
 begin
   ii.Directory := Dir;
   ii.RecurseDepth := RecurseDepth;
+  ii.Tag := Tag;
+  ii.TagStr := '';
 
   ii.FilesToSearch := TFSFilesToSerach.Create;
   for i := 0 to High(FileMasks) do ii.FilesToSearch.Add(FileMasks[i]);
@@ -417,6 +499,18 @@ begin
     Result += FItems.Data[i].Results.Count;
 end;
 
+procedure TJPFileSearcher.SetAcceptDirectorySymLinks(AValue: Boolean);
+begin
+  if FAcceptDirectorySymLinks = AValue then Exit;
+  FAcceptDirectorySymLinks := AValue;
+end;
+
+procedure TJPFileSearcher.SetAcceptFileSymLinks(AValue: Boolean);
+begin
+  if FAcceptFileSymLinks = AValue then Exit;
+  FAcceptFileSymLinks := AValue;
+end;
+
 procedure TJPFileSearcher.SetFileCountLimit(AValue: DWORD);
 begin
   if FFileCountLimit = AValue then Exit;
@@ -460,6 +554,8 @@ begin
   if FFileInfoMode = AValue then Exit;
   FFileInfoMode := AValue;
 end;
+
+
 
 
 
