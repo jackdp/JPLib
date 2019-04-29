@@ -154,6 +154,7 @@ type
     procedure Run;  // MAIN procedure
     procedure Done; // <-- user finalization (freeing resources etc.)
     procedure Terminate; // Sets FTerminated to True and calls TerminateProcedure
+    procedure TerminateWithExitCode(const ExCode: integer);
 
     function AppDateStr: string;
     function VersionStr(bShowRevAndBuildNumber: Boolean = False): string;
@@ -541,6 +542,12 @@ begin
   {$IFDEF MSWINDOWS}
   if Assigned(FTerminateProcedure) then FTerminateProcedure;
   {$ENDIF}
+end;
+
+procedure TJPConsoleApp.TerminateWithExitCode(const ExCode: integer);
+begin
+  ExitCode := ExCode;
+  Terminate;
 end;
 
 function TJPConsoleApp.AppDateStr: string;
