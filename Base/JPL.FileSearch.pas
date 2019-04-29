@@ -3,7 +3,11 @@ unit JPL.FileSearch;
 {
   Jacek Pazera
   http://www.pazera-software.com
-  Last mod: 2018.01.24
+  Last mod: 2019.04.26
+
+  Non-recursive search of files and directories.
+  The solution is not much slower than using recursion, but less memory-consuming.
+
 
   Nierekursywne przetwarzanie plików i katalogów.
   Rozwi¹zanie niewiele wolniejsze ni¿ z zastosowaniem rekurencji, za to mniej pamiêcio¿erne.
@@ -15,6 +19,9 @@ unit JPL.FileSearch;
   2018.01.24
   [+] JPFileSearchCaseSensitive
   [+] Sprawdzanie masek MatchesMask [FPC]
+  ----
+  2019.04.26
+  [+] JPGetFileListObj - copy of JPGetFileList with "of object" callback procs (for TJPFileSearcher).
 
   ------------------------------------------------------
 
@@ -23,7 +30,11 @@ unit JPL.FileSearch;
   FPC 3.1.1 ma problemy z maskami w FindFirst/FindNext. Czasami akceptuje pliki zupe³nie nie pasuj¹ce do maski!
   Na Delphi XE7 wszystko dzia³a prawid³owo.
   W FPC wprowadzi³em dodatkowe sprawdzenie przez MatchesMask.
+
+
+
 }
+
 
 //{$WARN SYMBOL_PLATFORM OFF}
 
@@ -60,6 +71,10 @@ type
   TJPSimpleEnumProc = function(CurrentFileNo: integer): Boolean;
   TJPEnumDirsProc = function(CurrentDirNo: integer; CurrentDir: string): Boolean;
   TJPEnumFilesProc = function(Dirs, CurrentFileNo, CurrentDirNo: integer; CurrentFile: string): Boolean;
+
+  TJPSimpleEnumProcObj = function(CurrentFileNo: integer): Boolean of object;
+  TJPEnumDirsProcObj = function(CurrentDirNo: integer; CurrentDir: string): Boolean of object;
+  TJPEnumFilesProcObj = function(Dirs, CurrentFileNo, CurrentDirNo: integer; CurrentFile: string): Boolean of object;
 
   TJPEnumFilesProc2 = function(CurrDirNo, CurrFileNo: integer; CurrDir, CurrFile: string): Boolean;
   TJPAcceptFileProc = function(FileName: string): Boolean;
@@ -109,6 +124,15 @@ procedure JPGetFileList(
   EnumDirsProc: TJPEnumDirsProc = nil;
   EnumFilesProc: TJPEnumFilesProc = nil;
   SimpleEnumDirsProc: TJPSimpleEnumProc = nil
+);
+
+{ "of object" variant }
+procedure JPGetFileListObj(
+  FileMask, StartDir: string; var FileList: TStringList; RecurseDepth: integer = DEFAULT_RECURSE_DEPTH;
+  AcceptDirSymLinks: Boolean = True; AcceptFileSymLinks: Boolean = True;
+  EnumDirsProc: TJPEnumDirsProcObj = nil;
+  EnumFilesProc: TJPEnumFilesProcObj = nil;
+  SimpleEnumDirsProc: TJPSimpleEnumProcObj = nil
 );
 
 procedure JPGetFileList2(
@@ -541,7 +565,137 @@ begin
     Last.Free;
   end;
 end;
-{$endregion}
+{$endregion JPGetFileList}
+
+
+{$region ' ---------------------------------------------- JPGetFileListObj ------------------------------------------------- '}
+procedure FindDirsObj(StartDir: string; var List: TStringList; AcceptSymLinks: Boolean = True; SimpleEnumProc: TJPSimpleEnumProcObj = nil);
+var
+  SR: TSearchRec;
+  xFileNo: integer;
+begin
+  xFileNo := 0;
+  if FindFirst(StartDir, faAnyFile, SR) = 0 then
+  try
+    Inc(xFileNo);
+
+    if Assigned(SimpleEnumProc) then if not SimpleEnumProc(xFileNo) then Exit;
+
+    if IsDirectory(SR, AcceptSymLinks) then List.Add(Copy(StartDir, 1, Length(StartDir) - 2) + PathDelim + SR.Name);
+
+    while FindNext(SR) = 0 do
+    begin
+      if IsDirectory(SR, AcceptSymLinks) then List.Add(Copy(StartDir, 1, Length(StartDir) - 2) + PathDelim + SR.Name);
+      Inc(xFileNo);
+      if Assigned(SimpleEnumProc) then if not SimpleEnumProc(xFileNo) then Exit;
+    end;
+
+  finally
+    FindClose(SR);
+  end;
+
+end;
+
+procedure JPGetFileListObj(
+  FileMask, StartDir: string; var FileList: TStringList; RecurseDepth: integer = DEFAULT_RECURSE_DEPTH;
+  AcceptDirSymLinks: Boolean = True; AcceptFileSymLinks: Boolean = True;
+  EnumDirsProc: TJPEnumDirsProcObj = nil; EnumFilesProc: TJPEnumFilesProcObj = nil; SimpleEnumDirsProc: TJPSimpleEnumProcObj = nil);
+var
+  SubdirsList, TempFileList, TempList: TStringList;
+  MainDirectoryList: TStringList;
+  Last: TStringList;
+  i, x, k: integer;
+begin
+
+  SubdirsList := TStringList.Create;
+  TempFileList := TStringList.Create;
+  TempList := TStringList.Create;
+  MainDirectoryList := TStringList.Create;
+  Last := TStringList.Create;
+  try
+
+    StartDir := AddUncPrefix(StartDir);
+
+    // ---------------------------------- creating directory list -----------------------------------------
+    if StartDir[Length(StartDir)] = PathDelim then StartDir := Copy(StartDir, 1, Length(StartDir) - 1);
+    MainDirectoryList.Add(StartDir);
+
+    if RecurseDepth > 0 then
+    begin
+      StartDir := StartDir + PathDelim + '*';
+      SubdirsList.Clear;
+      if Assigned(SimpleEnumDirsProc) then FindDirsObj(StartDir, SubdirsList, AcceptDirSymLinks, SimpleEnumDirsProc)
+      else FindDirsObj(StartDir, SubdirsList, AcceptDirSymLinks);
+    end;
+
+
+    for i := 0 to SubdirsList.Count - 1 do
+    begin
+      MainDirectoryList.Add(RemoveUncPrefix(SubdirsList[i]));
+      if Assigned(EnumDirsProc) then if not EnumDirsProc(MainDirectoryList.Count, MainDirectoryList[MainDirectoryList.Count - 1]) then Exit; // MainDirectoryList.LastItem) then Exit;
+      Last.Add(SubdirsList[i]);
+    end;
+
+    for i := 1 to RecurseDepth - 1 do
+    begin
+
+      for x := 0 to Last.Count - 1 do
+      begin
+
+        StartDir := Last[x] + PathDelim + '*';
+        SubdirsList.Clear;
+
+        if Assigned(SimpleEnumDirsProc) then FindDirsObj(StartDir, SubdirsList, AcceptDirSymLinks, SimpleEnumDirsProc)
+        else FindDirsObj(StartDir, SubdirsList, AcceptDirSymLinks);
+
+        for k := 0 to SubdirsList.Count - 1 do
+        begin
+          MainDirectoryList.Add(RemoveUncPrefix(SubdirsList[k]));
+          if Assigned(EnumDirsProc) then if not EnumDirsProc(MainDirectoryList.Count, MainDirectoryList[MainDirectoryList.Count - 1]) then Exit; // MainDirectoryList.LastItem) then Exit;
+          TempList.Add(SubdirsList[k]);
+        end;
+
+      end; //for x
+
+      Last.Clear;
+      for k := 0 to TempList.Count - 1 do Last.Add(TempList[k]);
+      TempList.Clear;
+
+    end; // for i
+    // ------------------------------------- directory list created ---------------------------------------
+
+    MainDirectoryList.Sort;
+
+    // ------------------------------------------ searching files ---------------------------------------------
+    if MainDirectoryList.Count > 0 then
+    begin
+      TempFileList.Clear;
+
+      for i := 0 to MainDirectoryList.Count - 1 do
+      begin
+        TempFileList.Clear;
+        FindFiles(FileMask, MainDirectoryList[i], TempFileList, AcceptFileSymLinks);
+        for k := 0 to TempFileList.Count - 1 do
+        begin
+          FileList.Add(RemoveUncPrefix(TempFileList[k]));
+          if Assigned(EnumFilesProc) then if not EnumFilesProc(MainDirectoryList.Count, FileList.Count, i + 1, FileList[FileList.Count - 1]) then Exit; // FileList.LastItem) then Exit;
+        end;
+      end;
+
+    end;
+    // ------------------------------------------------------------------------------------------------------------
+
+
+  finally
+    //FileList.Sort;
+    MainDirectoryList.Free;
+    SubdirsList.Free;
+    TempList.Free;
+    TempFileList.Free;
+    Last.Free;
+  end;
+end;
+{$endregion JPGetFileListObj}
 
 
 {$region ' ---------------------------------------------- JPGetFileList2 ------------------------------------------------- '}
