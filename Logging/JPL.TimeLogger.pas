@@ -69,6 +69,8 @@ type
   end;
 
 
+
+function GetTimeCounterMS: Int64;
 function MsToTimeStr(ms: integer; RoundToSeconds: Boolean = False): string;
 
 implementation
