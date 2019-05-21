@@ -49,7 +49,7 @@ type
 
 
   
-function ParseTime(ms: DWORD; TimeFormat: TTimeFormat = tfMid): string;
+function ParseTime(ms: DWORD; TimeFormat: TTimeFormat = tfMid; Trim0Hour: Boolean = False): string;
 function GetCurrentTimeStr(TimeFormat: TTimeFormat = tfMid): string;
 function ParseDate(dt: TDateTime; DateFormat: TDateFormat = dfLongDay): string;
 function FirstDayOfYear(Year: WORD): TDateTime;
@@ -77,10 +77,17 @@ function GetDateTimeStr(dt: TDateTime; Format: string = '$Y.$M.$D-$H;$MIN;$S,$MS
 
 function SecToMs(const Sec: integer): integer;
 function MsToSecStr(const Ms: integer; PaddingS: Byte = 4; PaddingMs: Byte = 3): string;
+function SecToTimeStrShort(Sec: DWORD): string;
+function MsToDateTime(Ms: DWORD): TDateTime;
 
 
 implementation
 
+
+function SecToTimeStrShort(Sec: DWORD): string;
+begin
+  Result := ParseTime(Sec * 1000, tfMid, True);
+end;
 
 function SecToMs(const Sec: integer): integer;
 begin
@@ -387,8 +394,24 @@ begin
 end;
 
 
+function MsToDateTime(Ms: DWORD): TDateTime;
+var
+  h, m, s, msec {, msecv}: DWORD;
+begin
+  h := ms div MsHour;
+  ms := ms - h * MsHour;
+  m := ms div MsMin;
+  ms := ms - DWORD(m * MsMin);
+  s := ms div MsSec;
+  ms := ms - s * MsSec;
+  //msecv := ms;
+  msec := ms div 100;
+
+  Result := EncodeTime(h, m, s, msec);
+end;
+
 {$hints off}
-function ParseTime(ms: DWORD; TimeFormat: TTimeFormat): string;
+function ParseTime(ms: DWORD; TimeFormat: TTimeFormat = tfMid; Trim0Hour: Boolean = False): string;
 var
   h, m, s, msec, msecv: DWORD;
   sr: string;
@@ -408,23 +431,50 @@ begin
     sr :=
       Pad(IntToStr(h), 2, '0') + ':' +
       Pad(IntToStr(m), 2, '0')
+
   else if TimeFormat = tfMid then
-    sr :=
-      Pad(IntToStr(h), 2, '0') + ':' +
-      Pad(IntToStr(m), 2, '0') + ':' +
-      Pad(IntToStr(s), 2, '0')
+  begin
+    if Trim0Hour and (h = 0) then
+      sr :=
+        Pad(IntToStr(m), 2, '0') + ':' +
+        Pad(IntToStr(s), 2, '0')
+    else
+      sr :=
+        Pad(IntToStr(h), 2, '0') + ':' +
+        Pad(IntToStr(m), 2, '0') + ':' +
+        Pad(IntToStr(s), 2, '0');
+  end
+
   else if TimeFormat = tfLong then
-    sr :=
-      Pad(IntToStr(h), 2, '0') + ':' +
-      Pad(IntToStr(m), 2, '0') + ':' +
-      Pad(IntToStr(s), 2, '0') + '.' +
-      IntToStr(msec)
+  begin
+    if Trim0Hour and (h = 0) then
+      sr :=
+        Pad(IntToStr(m), 2, '0') + ':' +
+        Pad(IntToStr(s), 2, '0') + '.' +
+        IntToStr(msec)
+    else
+      sr :=
+        Pad(IntToStr(h), 2, '0') + ':' +
+        Pad(IntToStr(m), 2, '0') + ':' +
+        Pad(IntToStr(s), 2, '0') + '.' +
+        IntToStr(msec);
+  end
+
   else
-    sr :=
-      Pad(IntToStr(h), 2, '0') + ':' +
-      Pad(IntToStr(m), 2, '0') + ':' +
-      Pad(IntToStr(s), 2, '0') + '.' +
-      IntToStr(msecv);
+
+  begin
+    if Trim0Hour and (h = 0) then
+      sr :=
+        Pad(IntToStr(m), 2, '0') + ':' +
+        Pad(IntToStr(s), 2, '0') + '.' +
+        IntToStr(msecv)
+    else
+      sr :=
+        Pad(IntToStr(h), 2, '0') + ':' +
+        Pad(IntToStr(m), 2, '0') + ':' +
+        Pad(IntToStr(s), 2, '0') + '.' +
+        IntToStr(msecv);
+  end;
 
   Result := sr;
 end;
