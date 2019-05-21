@@ -8,7 +8,6 @@ unit JPL.Conversion;
   W kolejnych latach rozbudowywany i dostosowywany do nowszych wersji Delphi i FPC.
  }
 
-{ TODO : Zrobiæ generalny porz¹dek z tym ba³aganem! }
 
 {$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
 
