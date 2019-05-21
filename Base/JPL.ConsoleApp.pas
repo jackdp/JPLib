@@ -43,7 +43,7 @@ const
   APP_BITS_STR = '64';
   {$ELSE}
   APP_BITS = 32;
-  APP_BITS_32 = '32';
+  APP_BITS_STR = '32';
   {$ENDIF}
 
 
