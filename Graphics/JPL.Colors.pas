@@ -1009,7 +1009,14 @@ begin
       Color := RGB(r,g,b);
       Result := True;
     end;
-  end;
+  end
+  else
+    if TryStrToByte(s, r) then
+    begin
+      Color := RGB3(r);
+      Result := True;
+      Exit;
+    end;
 
 end;
 
