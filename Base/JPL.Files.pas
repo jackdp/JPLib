@@ -111,7 +111,7 @@ begin
   Result := ChangeFileExt(s, Ext);
 end;
 
-
+{$HINTS OFF}
 function DelFile(const FileName: string): Boolean;
 var
   w: WORD;
@@ -140,6 +140,7 @@ begin
     Result := not FileExists(FileName);
   end;
 end;
+{$HINTS ON}
 
 
 {$IFDEF MSWINDOWS}
