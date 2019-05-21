@@ -1,15 +1,14 @@
-unit JPL.Strings;
+Ôªøunit JPL.Strings;
 
 {
   Jacek Pazera
   http://www.pazera-software.com
   Last mod: 2019.04.28
 
-  To jest mÛj stary modu≥ z roku 2000 dla Borland Pascala 7.0
+  To jest m√≥j stary modu≈Ç z roku 2000 dla Borland Pascala 7.0
   W kolejnych latach rozbudowywany i dostosowywany do nowszych wersji Delphi i FPC.
  }
 
-{ TODO : ZrobiÊ generalny porzπdek z tym ba≥aganem! }
 
 {$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
 
@@ -37,7 +36,7 @@ function IsValidShortFileName(const ShortFileName: string): Boolean;
 function IsValidLongFileName(const LongFileName: string): Boolean;
 function FixFileNameSlashes(const FileName: string): string;
 function PadString(Text: string; i: integer; znak: char = ' '): string;
-function Pad(Text: string; i: integer; znak: char = ' '): string;
+function Pad(Text: string; Len: integer; PaddingChar: char = ' '): string;
 function PadRight(Text: string; i: integer; znak: char = ' '): string;
 function UnquoteStr(s: string; bDoubleQuote: Boolean = True): string;
 function IntToStrEx(const x: int64; c: Char = ' '): string; overload;
@@ -87,13 +86,13 @@ function GetAnchorText(InStr: string; FixHTMLSpecialChars: Boolean = True): stri
 function GetFirstDigitIndex(s: string): integer;
 function GetFirstNonDigitIndex(s: string): integer;
 
-function MyDir: string;
+function MyDir: string; // Returns the executable directory
 
 function StrRemove(s: string; StringToRemove: string): string;
 function GetFileSizeString(const FileSize: int64; BytesStr: string = ' bytes'): string;
 
 function TrimUp(s: string): string;
-function InsertNumSep(NumStr: string; Separator: string = ' '; NumBlockSize: integer = 3): string;
+function InsertNumSep(NumStr: string; Separator: string = ' '; NumBlockSize: integer = 3; MaxInsertions: integer = 255): string;
 function CopyString(const s: string; Copies: integer = 2): string;
 
 //procedure StrToList(LineToParse: string; var List: TStringList; Separator: string = ',');
@@ -107,6 +106,7 @@ function AddBounds(const s: string; StringToBoundSeparator: string = ' '; BoundC
 function GetRandomHexStr(Bytes: integer = 4; ByteSeparator: string = ''; bLowerCase: Boolean = False): string;
 function GetRandomIntStr(Len: integer = 10): string;
 
+// Case sensitive Pos
 function PosCS(const substr, s: string; bCaseSensitive: Boolean = False): integer;
 
 
@@ -285,7 +285,7 @@ begin
   for i := 1 to Copies do Result := Result + s;
 end;
 
-function InsertNumSep(NumStr: string; Separator: string = ' '; NumBlockSize: integer = 3): string;
+function InsertNumSep(NumStr: string; Separator: string = ' '; NumBlockSize: integer = 3; MaxInsertions: integer = 255): string;
 var
   s: string;
   i, k, Len, LastDigitPos, xp: integer;
@@ -297,13 +297,18 @@ begin
 
   xp := Pos(FormatSettings.DecimalSeparator, s);
   if xp > 0 then LastDigitPos := xp - 1;
-  //Len := Length(s);
+
   Len := LastDigitPos;
-  k := Len div NumBlockSize; // k - liczba wstawien separatora
+  k := Len div NumBlockSize; // k - liczba wstawie≈Ñ separatora
 
-  for i := 1 to k do Insert(Separator, s, Len - (i * NumBlockSize) + 1);
+  for i := 1 to k do
+  begin
+    if i > MaxInsertions then Break;
+    Insert(Separator, s, Len - (i * NumBlockSize) + 1);
+  end;
 
-  if Copy(s, 1, Length(Separator)) = Separator then Delete(s, 1, Length(Separator));
+  s := TrimFromStart(s, Separator);
+  //if Copy(s, 1, Length(Separator)) = Separator then Delete(s, 1, Length(Separator));
   Result := s;
 end;
 
@@ -449,7 +454,7 @@ end;
 
 
 {$hints off}
-// obcina ≥aÒcuch s po wystπpieniu w nim tekstu CutAfterText
+// obcina ≈Ça≈Ñcuch s po wystƒÖpieniu w nim tekstu CutAfterText
 function CutStrAfter(s, CutAfterText: string; IgnoreCase: Boolean = False; IncludeSearchText: Boolean = True): string;
 var
   xp: integer;
@@ -466,7 +471,7 @@ end;
 {$hints on}
 
 {$hints off}
-// obcina ≥aÒcuch s przed wystπpieniem w nim tekstu CutBeforeText
+// obcina ≈Ça≈Ñcuch s przed wystƒÖpieniem w nim tekstu CutBeforeText
 function CutStrBefore(s, CutBeforeText: string; IgnoreCase: Boolean = False): string;
 var
   xp: integer;
@@ -633,16 +638,16 @@ end;
 
 function IsSmallLetterPL(c: Char): Boolean;
 begin
-  //Result := c in ['a'..'z', 'π', 'Ê', 'Í', '≥', 'Û', 'ú', 'ü', 'ø'];
+  //Result := c in ['a'..'z', 'ƒÖ', 'ƒá', 'ƒô', '≈Ç', '√≥', '≈õ', '≈∫', '≈º'];
   //97..122 + Polish chars
-  Result := CharInSet(c, ['a'..'z', 'π', 'Ê', 'Í', '≥', 'Û', 'ú', 'ü', 'ø']);
+  Result := CharInSet(c, ['a'..'z', 'ƒÖ', 'ƒá', 'ƒô', '≈Ç', '√≥', '≈õ', '≈∫', '≈º']);
 end;
 
 function IsBigLetterPL(c: Char): Boolean;
 begin
-  //Result := c in ['A'..'Z', '•', '∆', ' ', '£', '”', 'å', 'è', 'Ø'];
+  //Result := c in ['A'..'Z', 'ƒÑ', 'ƒÜ', 'ƒò', '≈Å', '√ì', '≈ö', '≈π', '≈ª'];
   // 65..90 + Polish chars
-  Result := CharInSet(c, ['A'..'Z', '•', '∆', ' ', '£', '”', 'å', 'è', 'Ø']);
+  Result := CharInSet(c, ['A'..'Z', 'ƒÑ', 'ƒÜ', 'ƒò', '≈Å', '√ì', '≈ö', '≈π', '≈ª']);
 end;
 
 
@@ -814,33 +819,33 @@ function RemovePolishChars(s: string): string;
 var
   i: integer;
 begin
-  s := StringReplace(s, 'π', 'a', [rfReplaceAll]);
-  s := StringReplace(s, 'Ê', 'c', [rfReplaceAll]);
-  s := StringReplace(s, 'Í', 'e', [rfReplaceAll]);
-  s := StringReplace(s, '≥', 'l', [rfReplaceAll]);
-  s := StringReplace(s, 'Ò', 'n', [rfReplaceAll]);
-  s := StringReplace(s, 'Û', 'o', [rfReplaceAll]);
-  s := StringReplace(s, 'ú', 's', [rfReplaceAll]);
-  s := StringReplace(s, 'ü', 'z', [rfReplaceAll]);
-  s := StringReplace(s, 'ø', 'z', [rfReplaceAll]);
+  s := StringReplace(s, 'ƒÖ', 'a', [rfReplaceAll]);
+  s := StringReplace(s, 'ƒá', 'c', [rfReplaceAll]);
+  s := StringReplace(s, 'ƒô', 'e', [rfReplaceAll]);
+  s := StringReplace(s, '≈Ç', 'l', [rfReplaceAll]);
+  s := StringReplace(s, '≈Ñ', 'n', [rfReplaceAll]);
+  s := StringReplace(s, '√≥', 'o', [rfReplaceAll]);
+  s := StringReplace(s, '≈õ', 's', [rfReplaceAll]);
+  s := StringReplace(s, '≈∫', 'z', [rfReplaceAll]);
+  s := StringReplace(s, '≈º', 'z', [rfReplaceAll]);
 
-  s := StringReplace(s, '•', 'A', [rfReplaceAll]);
-  s := StringReplace(s, '∆', 'C', [rfReplaceAll]);
-  s := StringReplace(s, ' ', 'E', [rfReplaceAll]);
-  s := StringReplace(s, '£', 'L', [rfReplaceAll]);
-  s := StringReplace(s, '—', 'N', [rfReplaceAll]);
-  s := StringReplace(s, '”', 'O', [rfReplaceAll]);
-  s := StringReplace(s, 'å', 'S', [rfReplaceAll]);
-  s := StringReplace(s, 'è', 'Z', [rfReplaceAll]);
-  s := StringReplace(s, 'Ø', 'Z', [rfReplaceAll]);
+  s := StringReplace(s, 'ƒÑ', 'A', [rfReplaceAll]);
+  s := StringReplace(s, 'ƒÜ', 'C', [rfReplaceAll]);
+  s := StringReplace(s, 'ƒò', 'E', [rfReplaceAll]);
+  s := StringReplace(s, '≈Å', 'L', [rfReplaceAll]);
+  s := StringReplace(s, '≈É', 'N', [rfReplaceAll]);
+  s := StringReplace(s, '√ì', 'O', [rfReplaceAll]);
+  s := StringReplace(s, '≈ö', 'S', [rfReplaceAll]);
+  s := StringReplace(s, '≈π', 'Z', [rfReplaceAll]);
+  s := StringReplace(s, '≈ª', 'Z', [rfReplaceAll]);
 
-  s := StringReplace(s, 'Í', 'e', [rfReplaceAll]);
+  s := StringReplace(s, 'ƒô', 'e', [rfReplaceAll]);
   //s := StringReplace(s, 'A', 'a', [rfReplaceAll]);
-  s := StringReplace(s, 'à', 'l', [rfReplaceAll]);
-  s := StringReplace(s, 'ù', 'L', [rfReplaceAll]);
-  s := StringReplace(s, '‰', 'n', [rfReplaceAll]);
-  s := StringReplace(s, '©', 'e', [rfReplaceAll]);
-  s := StringReplace(s, 'Í', 'e', [rfReplaceAll]);
+  s := StringReplace(s, '¬à', 'l', [rfReplaceAll]);
+  s := StringReplace(s, '≈•', 'L', [rfReplaceAll]);
+  s := StringReplace(s, '√§', 'n', [rfReplaceAll]);
+  s := StringReplace(s, '¬©', 'e', [rfReplaceAll]);
+  s := StringReplace(s, 'ƒô', 'e', [rfReplaceAll]);
 
   for i := 1 to Length(s) do if not Ord(s[i]) in [65..122] then s[i] := '_';
 
@@ -869,18 +874,18 @@ begin
 end;
 
 {$hints off}
-function Pad(Text: string; i: integer; znak: char = ' '): string;
+function Pad(Text: string; Len: integer; PaddingChar: char = ' '): string;
 var
   x, y, k: integer;
   s: string;
 begin
   s := '';
-  if length(Text) < i then
+  if Length(Text) < Len then
   begin
-    x := length(Text);
-    y := i - x;
+    x := Length(Text);
+    y := Len - x;
     for k := 1 to y do
-      s := s + znak;
+      s := s + PaddingChar;
     Text := s + Text;
   end;
   Result := Text;
@@ -962,7 +967,7 @@ end;
 function IsValidLongFileName(const LongFileName: string): Boolean;
 const
   InvalidChars: set of AnsiChar = ['*', '?', '"', '<', '>', '|'];
-  {$IFDEF MSWINDOWS}DirSeparators : set of Char = ['\','/'];{$ENDIF}
+  {$IFDEF MSWINDOWS}DirSeparators: set of AnsiChar = ['\','/'];{$ENDIF}
 var
   i: integer;
   {$IFDEF MSWINDOWS}c: Char;{$ENDIF}
