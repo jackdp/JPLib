@@ -3,7 +3,8 @@
 {
   Jacek Pazera
   http://www.pazera-software.com
-  Last mod: 2019.04.28
+  https://github.com/jackdp
+  Last mod: 2019.05.21
 
   To jest mój stary moduł z roku 2000 dla Borland Pascala 7.0
   W kolejnych latach rozbudowywany i dostosowywany do nowszych wersji Delphi i FPC.
@@ -28,42 +29,50 @@ const
 
 
 
-function Rbs(Dir: string): string;
+function Rbs(Dir: string): string; // remove path delimiter from end
 function Qs(const s: string): string;
 //function Capitalize(s: string): string;
 function FixFileName(fName: string; s: string = '_'; ZamieniajCudzyslowy: Boolean = True): string;
 function IsValidShortFileName(const ShortFileName: string): Boolean;
 function IsValidLongFileName(const LongFileName: string): Boolean;
 function FixFileNameSlashes(const FileName: string): string;
-function PadString(Text: string; i: integer; znak: char = ' '): string;
-function Pad(Text: string; Len: integer; PaddingChar: char = ' '): string;
-function PadRight(Text: string; i: integer; znak: char = ' '): string;
+function PadString(Text: string; i: integer; znak: Char = ' '): string;
+function Pad(Text: string; Len: integer; PaddingChar: Char = ' '): string;
+function PadRight(Text: string; i: integer; znak: Char = ' '): string;
 function UnquoteStr(s: string; bDoubleQuote: Boolean = True): string;
 function IntToStrEx(const x: int64; c: Char = ' '): string; overload;
 function IntToStrEx(const x: integer; c: Char = ' '): string; overload;
-function GetLastCharIndex(s: string; c: Char): integer;
+
+function GetLastCharIndex(const s: string; c: Char): integer;
+function GetLastBIndex(const s: string): integer; deprecated 'Use GetLastBackslashIndex instead';
+function GetLastBackslashIndex(const s: string): integer;
+
 function DelFirstCharInString(s: string; ToDelete: Char): string;
 function DelLastCharInString(s: string; ToDelete: Char): string;
-function RemoveNum(s: string): string;
-function GetLastBIndex(s: string): integer;
+function RemoveNum(const s: string): string;
+
 //function AddSlashes(Text: string): string;
-function RemoveSlashes(Text: string): string;
-function RemoveSpaces(s: string): string;
-function ReplaceSpecialChars(s: string; sc: CHar = '_'): string;
+function RemoveSlashes(const Text: string): string;
+function RemoveSpaces(const s: string): string;
+function ReplaceSpecialChars(s: string; sc: Char = '_'): string;
 
 function RemoveAll(const Text, ToRemove: string; IgnoreCase: Boolean = False): string;
 function RemoveNonLetters(s: string): string;
 function ReplaceAll(const SrcStr, OldStr, NewStr: string; IgnoreCase: Boolean = False): string;
-function ReplaceDecimalSeparator(FloatStr: string; NewSeparator: string = '.'): string;
+function ReplaceDecimalSeparator(const FloatStr: string; NewSeparator: string = '.'): string;
+
 
 function RemovePolishChars(s: string): string;
+{$IFDEF DCC}
 function IsBigLetterPL(c: Char): Boolean;
 function IsSmallLetterPL(c: Char): Boolean;
 function IsLetterPL(c: Char): Boolean;
-function IsBigLetter(c: Char): Boolean;
-function IsSmallLetter(c: Char): Boolean;
-function IsLetter(c: Char): Boolean;
-function IsNumber(c: Char): Boolean;
+{$ENDIF}
+
+function IsBigLetter(const c: Char): Boolean;
+function IsSmallLetter(const c: Char): Boolean;
+function IsLetter(const c: Char): Boolean;
+function IsNumber(const c: Char): Boolean;
 
 function DistinctChars(s: string; IgnoreCase: Boolean = True): Boolean;
 function MakeDistinctChars(s: string): string;
@@ -80,16 +89,18 @@ function CutStrAfter(s, CutAfterText: string; IgnoreCase: Boolean = False; Inclu
 
 function GetFileExt(fName: string; bRemoveFirstDot: Boolean = True): string;
 
-function HtmlStringToStr(HTMLStr: string): string;
-function GetHref(InStr: string): string;
-function GetAnchorText(InStr: string; FixHTMLSpecialChars: Boolean = True): string;
-function GetFirstDigitIndex(s: string): integer;
-function GetFirstNonDigitIndex(s: string): integer;
+function HtmlStringToStr(HTMLStr: string; IgnoreCase: Boolean = False): string; deprecated 'Use ReplaceHtmlEntities instead';
+function ReplaceHtmlEntities(const AStr: string; IgnoreCase: Boolean = False): string;
 
-function MyDir: string; // Returns the executable directory
+function GetHref(const InStr: string): string;
+function GetAnchorText(const InStr: string; bReplaceHtmlEntities: Boolean = True): string;
+function GetFirstDigitIndex(const s: string): integer;
+function GetFirstNonDigitIndex(const s: string): integer;
 
-function StrRemove(s: string; StringToRemove: string): string;
-function GetFileSizeString(const FileSize: int64; BytesStr: string = ' bytes'): string;
+function MyDir(bExcludeTrailingPathDelim: Boolean = True): string; // Returns the executable directory
+
+function StrRemove(const s, StringToRemove: string): string;
+function GetFileSizeString(const FileSize: Int64; BytesStr: string = ' bytes'): string;
 
 function TrimUp(s: string): string;
 function InsertNumSep(NumStr: string; Separator: string = ' '; NumBlockSize: integer = 3; MaxInsertions: integer = 255): string;
@@ -317,7 +328,7 @@ begin
   Result := Trim(UpperCase(s));
 end;
 
-function GetFileSizeString(const FileSize: int64; BytesStr: string = ' bytes'): string;
+function GetFileSizeString(const FileSize: Int64; BytesStr: string = ' bytes'): string;
 var
   fs: extended;
   s: ShortString;
@@ -350,18 +361,19 @@ begin
   end;
 end;
 
-function StrRemove(s: string; StringToRemove: string): string;
+function StrRemove(const s, StringToRemove: string): string;
 begin
   Result := StringReplace(s, StringToRemove, '', [rfReplaceAll]);
 end;
 
-function MyDir: string;
+function MyDir(bExcludeTrailingPathDelim: Boolean = True): string;
 begin
-  //Result := rbs(ExtractFileDir(SysToUTF8(ParamStr(0))));
-  Result := rbs(ExtractFileDir(ParamStr(0)));
+  Result := ExtractFileDir(ParamStr(0));
+  if bExcludeTrailingPathDelim then Result := ExcludeTrailingPathDelimiter(Result)
+  else Result := IncludeTrailingPathDelimiter(Result);
 end;
 
-function GetFirstNonDigitIndex(s: string): integer;
+function GetFirstNonDigitIndex(const s: string): integer;
 var
   i: integer;
 begin
@@ -376,7 +388,7 @@ begin
 end;
 
 
-function GetFirstDigitIndex(s: string): integer;
+function GetFirstDigitIndex(const s: string): integer;
 var
   i: integer;
 begin
@@ -390,7 +402,7 @@ begin
     end;
 end;
 
-function GetHref(InStr: string): string;
+function GetHref(const InStr: string): string;
 var
   xp: integer;
   sr: string;
@@ -407,7 +419,7 @@ begin
 end;
 
 
-function GetAnchorText(InStr: string; FixHTMLSpecialChars: Boolean = True): string;
+function GetAnchorText(const InStr: string; bReplaceHtmlEntities: Boolean = True): string;
 var
   xp: integer;
   sr: string;
@@ -425,20 +437,74 @@ begin
       if xp > 0 then sr := Copy(sr, 1, xp - 1);
     end;
   end;
-  if FixHTMLSpecialChars then sr := HtmlStringToStr(sr);
+  if bReplaceHtmlEntities then sr := ReplaceHtmlEntities(sr); //     sr := HtmlStringToStr(sr);
   Result := sr;
 end;
 
 
-function HtmlStringToStr(HTMLStr: string): string;
-var
-  sr: string;
+function HtmlStringToStr(HTMLStr: string; IgnoreCase: Boolean = False): string;
+//var
+//  sr: string;
 begin
-  sr := HTMLStr;
-  sr := StringReplace(sr, '&lt;', '<', [rfReplaceAll, rfIgnorecase]);
-  sr := StringReplace(sr, '&gt;', '>', [rfReplaceAll, rfIgnorecase]);
-  sr := StringReplace(sr, '&amp;', '&', [rfReplaceAll, rfIgnorecase]);
-  Result := sr;
+//  sr := HTMLStr;
+//  sr := StringReplace(sr, '&lt;', '<', [rfReplaceAll, rfIgnorecase]);
+//  sr := StringReplace(sr, '&gt;', '>', [rfReplaceAll, rfIgnorecase]);
+//  sr := StringReplace(sr, '&amp;', '&', [rfReplaceAll, rfIgnorecase]);
+//  Result := sr;
+  Result := ReplaceHtmlEntities(HTMLStr, IgnoreCase);
+end;
+
+function ReplaceHtmlEntities(const AStr: string; IgnoreCase: Boolean = False): string;
+var
+  rf: TReplaceFlags;
+  s: string;
+begin
+  // HTML entities are case sensitive
+  rf := [rfReplaceAll];
+  if IgnoreCase then rf := rf + [rfIgnoreCase];
+
+  s := AStr;
+
+  s := StringReplace(s, '&lt;', '<', rf);
+  s := StringReplace(s, '&gt;', '>', rf);
+
+  s := StringReplace(s, '&euro;', '€', rf);
+  s := StringReplace(s, '&cent;', '¢', rf);
+  s := StringReplace(s, '&pound;', '£', rf);
+  s := StringReplace(s, '&yen;', '¥', rf);
+
+  s := StringReplace(s, '&amp;', '&', rf);
+  s := StringReplace(s, '&copy;', '©', rf);
+  s := StringReplace(s, '&reg;', '®', rf);
+  s := StringReplace(s, '&sect;', '§', rf);
+  s := StringReplace(s, '&deg;', '°', rf);
+  s := StringReplace(s, '&sup2;', '²', rf);
+  s := StringReplace(s, '&sup3;', '³', rf);
+  s := StringReplace(s, '&Integral;', '∫', rf);
+  s := StringReplace(s, '&micro;', 'µ', rf);
+  s := StringReplace(s, '&para;', '¶', rf);
+  s := StringReplace(s, '&middot;', '·', rf);
+  s := StringReplace(s, '&plusmn;', '±', rf);
+  s := StringReplace(s, '&times;', '×', rf);
+  s := StringReplace(s, '&divide;', '÷', rf);
+
+  s := StringReplace(s, '&Omega;', 'Ω', rf);
+  s := StringReplace(s, '&alpha;', 'α', rf);
+  s := StringReplace(s, '&beta;', 'β', rf);
+  s := StringReplace(s, '&gamma;', 'γ', rf);
+  s := StringReplace(s, '&Gamma;', 'Γ', rf);
+  s := StringReplace(s, '&delta;', 'δ', rf);
+  s := StringReplace(s, '&Delta;', 'Δ', rf);
+  s := StringReplace(s, '&pi;', 'π', rf);
+  s := StringReplace(s, '&Pi;', 'Π', rf);
+  s := StringReplace(s, '&Sigma;', 'Σ', rf);
+
+  s := StringReplace(s, '&bull;', '•', rf);
+  s := StringReplace(s, '&ndash;', '–', rf);
+  s := StringReplace(s, '&trade;', '™', rf);
+  s := StringReplace(s, '&SmallCircle;', '∘', rf); // &#8728; / &#x02218;
+
+  Result := s;
 end;
 
 
@@ -625,12 +691,13 @@ end;
 
 
 
-function IsNumber(c: Char): Boolean;
+function IsNumber(const c: Char): Boolean;
 begin
   //Result := c in ['0'..'9'];
   Result := CharInSet(c, ['0'..'9']);
 end;
 
+{$IFDEF DCC}
 function IsLetterPL(c: Char): Boolean;
 begin
   Result := IsSmallLetterPL(c) or IsBigLetterPL(c);
@@ -649,22 +716,23 @@ begin
   // 65..90 + Polish chars
   Result := CharInSet(c, ['A'..'Z', 'Ą', 'Ć', 'Ę', 'Ł', 'Ó', 'Ś', 'Ź', 'Ż']);
 end;
+{$ENDIF}
 
 
 
-function IsLetter(c: Char): Boolean;
+function IsLetter(const c: Char): Boolean;
 begin
   Result := IsSmallLetter(c) or IsBigLetter(c);
 end;
 
-function IsSmallLetter(c: Char): Boolean;
+function IsSmallLetter(const c: Char): Boolean;
 begin
   //Result := c in ['a'..'z'];
   //97..122
   Result := CharInSet(c, ['a'..'z']);
 end;
 
-function IsBigLetter(c: Char): Boolean;
+function IsBigLetter(const c: Char): Boolean;
 begin
   //Result := c in ['A'..'Z'];
   // 65..90
@@ -700,13 +768,13 @@ begin
   Result := StringReplace(SrcStr, OldStr, NewStr, rf);
 end;
 
-function ReplaceDecimalSeparator(FloatStr: string; NewSeparator: string = '.'): string;
+function ReplaceDecimalSeparator(const FloatStr: string; NewSeparator: string = '.'): string;
 begin
   Result := StringReplace(FloatStr, FormatSettings.DecimalSeparator, NewSeparator, [rfReplaceAll, rfIgnoreCase]);
 end;
 
 {$hints off}
-function ReplaceSpecialChars(s: string; sc: CHar): string;
+function ReplaceSpecialChars(s: string; sc: Char): string;
 var
   i: integer;
 begin
@@ -717,7 +785,7 @@ end;
 {$hints on}
 
 
-function RemoveSlashes(Text: string): string;
+function RemoveSlashes(const Text: string): string;
 var
   s: string;
 begin
@@ -733,26 +801,44 @@ begin
   Result := s;
 end;
 
-function RemoveSpaces(s: string): string;
+function RemoveSpaces(const s: string): string;
 begin
   Result := StringReplace(s, ' ', '', [rfReplaceAll]);
 end;
 
-function GetLastBIndex(s: string): integer;
+function GetLastBIndex(const s: string): integer;
+//var
+//  i: integer;
+begin
+  Result := GetLastCharIndex(s, '\');
+//  Result := 0;
+//  for i := Length(s) downto 1 do
+//    if s[i] = '\' then
+//    begin
+//      Result := i;
+//      Exit;
+//    end;
+end;
+
+function GetLastBackslashIndex(const s: string): integer;
+begin
+  Result := GetLastCharIndex(s, '\');
+end;
+
+function GetLastCharIndex(const s: string; c: Char): integer;
 var
   i: integer;
 begin
   Result := 0;
   for i := Length(s) downto 1 do
-    if s[i] = '\' then
+    if s[i] = c then
     begin
       Result := i;
-      Exit;
+      Break;
     end;
 end;
 
-
-function RemoveNum(s: string): string;
+function RemoveNum(const s: string): string;
 var
   i, x: integer;
   c: Char;
@@ -779,22 +865,6 @@ begin
   Result := s2;
 end;
 
-
-function GetLastCharIndex(s: string; c: Char): integer;
-var
-  x, i: integer;
-begin
-  x := 0;
-  //for i := 1 to Length(s) do
-  //  if s[i] = c then x := i;
-  for i := Length(s) downto 1 do
-    if s[i] = c then
-    begin
-      x := i;
-      Break;
-    end;
-  Result := x;
-end;
 
 {$hints off}
 function DelFirstCharInString(s: string; ToDelete: Char): string;
@@ -868,13 +938,13 @@ end;
 {$hints on}
 
 
-function PadString(Text: string; i: integer; znak: char = ' '): string;
+function PadString(Text: string; i: integer; znak: Char = ' '): string;
 begin
   Result := Pad(Text, i, znak);
 end;
 
 {$hints off}
-function Pad(Text: string; Len: integer; PaddingChar: char = ' '): string;
+function Pad(Text: string; Len: integer; PaddingChar: Char = ' '): string;
 var
   x, y, k: integer;
   s: string;
@@ -893,7 +963,7 @@ end;
 {$hints on}
 
 {$hints off}
-function PadRight(Text: string; i: integer; znak: char = ' '): string;
+function PadRight(Text: string; i: integer; znak: Char = ' '): string;
 var
   x, y, k: integer;
   s: string;
