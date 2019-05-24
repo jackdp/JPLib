@@ -35,7 +35,8 @@ function Qs(const s: string): string;
 function FixFileName(fName: string; s: string = '_'; ZamieniajCudzyslowy: Boolean = True): string;
 function IsValidShortFileName(const ShortFileName: string): Boolean;
 function IsValidLongFileName(const LongFileName: string): Boolean;
-function FixFileNameSlashes(const FileName: string): string;
+function FixFileNameSlashes(const FileName: string): string; deprecated 'Use FixPathDelimiters instead';
+function FixPathDelimiters(const FileName: string): string;
 function PadString(Text: string; i: integer; znak: Char = ' '): string;
 function Pad(Text: string; Len: integer; PaddingChar: Char = ' '): string;
 function PadRight(Text: string; i: integer; znak: Char = ' '): string;
@@ -1065,8 +1066,13 @@ end;
 
 function FixFileNameSlashes(const FileName: string): string;
 begin
+  Result := FixPathDelimiters(FileName);
+end;
+
+function FixPathDelimiters(const FileName: string): string;
+begin
   Result := StringReplace(FileName, '\', PathDelim, [rfReplaceAll]);
-  Result := StringReplace(FileName, '/', PathDelim, [rfReplaceAll]);
+  Result := StringReplace(Result, '/', PathDelim, [rfReplaceAll]);
 end;
 
 
