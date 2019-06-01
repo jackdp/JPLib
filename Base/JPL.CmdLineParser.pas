@@ -38,8 +38,7 @@ interface
 
 uses
   {$IFDEF MSWINDOWS} Windows, {$ENDIF}
-  SysUtils //, JPL.Strings //, JP.Utils
-  ;
+  SysUtils;
 
 
 var
@@ -51,7 +50,7 @@ var
   LongOptPrefix: string = '--'; //:< Long option prefix. Default '@--'
   EqChar: Char = '='; //:< Option-Value separator. @--option_nameEqCharOption_value
   DefaultStopParsingSwitch: string = '--'; //:< Domyślna wartość parametru, po którym przerywana jest analiza dalszych parametrów
-  ShortOptPrefixes: set of {Ansi}Char = ['-', '/']; //:< Set of short option prefixes. Default @code('-'), @code('/').
+  ShortOptPrefixes: set of AnsiChar = ['-', '/']; //:< Set of short option prefixes. Default @code('-'), @code('/').
   DefaultUsageArgName: string = 'ARG';
 
 type

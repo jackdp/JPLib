@@ -1824,7 +1824,7 @@ begin
   else Result := {%H-}PtrUInt(P);
 end;
 
-function PtrToStr(P: Pointer): string;
+function PtrToStr(P: Pointer): string; inline;
 begin
   Result := '$' + IntToHex(PtrToInt(P), 8);
 end;

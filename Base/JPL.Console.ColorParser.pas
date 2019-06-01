@@ -318,7 +318,7 @@ begin
 
   if sr <> '' then
   begin
-    AddResult(sr, Letter.TextColor, Letter.BgColor);
+    AddResult(sr, {%H-}Letter.TextColor, {%H-}Letter.BgColor);
   end;
 
 end;
