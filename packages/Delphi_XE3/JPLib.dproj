@@ -1,6 +1,6 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{92FE0BF5-FCAD-4E85-B43A-7174DEA9E1C3}</ProjectGuid>
+        <ProjectGuid>{2902F93F-657A-4A4E-A2C7-68D069C9ED78}</ProjectGuid>
         <MainSource>JPLib.dpk</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
@@ -28,52 +28,43 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win32)'!=''">
-        <Cfg_1_Win32>true</Cfg_1_Win32>
-        <CfgParent>Cfg_1</CfgParent>
-        <Cfg_1>true</Cfg_1>
-        <Base>true</Base>
-    </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
         <Cfg_2>true</Cfg_2>
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
-        <GenPackage>true</GenPackage>
-        <GenDll>true</GenDll>
-        <VerInfo_Locale>1033</VerInfo_Locale>
-        <DCC_F>false</DCC_F>
-        <DCC_E>false</DCC_E>
         <DCC_N>false</DCC_N>
-        <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;$(DCC_Namespace)</DCC_Namespace>
         <DCC_K>false</DCC_K>
+        <DCC_E>false</DCC_E>
+        <GenPackage>true</GenPackage>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <DCC_ImageBase>00400000</DCC_ImageBase>
+        <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
+        <DllSuffix>XE3</DllSuffix>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=;CFBundleDisplayName=;CFBundleIdentifier=;CFBundleVersion=;CFBundlePackageType=;CFBundleSignature=;CFBundleAllowMixedLocalizations=;CFBundleExecutable=</VerInfo_Keys>
+        <DCC_F>false</DCC_F>
+        <GenDll>true</GenDll>
+        <DCC_Description>JPLib Runtime Package</DCC_Description>
         <DCC_S>false</DCC_S>
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=;CFBundleDisplayName=;CFBundleIdentifier=;CFBundleVersion=;CFBundlePackageType=;CFBundleSignature=;CFBundleAllowMixedLocalizations=;CFBundleExecutable=</VerInfo_Keys>
-        <DCC_ImageBase>00400000</DCC_ImageBase>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
-        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
-        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
         <DCC_DebugInformation>false</DCC_DebugInformation>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <DCC_Description>JPLib Runtime Package</DCC_Description>
+        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
@@ -86,25 +77,42 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
+        <DCCReference Include="..\..\Base\JPL.CmdLineParser.pas"/>
         <DCCReference Include="..\..\Base\JPL.Console.ColorParser.pas"/>
         <DCCReference Include="..\..\Base\JPL.Console.pas"/>
         <DCCReference Include="..\..\Base\JPL.ConsoleApp.pas"/>
         <DCCReference Include="..\..\Base\JPL.Conversion.pas"/>
         <DCCReference Include="..\..\Base\JPL.DateTime.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Dialogs.pas"/>
         <DCCReference Include="..\..\Base\JPL.Files.pas"/>
         <DCCReference Include="..\..\Base\JPL.FileSearch.pas"/>
         <DCCReference Include="..\..\Base\JPL.Language.pas"/>
         <DCCReference Include="..\..\Base\JPL.Math.pas"/>
         <DCCReference Include="..\..\Base\JPL.StrHash.pas"/>
         <DCCReference Include="..\..\Base\JPL.Strings.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Strings.Ext.pas"/>
         <DCCReference Include="..\..\Base\JPL.Utils.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.Dialogs.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.FileSystem.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.Processes.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.Shortcuts.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.System.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.VersionInfo.pas"/>
-        <DCCReference Include="..\..\Base\JPL.CmdLineParser.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Elf.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Mach.Types.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.MachFat.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.MachO.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Misc.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Pe.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Procs.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Types.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.UPX.pas"/>
+        <DCCReference Include="..\..\Containers\JPL.StrList.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.Colors.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.ColorArrays.pas"/>
         <DCCReference Include="..\..\Logging\JPL.SimpleLogger.pas"/>
         <DCCReference Include="..\..\Logging\JPL.TimeLogger.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.Colors.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.ColorArrays.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -126,7 +134,7 @@
                     <Source Name="MainSource">JPLib.dpk</Source>
                 </Source>
                 <VersionInfo>
-                    <VersionInfo Name="IncludeVerInfo">True</VersionInfo>
+                    <VersionInfo Name="IncludeVerInfo">False</VersionInfo>
                     <VersionInfo Name="AutoIncBuild">False</VersionInfo>
                     <VersionInfo Name="MajorVer">1</VersionInfo>
                     <VersionInfo Name="MinorVer">0</VersionInfo>
@@ -160,11 +168,6 @@
                     <VersionInfoKeys Name="CFBundleAllowMixedLocalizations"/>
                     <VersionInfoKeys Name="CFBundleExecutable"/>
                 </VersionInfoKeys>
-                <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k170.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp170.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="E:\Embarcadero\Packs\TeeGrid\Compiled\Delphi17.win32\Bin\DCLVCLTeeGrid17.bpl">TeeGrid VCL Components</Excluded_Packages>
-                </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>
                 <Platform value="Win32">True</Platform>

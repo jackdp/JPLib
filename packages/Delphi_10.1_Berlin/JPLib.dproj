@@ -6,7 +6,7 @@
         <FrameworkType>VCL</FrameworkType>
         <MainSource>JPLib.dpk</MainSource>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
-        <ProjectGuid>{028D9FBA-D79F-4401-A7E8-483939CA7AA5}</ProjectGuid>
+        <ProjectGuid>{D0A85675-19D9-454E-8F17-4DD0CDC1C461}</ProjectGuid>
         <ProjectVersion>18.2</ProjectVersion>
         <TargetedPlatforms>1</TargetedPlatforms>
     </PropertyGroup>
@@ -35,8 +35,9 @@
         <DCC_ImageBase>00400000</DCC_ImageBase>
         <DCC_K>false</DCC_K>
         <DCC_N>false</DCC_N>
-        <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
         <DCC_S>false</DCC_S>
+        <DllSuffix>Berlin</DllSuffix>
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
@@ -45,7 +46,7 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(ModuleName)</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -67,25 +68,42 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
+        <DCCReference Include="..\..\Base\JPL.CmdLineParser.pas"/>
         <DCCReference Include="..\..\Base\JPL.Console.ColorParser.pas"/>
         <DCCReference Include="..\..\Base\JPL.Console.pas"/>
         <DCCReference Include="..\..\Base\JPL.ConsoleApp.pas"/>
         <DCCReference Include="..\..\Base\JPL.Conversion.pas"/>
         <DCCReference Include="..\..\Base\JPL.DateTime.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Dialogs.pas"/>
         <DCCReference Include="..\..\Base\JPL.Files.pas"/>
         <DCCReference Include="..\..\Base\JPL.FileSearch.pas"/>
         <DCCReference Include="..\..\Base\JPL.Language.pas"/>
         <DCCReference Include="..\..\Base\JPL.Math.pas"/>
         <DCCReference Include="..\..\Base\JPL.StrHash.pas"/>
         <DCCReference Include="..\..\Base\JPL.Strings.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Strings.Ext.pas"/>
         <DCCReference Include="..\..\Base\JPL.Utils.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.Dialogs.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.FileSystem.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.Processes.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.Shortcuts.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.System.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.VersionInfo.pas"/>
-        <DCCReference Include="..\..\Base\JPL.CmdLineParser.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Elf.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Mach.Types.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.MachFat.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.MachO.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Misc.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Pe.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Procs.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Types.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.UPX.pas"/>
+        <DCCReference Include="..\..\Containers\JPL.StrList.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.Colors.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.ColorArrays.pas"/>
         <DCCReference Include="..\..\Logging\JPL.SimpleLogger.pas"/>
         <DCCReference Include="..\..\Logging\JPL.TimeLogger.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.Colors.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.ColorArrays.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -108,10 +126,7 @@
                 </Source>
             </Delphi.Personality>
             <Platforms>
-                <Platform value="Android">False</Platform>
                 <Platform value="Win32">True</Platform>
-                <Platform value="iOSDevice32">False</Platform>
-                <Platform value="iOSSimulator">False</Platform>
             </Platforms>
         </BorlandProject>
         <ProjectFileVersion>12</ProjectFileVersion>

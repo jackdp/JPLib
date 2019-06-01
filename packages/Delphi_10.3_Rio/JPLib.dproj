@@ -1,6 +1,6 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{3DEE4FC8-F959-4F33-AC81-85BC49851A5B}</ProjectGuid>
+        <ProjectGuid>{312F0C99-8016-4C1D-A4F0-888FC8EED57B}</ProjectGuid>
         <MainSource>JPLib.dpk</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
@@ -44,20 +44,21 @@
         <GenPackage>true</GenPackage>
         <SanitizedProjectName>JPLib</SanitizedProjectName>
         <DCC_Description>JPLib Runtime Package</DCC_Description>
+        <DllSuffix>Rio</DllSuffix>
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
-        <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;DUnitX.Loggers.GUI;Winapi;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;DUnitX.Loggers.GUI;Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
@@ -79,25 +80,42 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
+        <DCCReference Include="..\..\Base\JPL.CmdLineParser.pas"/>
         <DCCReference Include="..\..\Base\JPL.Console.ColorParser.pas"/>
         <DCCReference Include="..\..\Base\JPL.Console.pas"/>
         <DCCReference Include="..\..\Base\JPL.ConsoleApp.pas"/>
         <DCCReference Include="..\..\Base\JPL.Conversion.pas"/>
         <DCCReference Include="..\..\Base\JPL.DateTime.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Dialogs.pas"/>
         <DCCReference Include="..\..\Base\JPL.Files.pas"/>
         <DCCReference Include="..\..\Base\JPL.FileSearch.pas"/>
         <DCCReference Include="..\..\Base\JPL.Language.pas"/>
         <DCCReference Include="..\..\Base\JPL.Math.pas"/>
         <DCCReference Include="..\..\Base\JPL.StrHash.pas"/>
         <DCCReference Include="..\..\Base\JPL.Strings.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Strings.Ext.pas"/>
         <DCCReference Include="..\..\Base\JPL.Utils.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.Dialogs.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.FileSystem.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.Processes.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.Shortcuts.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.System.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.VersionInfo.pas"/>
-        <DCCReference Include="..\..\Base\JPL.CmdLineParser.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Elf.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Mach.Types.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.MachFat.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.MachO.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Misc.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Pe.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Procs.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.Binary.Types.pas"/>
+        <DCCReference Include="..\..\Binary\JPL.UPX.pas"/>
+        <DCCReference Include="..\..\Containers\JPL.StrList.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.Colors.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.ColorArrays.pas"/>
         <DCCReference Include="..\..\Logging\JPL.SimpleLogger.pas"/>
         <DCCReference Include="..\..\Logging\JPL.TimeLogger.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.Colors.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.ColorArrays.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -120,9 +138,6 @@
                 </Source>
             </Delphi.Personality>
             <Platforms>
-                <Platform value="Android">False</Platform>
-                <Platform value="iOSDevice32">False</Platform>
-                <Platform value="iOSSimulator">False</Platform>
                 <Platform value="Win32">True</Platform>
                 <Platform value="Win64">True</Platform>
             </Platforms>
