@@ -60,6 +60,7 @@ function ReplaceSpecialChars(s: string; sc: Char = '_'): string;
 function RemoveAll(const Text, ToRemove: string; IgnoreCase: Boolean = False): string;
 function RemoveNonLetters(s: string): string;
 function ReplaceAll(const SrcStr, OldStr, NewStr: string; IgnoreCase: Boolean = False): string;
+function ReplaceFirst(const SrcStr, OldStr, NewStr: string; IgnoreCase: Boolean = False): string;
 function ReplaceDecimalSeparator(const FloatStr: string; NewSeparator: string = '.'): string;
 
 
@@ -760,12 +761,20 @@ begin
   Result := StringReplace(Text, ToRemove, '', rf);
 end;
 
-function ReplaceAll(const SrcStr, OldStr, NewStr: string; IgnoreCase: Boolean): string;
+function ReplaceAll(const SrcStr, OldStr, NewStr: string; IgnoreCase: Boolean = False): string;
 var
   rf: TReplaceFlags;
 begin
   rf := [rfReplaceAll];
   if IgnoreCase then rf := rf + [rfIgnoreCase];
+  Result := StringReplace(SrcStr, OldStr, NewStr, rf);
+end;
+
+function ReplaceFirst(const SrcStr, OldStr, NewStr: string; IgnoreCase: Boolean = False): string;
+var
+  rf: TReplaceFlags;
+begin
+  if IgnoreCase then rf := [rfIgnoreCase] else rf := [];
   Result := StringReplace(SrcStr, OldStr, NewStr, rf);
 end;
 
