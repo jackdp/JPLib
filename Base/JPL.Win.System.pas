@@ -134,6 +134,7 @@ var
   dwX: DWORD;
 begin
   Result := DefResult;
+  FillChar(Buffer, SizeOf(Buffer), 0);
   dwX := SearchPath(nil, PChar(ShortFileName), nil, Length(Buffer), Buffer, lpFilePart);
   if dwX = 0 then Exit;
   Result := Buffer;
