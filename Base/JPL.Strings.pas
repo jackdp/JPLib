@@ -126,6 +126,7 @@ function PosCS(const substr, s: string; bCaseSensitive: Boolean = False): intege
 //function TrimFromEnd(InStr, StrToRemove: string): string;
 function TrimFromEnd(const s: string; const StringToCut: string): string;
 function TrimFromStart(const s: string; const StringToCut: string): string;
+function TrimENDL(const s: string): string; // removes trailing sLineBreak (ENDL)
 function TrimExtDot(const FileExtension: string): string;
 function AddFileNameSuffix(const FileName, Suffix: string): string;
 function AddFileNamePrefix(const FileName, Prefix: string): string;
@@ -170,6 +171,11 @@ begin
   if Prefix = '' then Exit(FileName);
   SplitFileName(FileName, Dir, ShortName, Ext, False, False);
   Result := Dir + PathDelim + Prefix + ShortName + Ext;
+end;
+
+function TrimENDL(const s: string): string;
+begin
+  Result := TrimFromEnd(s, ENDL);
 end;
 
 function TrimExtDot(const FileExtension: string): string;
