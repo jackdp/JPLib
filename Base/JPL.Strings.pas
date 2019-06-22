@@ -31,7 +31,7 @@ const
 
 function Rbs(Dir: string): string; // remove path delimiter from end
 function Qs(const s: string): string;
-//function Capitalize(s: string): string;
+function Capitalize(const s: string): string;
 function FixFileName(fName: string; s: string = '_'; ZamieniajCudzyslowy: Boolean = True): string;
 function IsValidShortFileName(const ShortFileName: string): Boolean;
 function IsValidLongFileName(const LongFileName: string): Boolean;
@@ -137,7 +137,28 @@ procedure SplitFileName(fName: string; out Dir, BaseFileName, Ext: string; bIncl
 implementation
 
 
-
+function Capitalize(const s: string): string;
+var
+  i: integer;
+  bNeedUp: Boolean;
+  AChar: Char;
+begin
+  if Pos(' ', s) = 0 then Exit(s);
+  bNeedUp := True;
+  Result := '';
+  for i := 1 to Length(s) do
+  begin
+    AChar := s[i];
+    if AChar = ' ' then
+    begin
+      bNeedUp := True;
+      Continue;
+    end;
+    if bNeedUp then AChar := UpCase(AChar);
+    Result := Result + AChar;
+    bNeedUp := False;
+  end;
+end;
 
 procedure SplitFileName(fName: string; out Dir, BaseFileName, Ext: string; bIncludePathDelimiter: Boolean = True; bRemoveDotFromExt: Boolean = False);
 begin
