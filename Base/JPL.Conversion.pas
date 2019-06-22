@@ -27,6 +27,7 @@ function BoolToStrYesNo(const Value: Boolean): string;
 function BoolToStrYN(const Value: Boolean): string;
 function BoolToStr10(const Value: Boolean): string;
 function BoolToStrOnOff(const Value: Boolean): string;
+function BoolToStrTF(const Value: Boolean): string;
 function StrToBool(s: string): Boolean;
 function BoolToInt(const B: Boolean): integer;
 function BoolToByte(const B: Boolean): Byte;
@@ -84,7 +85,8 @@ function IsValidIntStr(IntStr: string; IgnoreSpaces: Boolean = False): Boolean;
 function IsValidFloatStr(FloatStr: string; IgnoreSpaces: Boolean = False): Boolean;
 
 function TryStrToByte(s: string; var bt: Byte): Boolean;
-function TryHexToInt(Hex: string; var xInt: Int64): Boolean;
+function TryHexToInt(Hex: string; var xInt: Int64): Boolean; overload;
+function TryHexToInt(Hex: string; var xInt: integer): Boolean; overload;
 function TryHexToByte(Hex: string; var xb: Byte): Boolean;
 
 
@@ -102,6 +104,19 @@ begin
   if (x < 0) or (x > 255) then Exit;
   Result := True;
   xb := Byte(x);
+end;
+
+function TryHexToInt(Hex: string; var xInt: integer): Boolean; overload;
+var
+  Code: integer;
+  x: integer;
+begin
+  Result := True;
+  if Hex = '' then Exit(False);
+  if Hex[1] <> '$' then Hex := '$' + Hex;
+  Val(Hex, x, Code);
+  if Code = 0 then xInt := x
+  else Result := False;
 end;
 
 function TryHexToInt(Hex: string; var xInt: Int64): Boolean;
@@ -804,6 +819,11 @@ end;
 function BoolToStrOnOff(const Value: Boolean): string;
 begin
   Result := BoolToStr(Value, 'On', 'Off');
+end;
+
+function BoolToStrTF(const Value: Boolean): string;
+begin
+  Result := BoolToStr(Value, 'True', 'False');
 end;
 
 
