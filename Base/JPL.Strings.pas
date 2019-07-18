@@ -110,6 +110,7 @@ function CopyString(const s: string; Copies: integer = 2): string;
 
 //procedure StrToList(LineToParse: string; var List: TStringList; Separator: string = ',');
 procedure SplitStrToArray(s: string; var Arr: {$IFDEF FPC}specialize{$ENDIF} TArray<string>; const EndLineStr: string = sLineBreak);
+function SplitStr(const InStr: string; out LeftStr, RightStr: string; const Separator: string): Boolean;
 
 function TrimBounds(s: string; LeftBound, RightBound: string): string;
 function AddBounds(const s: string; LeftBound, RightBound: Char): string; overload;
@@ -136,6 +137,19 @@ procedure SplitFileName(fName: string; out Dir, BaseFileName, Ext: string; bIncl
 
 implementation
 
+
+
+function SplitStr(const InStr: string; out LeftStr, RightStr: string; const Separator: string): Boolean;
+var
+  xp: integer;
+begin
+  Result := False;
+  xp := Pos(Separator, InStr);
+  if xp <= 0 then Exit;
+  LeftStr := Copy(InStr, 1, xp - 1);
+  RightStr := Copy(InStr, xp + Length(Separator), Length(InStr));
+  Result := True;
+end;
 
 function Capitalize(const s: string): string;
 var
