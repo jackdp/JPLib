@@ -2,6 +2,7 @@ unit JPL.Colors;
 
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
+  {$MODESWITCH ADVANCEDRECORDS}
 {$ENDIF}
 
 {
@@ -30,13 +31,22 @@ uses
   {$IFDEF MSWINDOWS} Windows,{$ENDIF}
   {$IFDEF FPC} LCLType, {$ENDIF} // < TRGBTriple, TRBGQuad, MulDiv ...
   //Dialogs, Done : POTEM WYKOMENTOWAC
-  Classes, SysUtils, Graphics, Math, JPL.Math, JPL.Strings, JPL.Conversion; //, HSLColor;
+  Classes, SysUtils, Graphics, Math, JPL.Math, JPL.Strings, JPL.Conversion;
+
+const
+  HSL_MAX_CSS_HUE = 360;
+  HSL_MAX_CSS_SAT = 100;
+  HSL_MAX_CSS_LUM = 100;
+
+  // Max values used in Windows system color dialog
+  HSL_MAX_WIN_HUE = 239;
+  HSL_MAX_WIN_SAT = 240;
+  HSL_MAX_WIN_LUM = 240;
+
 type
-
-
   TRGBAColor = DWORD;   // UInt32
 
-  TColorType = (ctUnknown, ctDelphiHex, ctDelphiInt, ctHtml, ctRgb, ctBgr, ctCmyk, ctHsl);
+  TColorType = (ctUnknown, ctPascalHex, ctPascalInt, ctHtml, ctRgb, ctRgbPercent, ctBgr, ctCmyk, ctHslCss, ctHslWin, ctCppHex);
 
   TRGBRec = record
     R, G, B: Byte;
@@ -49,14 +59,18 @@ type
     K: Double;
   end;
 
+  TRgbChannel = (rcRed, rcGreen, rcBlue);
+  TCmykComponent = (ccCyan, ccMagenta, ccYellow, ccBlack);
+  THslComponent = (hcHue, hcSat, hcLum);
+
 
 var
   //Set these variables to your needs:
   //  360, 100, 100 - CSS
   //  239, 240, 240 - Windows system color dialog
-  HSLMaxHue: integer = 360;
-  HSLMaxSaturation: integer = 100;
-  HSLMaxLightness: integer = 100; // lightness (luminance, luminosity)
+  HSLMaxHue: integer = HSL_MAX_CSS_HUE;
+  HSLMaxSaturation: integer = HSL_MAX_CSS_SAT;
+  HSLMaxLightness: integer = HSL_MAX_CSS_LUM; // lightness (luminance, luminosity)
 
 
 function RGB(const R, G, B: Byte): TColor;
@@ -66,6 +80,9 @@ function HasAlpha(const Color: TRGBAColor): Boolean;
 procedure GetRgbaChannels(const Color: TRGBAColor; out r, g, b, a: Byte);
 procedure GetRgbChannels(const Color: TColor; out r, g, b: Byte); overload;
 procedure GetRgbChannels(const Color: TColor; out r, g, b: integer); overload;
+function GetRedChannel(const Color: TColor): Byte;
+function GetGreenChannel(const Color: TColor): Byte;
+function GetBlueChannel(const Color: TColor): Byte;
 function RgbaToColor(const Color: TRGBAColor): TColor;
 function ColorToRgbIntStr(const Color: TColor; Padding: Byte = 3; PaddingChar: Char = '0'; Separator: string = ','): string;
 function ColorToRgbHexStr(const Color: TColor; EmptyClNone: Boolean = True): string;
@@ -77,7 +94,7 @@ function RGBtoRGBQuad(const R, G, B: Byte): TRGBQuad; overload;
 function RGBToRGBQuad(const c: TColor): TRGBQuad; overload;
 
 
-function ColorToRgbPercentStr(const Color: TColor; Padding: Byte = 3; PaddingChar: Char = '0'; Separator: string = ','): string;
+function ColorToRgbPercentStr(const Color: TColor; Padding: Byte = 3; PaddingChar: Char = '0'; Separator: string = ','; bShowPercent: Boolean = False): string;
 procedure ColorToRgbPercent(const Color: TColor; out RedPercent, GreenPercent, BluePercent: Single); overload;
 procedure ColorToRgbPercent(const Color: TColor; out RedPercent, GreenPercent, BluePercent: integer); overload;
 function RgbPercentToColor(const RedPercent, GreenPercent, BluePercent: Single): TColor;
@@ -111,19 +128,40 @@ function TryDelphiHexStrToColor(s: string; out Color: TColor): Boolean;
 function TryDelphiIntStrToColor(s: string; out Color: TColor): Boolean;
 
 
-// HSL related routines from RGBHSLUtils.pas (with small modfications)
+procedure SetHslMaxValues(const MaxHue, MaxSat, MaxLum: integer);
+procedure SetHslCssMaxValues;
+procedure SetHslWinMaxValues;
+// HSL related routines from RGBHSLUtils.pas (with my small modfications)
 // mbColorLib 2.0.2 - http://mxs.bergsoft.net/index.php?p=2
 function HslToColor(H, S, L: double): TColor;
 function HSLRangeToRGB(H, S, L: integer): TColor;
 procedure ColortoHSLRange(const RGB: TColor; out H1, S1, L1: integer);
-function GetHValue(AColor: TColor): integer;
-function GetSValue(AColor: TColor): integer;
-function GetLValue(AColor: TColor): integer;
+function GetHValue(const AColor: TColor): integer;
+function GetSValue(const AColor: TColor): integer;
+function GetLValue(const AColor: TColor): integer;
 procedure Clamp(var Input: integer; Min, Max: integer);
 function HSLToRGBTriple(H, S, L: integer): TRGBTriple;
 function HSLToRGBQuad(H, S, L: integer): TRGBQuad;
 procedure RGBTripleToHSL(RGBTriple: TRGBTriple; out H, S, L: integer);
+
 // my HSL routines
+function GetHueCssValue(const AColor: TColor): integer;
+function GetSatCssValue(const AColor: TColor): integer;
+function GetLumCssValue(const AColor: TColor): integer;
+function SetHueCssValue(const AColor: TColor; const NewHueValue: integer): TColor;
+function SetSatCssValue(const AColor: TColor; const NewSatValue: integer): TColor;
+function SetLumCssValue(const AColor: TColor; const NewLumValue: integer): TColor;
+function SetHslCssDelta(const AColor: TColor; const DeltaHue, DeltaSat, DeltaLum: integer): TColor;
+
+function GetHueWinValue(const AColor: TColor): integer;
+function GetSatWinValue(const AColor: TColor): integer;
+function GetLumWinValue(const AColor: TColor): integer;
+function SetHueWinValue(const AColor: TColor; const NewHueValue: integer): TColor;
+function SetSatWinValue(const AColor: TColor; const NewSatValue: integer): TColor;
+function SetLumWinValue(const AColor: TColor; const NewLumValue: integer): TColor;
+function SetHslWinDelta(const AColor: TColor; const DeltaHue, DeltaSat, DeltaLum: integer): TColor;
+
+function TryHslCssStrToColor(HslCssStr: string; out cl: TColor): Boolean;
 function ColorToHslStr(const Color: TColor; AMaxHue: integer = 239; AMaxSat: integer = 240; AMaxLum: integer = 240;
   Padding: Byte = 3; PaddingChar: Char = '0'; Separator: string = ','): string;
 procedure ColorToHslSys(const Color: TColor; out Hue, Sat, Lum: integer);
@@ -140,6 +178,7 @@ function HslToHslCssStr(const Hue, Sat, Lum: integer; AMaxHue: integer = 360; AM
 
 
 function RandomColor(bRandomize: Boolean = True): TColor;
+function RandomRgbChannels(Color: TColor; bRandomRed, bRandomGreen, bRandomBlue: Boolean; bRandomize: Boolean = True): TColor;
 function AvgColor(Color1, Color2: TColor): TColor;
 function TryGetColor(s: string; out Color: TColor): Boolean;
 
@@ -148,7 +187,11 @@ function ColorToStrEx(const Color: TColor; ColorType: TColorType): string;
 function PixelColor(const X, Y: integer): TColor;
 {$ENDIF}
 
-function InvertColor(Color: TColor): TColor;
+function InvertColor(const Color: TColor): TColor;
+function InvertRgbChannels(const Color: TColor; bInvertRed, bInvertGreen, bInvertBlue: Boolean): TColor;
+function InvertRedChannel(const Color: TColor): TColor;
+function InvertGreenChannel(const Color: TColor): TColor;
+function InvertBlueChannel(const Color: TColor): TColor;
 
 function FadeToGray(Color: TColor): TColor; //<-- from dcrHexEditor - https://launchpad.net/dcr
 
@@ -173,12 +216,144 @@ function ModifyColorRGBChannels(const Color: TColor; const DeltaRed, DeltaGreen,
 function RgbDelta(const Color: TColor; const DeltaRed, DeltaGreen, DeltaBlue: integer): TColor; overload;
 function RgbDelta(const Color: TColor; const DeltaRGB: integer): TColor; overload;
 
+
 function HiByte(w: Longint): Byte; overload;
+
+function ColorTypeToStr(const ColorType: TColorType): string;
+function StrToColorType(const ColorTypeStr: string): TColorType;
+
+// Similar to AnsiCompareStr
+function CompareRgbColors(const Color1, Color2: TColor; RgbChannel: TRgbChannel): integer;
+function CompareRgbSumColors(const Color1, Color2: TColor): integer;
+function CompareCmykColors(const Color1, Color2: TColor; CmykComponent: TCmykComponent): integer;
+function CompareHslColors(const Color1, Color2: TColor; HslComponent: THslComponent): integer;
 
 
 implementation
 
 
+{$region ' --------------- Compare colors: RGB / CMYK / HSL -------------------- '}
+
+function CompareRgbColors(const Color1, Color2: TColor; RgbChannel: TRgbChannel): integer;
+var
+  Value1, Value2: Byte;
+begin
+  case RgbChannel of
+
+    rcRed:
+      begin
+        Value1 := GetRedChannel(Color1);
+        Value2 := GetRedChannel(Color2);
+      end;
+
+    rcGreen:
+      begin
+        Value1 := GetGreenChannel(Color1);
+        Value2 := GetGreenChannel(Color2);
+      end;
+
+  else
+    // rcBlue
+    begin
+      Value1 := GetBlueChannel(Color1);
+      Value2 := GetBlueChannel(Color2);
+    end;
+
+  end;
+
+  if Value1 > Value2 then Result := 1
+  else if Value1 < Value2 then Result := -1
+  else Result := 0;
+
+end;
+
+function CompareRgbSumColors(const Color1, Color2: TColor): integer;
+var
+  Value1, Value2: integer;
+begin
+  Value1 := RgbSum(Color1);
+  Value2 := RgbSum(Color2);
+  if Value1 > Value2 then Result := 1
+  else if Value1 < Value2 then Result := -1
+  else Result := 0;
+end;
+
+function CompareCmykColors(const Color1, Color2: TColor; CmykComponent: TCmykComponent): integer;
+var
+  Value1, Value2: Double;
+  cc1, cc2: TCMYKColor;
+begin
+  cc1 := ColorToCMYK(Color1);
+  cc2 := ColorToCMYK(Color2);
+
+  case CmykComponent of
+
+    ccCyan:
+      begin
+        Value1 := cc1.C;
+        Value2 := cc2.C;
+      end;
+    ccMagenta:
+      begin
+        Value1 := cc1.M;
+        Value2 := cc2.M;
+      end;
+    ccYellow:
+      begin
+        Value1 := cc1.Y;
+        Value2 := cc2.Y;
+      end;
+  else
+    // ccBlack
+    begin
+      Value1 := cc1.K;
+      Value2 := cc2.K;
+    end;
+
+  end;
+
+  if Value1 > Value2 then Result := 1
+  else if Value1 < Value2 then Result := -1
+  else Result := 0;
+
+end;
+
+function CompareHslColors(const Color1, Color2: TColor; HslComponent: THslComponent): integer;
+var
+  Value1, Value2: integer;
+  Hue1, Sat1, Lum1: integer;
+  Hue2, Sat2, Lum2: integer;
+begin
+  ColorToHslSys(Color1, Hue1, Sat1, Lum1);
+  ColorToHslSys(Color2, Hue2, Sat2, Lum2);
+
+  case HslComponent of
+
+    hcHue:
+      begin
+        Value1 := Hue1;
+        Value2 := Hue2;
+      end;
+    hcSat:
+      begin
+        Value1 := Sat1;
+        Value2 := Sat2;
+      end;
+  else
+    // hcLum
+    begin
+      Value1 := Lum1;
+      Value2 := Lum2;
+    end;
+
+  end;
+
+  if Value1 > Value2 then Result := 1
+  else if Value1 < Value2 then Result := -1
+  else Result := 0;
+
+end;
+{$endregion Compare colors: RGB / CMYK / HSL}
 
 
 function HiByte(w: Longint): Byte;
@@ -186,85 +361,44 @@ begin
   Result := Byte(((Word(w)) shr 8) and $FF);
 end;
 
-function ModifyColorRedChannel(const Color: TColor; const DeltaRed: integer): TColor;
+function ColorTypeToStr(const ColorType: TColorType): string;
+begin
+  case ColorType of
+    ctPascalHex: Result := 'Pascal Hex';
+    ctPascalInt: Result := 'Pascal Int';
+    ctHtml: Result := 'HTML';
+    ctRgb: Result := 'RGB';
+    ctRgbPercent: Result := 'RGB %';
+    ctBgr: Result := 'BGR';
+    ctCmyk: Result := 'CMYK';
+    ctHslCss: Result := 'HSL CSS';
+    ctHslWin: Result := 'HSL WIN';
+    ctCppHex: Result := 'C++ Hex';
+  else
+    Result := '';
+  end;
+end;
+
+function StrToColorType(const ColorTypeStr: string): TColorType;
 var
-  r, g, b: integer;
+  s: string;
 begin
-  if DeltaRed = 0 then Exit(Color);
-  GetRgbChannels(Color, r, g, b);
-  r := GetIntInRange(r + DeltaRed, 0, 255);
-  Result := RGB(r, g, b);
-end;
-
-function ModifyColorGreenChannel(const Color: TColor; const DeltaGreen: integer): TColor;
-var
-  r, g, b: integer;
-begin
-  if DeltaGreen = 0 then Exit(Color);
-  GetRgbChannels(Color, r, g, b);
-  g := GetIntInRange(g + DeltaGreen, 0, 255);
-  Result := RGB(r, g, b);
-end;
-
-function ModifyColorBlueChannel(const Color: TColor; const DeltaBlue: integer): TColor;
-var
-  r, g, b: integer;
-begin
-  if DeltaBlue = 0 then Exit(Color);
-  GetRgbChannels(Color, r, g, b);
-  b := GetIntInRange(b + DeltaBlue, 0, 255);
-  Result := RGB(r, g, b);
-end;
-
-function ModifyColorRGBChannels(const Color: TColor; const DeltaRed, DeltaGreen, DeltaBlue: integer): TColor;
-var
-  r, g, b: integer;
-begin
-  if (DeltaRed = 0) and (DeltaGreen = 0) and (DeltaBlue = 0) then Exit(Color);
-  GetRgbChannels(Color, r, g, b);
-  if DeltaRed <> 0 then r := GetIntInRange(r + DeltaRed, 0, 255);
-  if DeltaGreen <> 0 then g := GetIntInRange(g + DeltaGreen, 0, 255);
-  if DeltaBlue <> 0 then b := GetIntInRange(b + DeltaBlue, 0, 255);
-  Result := RGB(r, g, b);
-end;
-
-function RgbDelta(const Color: TColor; const DeltaRed, DeltaGreen, DeltaBlue: integer): TColor;
-begin
-  Result := ModifyColorRGBChannels(Color, DeltaRed, DeltaGreen, DeltaBlue);
-end;
-
-function RgbDelta(const Color: TColor; const DeltaRGB: integer): TColor;
-begin
-  Result := ModifyColorRGBChannels(Color, DeltaRGB, DeltaRGB, DeltaRGB);
+  s := UpperCase(ColorTypeStr);
+  s := RemoveAll(s, ' ');
+  if s = 'PASCALHEX' then Result := ctPascalHex
+  else if s = 'PASCALINT' then Result := ctPascalInt
+  else if s = 'HTML' then Result := ctHtml
+  else if s = 'RGB' then Result := ctRgb
+  else if s = 'RGB%' then Result := ctRgbPercent
+  else if s = 'BGR' then Result := ctBgr
+  else if s = 'CMYK' then Result := ctCmyk
+  else if s = 'HSLCSS' then Result := ctHslCss
+  else if s = 'HSLWIN' then Result := ctHslWin
+  else if s = 'C++HEX' then Result := ctCppHex
+  else Result := ctUnknown;
 end;
 
 
-function SetColorRedChannel(const Color: TColor; const RedValue: Byte): TColor;
-var
-  r, g, b: Byte;
-begin
-  GetRgbChannels(Color, r, g, b);
-  r := GetIntInRange(RedValue, 0, 255);
-  Result := RGB(r, g, b);
-end;
-
-function SetColorGreenChannel(const Color: TColor; const GreenValue: Byte): TColor;
-var
-  r, g, b: Byte;
-begin
-  GetRgbChannels(Color, r, g, b);
-  g := GetIntInRange(GreenValue, 0, 255);
-  Result := RGB(r, g, b);
-end;
-
-function SetColorBlueChannel(const Color: TColor; const BlueValue: Byte): TColor;
-var
-  r, g, b: Byte;
-begin
-  GetRgbChannels(Color, r, g, b);
-  b := GetIntInRange(BlueValue, 0, 255);
-  Result := RGB(r, g, b);
-end;
 
 
 {$region ' From Cindy - VCL.cyGraphics.pas (with my small mods) '}
@@ -478,7 +612,6 @@ begin
 end;
 
 
-
 function FadeToGray(Color: TColor): TColor;
 var
   LBytGray, r, g, b: Byte;
@@ -489,10 +622,12 @@ begin
   Result := RGB(LBytGray, LBytGray, LBytGray);
 end;
 
-function InvertColor(Color: TColor): TColor;
+function InvertColor(const Color: TColor): TColor;
 begin
   Result := ColorToRGB(Color) xor $00FFFFFF;
 end;
+
+
 
 function AvgColor(Color1, Color2: TColor): TColor;
 var
@@ -521,6 +656,17 @@ begin
   Result := RGB(R, G, B);
 end;
 
+function RandomRgbChannels(Color: TColor; bRandomRed, bRandomGreen, bRandomBlue: Boolean; bRandomize: Boolean = True): TColor;
+var
+  R, G, B: Byte;
+begin
+  if bRandomize then Randomize;
+  if bRandomRed then R := Random(256) else R := GetRedChannel(Color);
+  if bRandomGreen then G := Random(256) else G := GetGreenChannel(Color);
+  if bRandomBlue then B := Random(256) else B := GetBlueChannel(Color);
+  Result := RGB(R, G, B);
+end;
+
 {$IFDEF MSWINDOWS}
 function PixelColor(const X, Y: integer): TColor;
 var
@@ -538,10 +684,14 @@ begin
   case ColorType of
     ctHtml: Result := ColorToHtmlColorStr(Color, '#');
     ctRgb: Result := ColorToRgbIntStr(Color, 3, '0', ',');
+    ctRgbPercent: Result := ColorToRgbPercentStr(Color, 1, '0', ',', True);
     ctBgr: Result := ColorToBgrIntStr(Color);
-    ctDelphiInt: Result := ColorToDelphiIntStr(Color);
-    ctDelphiHex: Result := ColorToDelphiHex(Color, '$');
+    ctPascalInt: Result := ColorToDelphiIntStr(Color);
+    ctPascalHex: Result := ColorToDelphiHex(Color, '$');
     ctCmyk: Result := ColorToCmykStr(Color);
+    ctHslCss: Result := ColorToHslCssStr(Color);
+    ctHslWin: Result := ColorToHslStr(Color, 239, 240, 240, 3, '0', ',');
+    ctCppHex: Result := ColorToDelphiHex(Color, '0x');
   else
     Result := '';
   end;
@@ -567,23 +717,23 @@ begin
   if s = '' then Exit;
   FirstChar := s[1];
 
-  if FirstChar = '$' then ColorType := ctDelphiHex
+  if FirstChar = '$' then ColorType := ctPascalHex
   else if FirstChar = '#' then ColorType := ctHtml
   else
   begin
     //if IsValidHexStr(s, True) then ColorType := ctHtml
-    if ContainsHexChars(s) then ColorType := ctDelphiHex // ctHtml
+    if ContainsHexChars(s) then ColorType := ctPascalHex // ctHtml
     else
     begin
       if (Pos(',', s) > 0) or (Pos(' ', s) > 0) then ColorType := ctRgb
-      else if IsValidIntStr(s, True) then ColorType := ctDelphiHex // ctDelphiInt
+      else if IsValidIntStr(s, True) then ColorType := ctPascalHex // ctDelphiInt
       else ColorType := ctUnknown;
     end;
   end;
               //Msg(Integer(ColorType).toString);
   case ColorType of
-    ctDelphiHex: Result := TryDelphiHexStrToColor(s, Color);
-    ctDelphiInt: Result := TryDelphiIntStrToColor(s, Color);
+    ctPascalHex: Result := TryDelphiHexStrToColor(s, Color);
+    ctPascalInt: Result := TryDelphiIntStrToColor(s, Color);
     ctHtml: Result := TryHtmlStrToColor(s, Color);
     ctRgb: Result := TryRgbStrToColor(s, Color);
   else
@@ -674,17 +824,7 @@ end;
 
 
 function CmykToColor(const CmykColor: TCMYKColor): TColor;
-//var
-//  r,g,b: Byte;
 begin
-//  r := Round(255 * (1 - CmykColor.C) * (1 - CmykColor.K));
-//  g := Round(255 * (1 - CmykColor.M) * (1 - CmykColor.K));
-//  b := Round(255 * (1 - CmykColor.Y) * (1 - CmykColor.K));
-//  {$IFNDEF FPC}
-//  Result := RGB(r, g, b);
-//  {$ELSE}
-//  Result := RGBToColor(r,g,b);
-//  {$ENDIF}
   Result := CmykToColor(CmykColor.C, CmykColor.M, CmykColor.Y, CmykColor.K);
 end;
 
@@ -853,21 +993,23 @@ begin
   BluePercent := Round(pb);
 end;
 
-function ColorToRgbPercentStr(const Color: TColor; Padding: Byte = 3; PaddingChar: Char = '0'; Separator: string = ','): string;
+function ColorToRgbPercentStr(const Color: TColor; Padding: Byte = 3; PaddingChar: Char = '0'; Separator: string = ','; bShowPercent: Boolean = False): string;
 var
   //r, g, b: Byte;
   pr, pg, pb: Single;
+  sp: string;
 begin
 //  GetRgbChannels(Color, r, g, b);
 //
 //  pr := PercentValue(r, 255);
 //  pg := PercentValue(g, 255);
 //  pb := PercentValue(b, 255);
+  if bShowPercent then sp := '%' else sp := '';
   ColorToRgbPercent(Color, pr, pg, pb);
   Result :=
-    Pad(IntToStr(Round(pr)), Padding, PaddingChar) + Separator +
-    Pad(IntToStr(Round(pg)), Padding, PaddingChar) + Separator +
-    Pad(IntToStr(Round(pb)), Padding, PaddingChar);
+    Pad(IntToStr(Round(pr)), Padding, PaddingChar) + sp + Separator +
+    Pad(IntToStr(Round(pg)), Padding, PaddingChar) + sp + Separator +
+    Pad(IntToStr(Round(pb)), Padding, PaddingChar) + sp;
 end;
 
 function TryRgbPercentStrToColor(s: string; out Color: TColor): Boolean;
@@ -962,9 +1104,15 @@ end;
 
 procedure GetRgbChannels(const Color: TColor; out r, g, b: Byte);
 begin
+  {$IFDEF MSWINDOWS}
+  r := GetRValue(Color);
+  g := GetGValue(Color);
+  b := GetBValue(Color);
+  {$ELSE}
   r := Byte(Color);
   g := Byte(Color shr 8);
   b := Byte(Color shr 16);
+  {$ENDIF}
 end;
 
 procedure GetRgbChannels(const Color: TColor; out r, g, b: integer);
@@ -972,6 +1120,33 @@ begin
   r := Byte(Color);
   g := Byte(Color shr 8);
   b := Byte(Color shr 16);
+end;
+
+function GetRedChannel(const Color: TColor): Byte;
+begin
+  {$IFDEF MSWINDOWS}
+  Result := GetRValue(Color);
+  {$ELSE}
+  Result := Byte(Color);
+  {$ENDIF}
+end;
+
+function GetGreenChannel(const Color: TColor): Byte;
+begin
+  {$IFDEF MSWINDOWS}
+  Result := GetGValue(Color);
+  {$ELSE}
+  Result := Byte(Color shr 8);
+  {$ENDIF}
+end;
+
+function GetBlueChannel(const Color: TColor): Byte;
+begin
+  {$IFDEF MSWINDOWS}
+  Result := GetBValue(Color);
+  {$ELSE}
+  Result := Byte(Color shr 16);
+  {$ENDIF}
 end;
 
 function TryRgbStrToColor(s: string; out Color: TColor): Boolean;
@@ -1039,6 +1214,112 @@ begin
 
   GetRgbChannels(Color, r, g, b);
   Result := IntToHex(r, 2) + IntToHex(g, 2) + IntToHex(b, 2);
+end;
+
+function ModifyColorRedChannel(const Color: TColor; const DeltaRed: integer): TColor;
+var
+  r, g, b: integer;
+begin
+  if DeltaRed = 0 then Exit(Color);
+  GetRgbChannels(Color, r, g, b);
+  r := GetIntInRange(r + DeltaRed, 0, 255);
+  Result := RGB(r, g, b);
+end;
+
+function ModifyColorGreenChannel(const Color: TColor; const DeltaGreen: integer): TColor;
+var
+  r, g, b: integer;
+begin
+  if DeltaGreen = 0 then Exit(Color);
+  GetRgbChannels(Color, r, g, b);
+  g := GetIntInRange(g + DeltaGreen, 0, 255);
+  Result := RGB(r, g, b);
+end;
+
+function ModifyColorBlueChannel(const Color: TColor; const DeltaBlue: integer): TColor;
+var
+  r, g, b: integer;
+begin
+  if DeltaBlue = 0 then Exit(Color);
+  GetRgbChannels(Color, r, g, b);
+  b := GetIntInRange(b + DeltaBlue, 0, 255);
+  Result := RGB(r, g, b);
+end;
+
+function ModifyColorRGBChannels(const Color: TColor; const DeltaRed, DeltaGreen, DeltaBlue: integer): TColor;
+var
+  r, g, b: integer;
+begin
+  if (DeltaRed = 0) and (DeltaGreen = 0) and (DeltaBlue = 0) then Exit(Color);
+  GetRgbChannels(Color, r, g, b);
+  if DeltaRed <> 0 then r := GetIntInRange(r + DeltaRed, 0, 255);
+  if DeltaGreen <> 0 then g := GetIntInRange(g + DeltaGreen, 0, 255);
+  if DeltaBlue <> 0 then b := GetIntInRange(b + DeltaBlue, 0, 255);
+  Result := RGB(r, g, b);
+end;
+
+function RgbDelta(const Color: TColor; const DeltaRed, DeltaGreen, DeltaBlue: integer): TColor;
+begin
+  Result := ModifyColorRGBChannels(Color, DeltaRed, DeltaGreen, DeltaBlue);
+end;
+
+function RgbDelta(const Color: TColor; const DeltaRGB: integer): TColor;
+begin
+  Result := ModifyColorRGBChannels(Color, DeltaRGB, DeltaRGB, DeltaRGB);
+end;
+
+
+function SetColorRedChannel(const Color: TColor; const RedValue: Byte): TColor;
+var
+  r, g, b: Byte;
+begin
+  GetRgbChannels(Color, r, g, b);
+  r := GetIntInRange(RedValue, 0, 255);
+  Result := RGB(r, g, b);
+end;
+
+function SetColorGreenChannel(const Color: TColor; const GreenValue: Byte): TColor;
+var
+  r, g, b: Byte;
+begin
+  GetRgbChannels(Color, r, g, b);
+  g := GetIntInRange(GreenValue, 0, 255);
+  Result := RGB(r, g, b);
+end;
+
+function SetColorBlueChannel(const Color: TColor; const BlueValue: Byte): TColor;
+var
+  r, g, b: Byte;
+begin
+  GetRgbChannels(Color, r, g, b);
+  b := GetIntInRange(BlueValue, 0, 255);
+  Result := RGB(r, g, b);
+end;
+
+function InvertRgbChannels(const Color: TColor; bInvertRed, bInvertGreen, bInvertBlue: Boolean): TColor;
+var
+  cl: TColor;
+begin
+  cl := ColorToRGB(Color);
+  if bInvertRed then cl := cl xor $000000FF;
+  if bInvertGreen then cl := cl xor $0000FF00;
+  if bInvertBlue then cl := cl xor $00FF0000;
+  Result := cl;
+end;
+
+function InvertRedChannel(const Color: TColor): TColor;
+begin
+  Result := ColorToRGB(Color) xor $000000FF;
+end;
+
+function InvertGreenChannel(const Color: TColor): TColor;
+begin
+  Result := ColorToRGB(Color) xor $0000FF00;
+end;
+
+function InvertBlueChannel(const Color: TColor): TColor;
+begin
+  Result := ColorToRGB(Color) xor $00FF0000;
 end;
 
 {$endregion RGB colors}
@@ -1231,19 +1512,39 @@ end;
 
 {$region '                       HSL colors                             '}
 
+procedure SetHslMaxValues(const MaxHue, MaxSat, MaxLum: integer);
+begin
+  HSLMaxHue := MaxHue;
+  HSLMaxSaturation := MaxSat;
+  HSLMaxLightness := MaxLum;
+end;
+
+procedure SetHslCssMaxValues;
+begin
+  SetHslMaxValues(HSL_MAX_CSS_HUE, HSL_MAX_CSS_SAT, HSL_MAX_CSS_LUM);
+end;
+
+procedure SetHslWinMaxValues;
+begin
+  SetHslMaxValues(HSL_MAX_WIN_HUE, HSL_MAX_WIN_SAT, HSL_MAX_WIN_LUM);
+end;
+
+function TryHslCssStrToColor(HslCssStr: string; out cl: TColor): Boolean;
+begin
+  Result := TryHslRangeToColor(HslCssStr, cl, ',', HSL_MAX_CSS_HUE, HSL_MAX_CSS_SAT, HSL_MAX_CSS_LUM);
+end;
+
 function TryHslRangeToColor(s: string; var Color: TColor; Separator: string = ','; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100): Boolean;
 var
   Arr: {$IFDEF FPC}specialize{$ENDIF} TArray<string>;
   sH, sS, sL: string;
   xH, xS, xL: integer;
 begin
-  HSLMaxHue := AMaxHue;
-  HSLMaxSaturation := AMaxSat;
-  HSLMaxLightness := AMaxLum;
+  SetHslMaxValues(AMaxHue, AMaxSat, AMaxLum);
 
   // Accepted input values:
-  // hsl(210,50%,39%)
-  // 210,50%,39%
+  //   hsl(210,50%,39%)
+  //   210,50%,39%
   // Separator: comma (,)
 
   Result := False;
@@ -1279,9 +1580,7 @@ end;
 
 function HslCssToColor(const Hue, Sat, Lum: Single): TColor;
 begin
-  HSLMaxHue := 360;
-  HSLMaxSaturation := 100;
-  HSLMaxLightness := 100;
+  SetHslCssMaxValues;
   Result := HslToColor(Hue / HSLMaxHue, Sat / HSLMaxSaturation, Lum / HSLMaxLightness);
 end;
 
@@ -1312,22 +1611,11 @@ end;
 function ColorToHslRangeStr(const Color: TColor; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100; bShowPercent: Boolean = True;
   Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','): string;
 var
-  //r, g, b: Byte;
-  //h, s, l: integer;
   H1, S1, L1: integer;
-  //rt: TRGBTriple;
   sH, sS, sL: string;
 begin
-  HSLMaxHue := AMaxHue;
-  HSLMaxSaturation := AMaxSat;
-  HSLMaxLightness := AMaxLum;
+  SetHslMaxValues(AMaxHue, AMaxSat, AMaxLum);
 
-//  GetRgbChannels(Color, r, g, b);
-//  rt.rgbtBlue := b;
-//  rt.rgbtGreen := g;
-//  rt.rgbtRed := r;
-
-  //RGBTripleToHSL(rt, h, s ,l);
   ColortoHSLRange(Color, H1, S1, L1);
 
   sH := Pad(IntToStr(H1), Padding, PaddingChar);
@@ -1337,46 +1625,27 @@ begin
   if bShowPercent then sL := sL + '%';
 
   Result := sH + Separator + sS + Separator + sL;
-
 end;
 
 function ColorToHslCssStr(const Color: TColor): string;
 begin
-  Result := ColorToHslRangeStr(Color, 360, 100, 100, True, 0, ' ', ',');
+  Result := ColorToHslRangeStr(Color, HSL_MAX_CSS_HUE, HSL_MAX_CSS_SAT, HSL_MAX_CSS_LUM, True, 0, ' ', ',');
 end;
 
 procedure ColorToHslCss(const Color: TColor; out H, S, L: integer);
 begin
-  HSLMaxHue := 360;
-  HSLMaxSaturation := 100;
-  HSLMaxLightness := 100;
-
-//  GetRgbChannels(Color, r, g, b);
-//  rt.rgbtBlue := b;
-//  rt.rgbtGreen := g;
-//  rt.rgbtRed := r;
-//
-//  RGBTripleToHSL(rt, h, s ,l);
+  SetHslCssMaxValues;
   ColortoHSLRange(Color, H, S, L);
 end;
 
 function ColorToHslStr(const Color: TColor; AMaxHue: integer = 239; AMaxSat: integer = 240; AMaxLum: integer = 240;
   Padding: Byte = 3; PaddingChar: Char = '0'; Separator: string = ','): string;
 var
-  //r, g, b: Byte;
   h, s, l: integer;
-  //rt: TRGBTriple;
 begin
   HSLMaxHue := AMaxHue;
   HSLMaxSaturation := AMaxSat;
   HSLMaxLightness := AMaxLum;
-
-//  GetRgbChannels(Color, r, g, b);
-//  rt.rgbtBlue := b;
-//  rt.rgbtGreen := g;
-//  rt.rgbtRed := r;
-
-  //RGBTripleToHSL(rt, h, s, l);
   ColortoHSLRange(Color, h, s, l);
 
   Result :=
@@ -1387,17 +1656,13 @@ end;
 
 procedure ColorToHslSys(const Color: TColor; out Hue, Sat, Lum: integer);
 begin
-  HSLMaxHue := 239;
-  HSLMaxSaturation := 240;
-  HSLMaxLightness := 240;
+  SetHslWinMaxValues;
   ColortoHSLRange(Color, Hue, Sat, Lum);
 end;
 
 function HslSysToColor(const Hue, Sat, Lum: integer): TColor;
 begin
-  HSLMaxHue := 239;
-  HSLMaxSaturation := 240;
-  HSLMaxLightness := 240;
+  SetHslWinMaxValues;
   Result := HSLRangeToRGB(Hue, Sat, Lum);
 end;
 
@@ -1484,7 +1749,7 @@ begin
   L1 := round(L * HSLMaxLightness);
 end;
 
-function GetHValue(AColor: TColor): integer;
+function GetHValue(const AColor: TColor): integer;
 var
   D, H: integer;
 begin
@@ -1492,7 +1757,7 @@ begin
   Result := H;
 end;
 
-function GetSValue(AColor: TColor): integer;
+function GetSValue(const AColor: TColor): integer;
 var
   D, S: integer;
 begin
@@ -1500,7 +1765,7 @@ begin
   Result := S;
 end;
 
-function GetLValue(AColor: TColor): integer;
+function GetLValue(const AColor: TColor): integer;
 var
   D, L: integer;
 begin
@@ -1615,6 +1880,131 @@ begin
       if (H < 0) then H := H + 360;
     end;
   end;
+end;
+
+
+function GetHueCssValue(const AColor: TColor): integer;
+var
+  x: integer;
+begin
+  SetHslCssMaxValues;
+  ColortoHSLRange(AColor, Result, x, x);
+end;
+
+function GetSatCssValue(const AColor: TColor): integer;
+var
+  x: integer;
+begin
+  SetHslCssMaxValues;
+  ColortoHSLRange(AColor, x, Result, x);
+end;
+
+function GetLumCssValue(const AColor: TColor): integer;
+var
+  x: integer;
+begin
+  SetHslCssMaxValues;
+  ColortoHSLRange(AColor, x, x, Result);
+end;
+
+
+function SetHueCssValue(const AColor: TColor; const NewHueValue: integer): TColor;
+var
+  Hue, Sat, Lum: integer;
+begin
+  SetHslCssMaxValues;
+  ColortoHSLRange(AColor, Hue, Sat, Lum);
+  Result := HSLRangeToRGB(NewHueValue, Sat, Lum);
+end;
+
+function SetSatCssValue(const AColor: TColor; const NewSatValue: integer): TColor;
+var
+  Hue, Sat, Lum: integer;
+begin
+  SetHslCssMaxValues;
+  ColortoHSLRange(AColor, Hue, Sat, Lum);
+  Result := HSLRangeToRGB(Hue, NewSatValue, Lum);
+end;
+
+function SetLumCssValue(const AColor: TColor; const NewLumValue: integer): TColor;
+var
+  Hue, Sat, Lum: integer;
+begin
+  SetHslCssMaxValues;
+  ColortoHSLRange(AColor, Hue, Sat, Lum);
+  Result := HSLRangeToRGB(Hue, Sat, NewLumValue);
+end;
+
+function SetHslCssDelta(const AColor: TColor; const DeltaHue, DeltaSat, DeltaLum: integer): TColor;
+var
+  Hue, Sat, Lum: integer;
+begin
+  SetHslCssMaxValues;
+  ColortoHSLRange(AColor, Hue, Sat, Lum);
+  Result := HSLRangeToRGB(Hue + DeltaHue, Sat + DeltaSat, Lum + DeltaLum);
+end;
+
+
+
+
+function GetHueWinValue(const AColor: TColor): integer;
+var
+  x: integer;
+begin
+  SetHslWinMaxValues;
+  ColortoHSLRange(AColor, Result, x, x);
+end;
+
+function GetSatWinValue(const AColor: TColor): integer;
+var
+  x: integer;
+begin
+  SetHslWinMaxValues;
+  ColortoHSLRange(AColor, x, Result, x);
+end;
+
+function GetLumWinValue(const AColor: TColor): integer;
+var
+  x: integer;
+begin
+  SetHslWinMaxValues;
+  ColortoHSLRange(AColor, x, x, Result);
+end;
+
+function SetHueWinValue(const AColor: TColor; const NewHueValue: integer): TColor;
+var
+  Hue, Sat, Lum: integer;
+begin
+  SetHslWinMaxValues;
+  ColortoHSLRange(AColor, Hue, Sat, Lum);
+  Result := HSLRangeToRGB(NewHueValue, Sat, Lum);
+end;
+
+function SetSatWinValue(const AColor: TColor; const NewSatValue: integer): TColor;
+var
+  Hue, Sat, Lum: integer;
+begin
+  SetHslWinMaxValues;
+  ColortoHSLRange(AColor, Hue, Sat, Lum);
+  Result := HSLRangeToRGB(Hue, NewSatValue, Lum);
+end;
+
+function SetLumWinValue(const AColor: TColor; const NewLumValue: integer): TColor;
+var
+  Hue, Sat, Lum: integer;
+begin
+  SetHslWinMaxValues;
+  ColortoHSLRange(AColor, Hue, Sat, Lum);
+  Result := HSLRangeToRGB(Hue, Sat, NewLumValue);
+end;
+
+function SetHslWinDelta(const AColor: TColor; const DeltaHue, DeltaSat, DeltaLum: integer): TColor;
+var
+  Hue, Sat, Lum: integer;
+begin
+  SetHslWinMaxValues;
+  ColortoHSLRange(AColor, Hue, Sat, Lum);
+  Result := HSLRangeToRGB(Hue + DeltaHue, Sat + DeltaSat, Lum + DeltaLum);
 end;
 
 {$endregion HSL colors}
