@@ -225,6 +225,7 @@ begin
   FGreenPercentInt := Round(pg);
   FBluePercentInt := Round(pb);
   FBgrIntStr := ColorToBgrIntStr(FColor, 3, '0', ',');
+  FBgrHex := ColorToBgrHexStr(FColor);
 
   // HTML
   FHtmlColorStr := FHtmlColorPrefix + FRgbHex;
