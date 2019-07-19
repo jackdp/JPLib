@@ -1,11 +1,17 @@
 ﻿unit JPL.RTTI;
 
+{$IFDEF FPC} {$mode delphi} {$ENDIF}
+
 interface
 
-uses 
-  Winapi.Windows, System.SysUtils, System.Classes,
-  //Dialogs,
+uses
+  {$IFDEF MSWINDOWS} Windows, {$ENDIF}
+  {$IFDEF DCC}
+  System.SysUtils, System.Classes,
   System.Rtti, System.TypInfo;
+  {$ELSE}
+  SysUtils, Classes, Rtti, TypInfo;
+  {$ENDIF}
 
 
 
@@ -77,7 +83,11 @@ begin
     begin
       if UpperCase(RProperty.Name) = UPropName then
       begin
+        {$IFDEF FPC}
+        if RProperty.PropertyType.TypeKind = tkClass then Result := RProperty.GetValue(Obj).AsObject;
+        {$ELSE}
         if RProperty.PropertyType.TypeKind = tkClass then Result := RProperty.GetValue(Obj).AsType<TObject>;
+        {$ENDIF}
         Break;
       end;
     end;
