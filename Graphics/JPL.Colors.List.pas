@@ -32,6 +32,13 @@ type
   TColorCompareDirection = (ccdAscending, ccdDescending);
   TCompareColorListItemsProc = function (const Item1, Item2: TColorListItem; const Direction: TColorCompareDirection): integer;
 
+  TColorListSortMode = (
+    clsmRed, clsmGreen, clsmBlue, clsmRgbSum,
+    clsmColorName, clsmNumber, clsmColorValue,
+    clsmCmykCyan, clsmCmykMagenta, clsmCmykYellow, clsmCmykBlack,
+    clsmHslHue, clsmHslSat, clsmHslLum
+  );
+
 
   TColorList = class
   private
@@ -107,8 +114,11 @@ type
     procedure Renumber(FirstItemNo: integer = 1);
     procedure ExchangeItems(Index1, Index2: integer);
 
-    function AsPlaintText(ColorType: TColorType = ctRgb; UseColorNames: Boolean = False; UseColorNumbers: Boolean = False): string;
+    function AsPlainText(ColorType: TColorType = ctRgb; UseColorNames: Boolean = False; UseColorNumbers: Boolean = False; Separator: string = ','): string;
     procedure SaveToPlainTextFile(const FileName: string; ColorType: TColorType = ctRgb; UseColorNames: Boolean = False; UseColorNumbers: Boolean = False);
+
+    function AsGimpPalette(const PaletteName: string): string;
+    procedure SaveToGimpPaletteFile(const FileName, PaletteName: string);
 
 
     // ------------------------ PROPERTIES ---------------------------
@@ -717,7 +727,16 @@ begin
   end;
 end;
 
-function TColorList.AsPlaintText(ColorType: TColorType = ctRgb; UseColorNames: Boolean = False; UseColorNumbers: Boolean = False): string;
+function TColorList.AsGimpPalette(const PaletteName: string): string;
+var
+  s: string;
+begin
+  s := AsPlainText(ctRgb, False, False, ' ');
+  s := 'GIMP Palette' + ENDL + 'Name: ' + PaletteName + ENDL + '#' + ENDL + s;
+  Result := s;
+end;
+
+function TColorList.AsPlainText(ColorType: TColorType = ctRgb; UseColorNames: Boolean = False; UseColorNumbers: Boolean = False; Separator: string = ','): string;
 var
   i: integer;
   cl: TColor;
@@ -727,10 +746,23 @@ begin
   for i := 0 to High(FArray) do
   begin
     cl := FArray[i].Color;
-    s := ColorToStrEx(cl, ColorType);
+    s := ColorToStrEx(cl, ColorType, Separator);
     if UseColorNames then s := s + FColorToNameSeparator + FArray[i].ColorName;
     if UseColorNumbers then s := itos(FArray[i].No) + FNumberToColorSeparator + s;
     Result := Result + s + ENDL;
+  end;
+end;
+
+procedure TColorList.SaveToGimpPaletteFile(const FileName, PaletteName: string);
+var
+  sl: TStringList;
+begin
+  sl := TStringList.Create;
+  try
+    sl.Text := Trim(AsGimpPalette(PaletteName));
+    sl.SaveToFile(FileName);
+  finally
+    sl.Free;
   end;
 end;
 
@@ -740,7 +772,7 @@ var
 begin
   sl := TStringList.Create;
   try
-    sl.Text := Trim(AsPlaintText(ColorType, UseColorNames, UseColorNumbers));
+    sl.Text := Trim(AsPlainText(ColorType, UseColorNames, UseColorNumbers));
     sl.SaveToFile(FileName);
   finally
     sl.Free;
