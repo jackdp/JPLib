@@ -162,6 +162,7 @@ function SetLumWinValue(const AColor: TColor; const NewLumValue: integer): TColo
 function SetHslWinDelta(const AColor: TColor; const DeltaHue, DeltaSat, DeltaLum: integer): TColor;
 
 function TryHslCssStrToColor(HslCssStr: string; out cl: TColor): Boolean;
+function TryHslWinStrToColor(HslWinStr: string; out cl: TColor): Boolean;
 function ColorToHslStr(const Color: TColor; AMaxHue: integer = 239; AMaxSat: integer = 240; AMaxLum: integer = 240;
   Padding: Byte = 3; PaddingChar: Char = '0'; Separator: string = ','): string;
 procedure ColorToHslSys(const Color: TColor; out Hue, Sat, Lum: integer);
@@ -182,7 +183,7 @@ function RandomRgbChannels(Color: TColor; bRandomRed, bRandomGreen, bRandomBlue:
 function AvgColor(Color1, Color2: TColor): TColor;
 function TryGetColor(s: string; out Color: TColor): Boolean;
 
-function ColorToStrEx(const Color: TColor; ColorType: TColorType): string;
+function ColorToStrEx(const Color: TColor; ColorType: TColorType; Separator: string = ','): string;
 {$IFDEF MSWINDOWS}
 function PixelColor(const X, Y: integer): TColor;
 {$ENDIF}
@@ -679,18 +680,18 @@ end;
 {$ENDIF}
 
 
-function ColorToStrEx(const Color: TColor; ColorType: TColorType): string;
+function ColorToStrEx(const Color: TColor; ColorType: TColorType; Separator: string = ','): string;
 begin
   case ColorType of
     ctHtml: Result := ColorToHtmlColorStr(Color, '#');
-    ctRgb: Result := ColorToRgbIntStr(Color, 3, '0', ',');
-    ctRgbPercent: Result := ColorToRgbPercentStr(Color, 1, '0', ',', True);
+    ctRgb: Result := ColorToRgbIntStr(Color, 3, '0', Separator);
+    ctRgbPercent: Result := ColorToRgbPercentStr(Color, 1, '0', Separator, True);
     ctBgr: Result := ColorToBgrIntStr(Color);
     ctPascalInt: Result := ColorToDelphiIntStr(Color);
     ctPascalHex: Result := ColorToDelphiHex(Color, '$');
     ctCmyk: Result := ColorToCmykStr(Color);
     ctHslCss: Result := ColorToHslCssStr(Color);
-    ctHslWin: Result := ColorToHslStr(Color, 239, 240, 240, 3, '0', ',');
+    ctHslWin: Result := ColorToHslStr(Color, 239, 240, 240, 3, '0', Separator);
     ctCppHex: Result := ColorToDelphiHex(Color, '0x');
   else
     Result := '';
@@ -1532,6 +1533,11 @@ end;
 function TryHslCssStrToColor(HslCssStr: string; out cl: TColor): Boolean;
 begin
   Result := TryHslRangeToColor(HslCssStr, cl, ',', HSL_MAX_CSS_HUE, HSL_MAX_CSS_SAT, HSL_MAX_CSS_LUM);
+end;
+
+function TryHslWinStrToColor(HslWinStr: string; out cl: TColor): Boolean;
+begin
+  Result := TryHslRangeToColor(HslWinStr, cl, ',', HSL_MAX_WIN_HUE, HSL_MAX_WIN_SAT, HSL_MAX_WIN_LUM);
 end;
 
 function TryHslRangeToColor(s: string; var Color: TColor; Separator: string = ','; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100): Boolean;
