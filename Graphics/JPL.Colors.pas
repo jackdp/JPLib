@@ -170,8 +170,10 @@ function HslSysToColor(const Hue, Sat, Lum: integer): TColor;
 function ColorToHslRangeStr(const Color: TColor; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100; bShowPercent: Boolean = True;
   Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','): string;
 procedure ColorToHslCss(const Color: TColor; out H, S, L: integer);
-function ColorToHslCssStr(const Color: TColor): string;
+function ColorToHslCssStr(const Color: TColor; UsePercent: Boolean = True; Padding: Byte = 0; PaddingChar: Char = ' '): string;
+function ColorToHslWinStr(const Color: TColor; UsePercent: Boolean = False; Padding: Byte = 0; PaddingChar: Char = ' '): string;
 function HslCssToColor(const Hue, Sat, Lum: Single): TColor;
+function HslWinToColor(const Hue, Sat, Lum: Single): TColor;
 function TryHslRangeToColor(s: string; var Color: TColor; Separator: string = ','; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100): Boolean;
 function HslToHslCssStr(const Hue, Sat, Lum: integer; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100; bShowPercent: Boolean = True;
   Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','): string;
@@ -1584,11 +1586,18 @@ begin
 end;
 
 
+function HslWinToColor(const Hue, Sat, Lum: Single): TColor;
+begin
+  SetHslWinMaxValues;
+  Result := HslToColor(Hue / HSLMaxHue, Sat / HSLMaxSaturation, Lum / HSLMaxLightness);
+end;
+
 function HslCssToColor(const Hue, Sat, Lum: Single): TColor;
 begin
   SetHslCssMaxValues;
   Result := HslToColor(Hue / HSLMaxHue, Sat / HSLMaxSaturation, Lum / HSLMaxLightness);
 end;
+
 
 function HslToHslCssStr(const Hue, Sat, Lum: integer; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100; bShowPercent: Boolean = True;
   Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','): string;
@@ -1633,9 +1642,14 @@ begin
   Result := sH + Separator + sS + Separator + sL;
 end;
 
-function ColorToHslCssStr(const Color: TColor): string;
+function ColorToHslCssStr(const Color: TColor; UsePercent: Boolean = True; Padding: Byte = 0; PaddingChar: Char = ' '): string;
 begin
-  Result := ColorToHslRangeStr(Color, HSL_MAX_CSS_HUE, HSL_MAX_CSS_SAT, HSL_MAX_CSS_LUM, True, 0, ' ', ',');
+  Result := ColorToHslRangeStr(Color, HSL_MAX_CSS_HUE, HSL_MAX_CSS_SAT, HSL_MAX_CSS_LUM, UsePercent, Padding, PaddingChar, ',');
+end;
+
+function ColorToHslWinStr(const Color: TColor; UsePercent: Boolean = False; Padding: Byte = 0; PaddingChar: Char = ' '): string;
+begin
+  Result := ColorToHslRangeStr(Color, HSL_MAX_WIN_HUE, HSL_MAX_WIN_SAT, HSL_MAX_WIN_LUM, UsePercent, Padding, PaddingChar, ',');
 end;
 
 procedure ColorToHslCss(const Color: TColor; out H, S, L: integer);
