@@ -134,8 +134,61 @@ type
   end;
 
 
+function ColorListSortModeToStr(const SortingMode: TColorListSortMode): string;
+function SortModeStrToColorListSortMode(ModeStr: string; Default: TColorListSortMode): TColorListSortMode;
+
 
 implementation
+
+
+{$region ' --------- helpers ----------- '}
+
+function ColorListSortModeToStr(const SortingMode: TColorListSortMode): string;
+begin
+  case SortingMode of
+    clsmRed: Result := 'RGB - Red';
+    clsmGreen: Result := 'RGB - Green';
+    clsmBlue: Result := 'RGB - Blue';
+    clsmRgbSum: Result := 'RGB - Sum';
+    clsmColorName: Result := 'Color name';
+    clsmNumber: Result := 'Color No';
+    clsmColorValue: Result := 'Color value';
+    clsmCmykCyan: Result := 'CMYK - Cyan';
+    clsmCmykMagenta: Result := 'CMYK - Magenta';
+    clsmCmykYellow: Result := 'CMYK - Yellow';
+    clsmCmykBlack: Result := 'CMYK - Black';
+    clsmHslHue: Result := 'HSL - Hue';
+    clsmHslSat: Result := 'HSL - Sat';
+    clsmHslLum: Result := 'HSL - Lum';
+  else
+    Result := '';
+  end;
+
+end;
+
+function SortModeStrToColorListSortMode(ModeStr: string; Default: TColorListSortMode): TColorListSortMode;
+begin
+  ModeStr := UpperCase(ModeStr);
+  ModeStr := RemoveAll(ModeStr, ' ');
+  ModeStr := RemoveAll(ModeStr, '-');
+  if ModeStr = 'RGBRED' then Result := clsmRed
+  else if ModeStr = 'RGBGREEN' then Result := clsmGreen
+  else if ModeStr = 'RGBBLUE' then Result := clsmBlue
+  else if ModeStr = 'RGBSUM' then Result := clsmRgbSum
+  else if ModeStr = 'COLORNAME' then Result := clsmColorName
+  else if ModeStr = 'COLORNO' then Result := clsmNumber
+  else if ModeStr = 'COLORVALUE' then Result := clsmColorValue
+  else if ModeStr = 'CMYKCYAN' then Result := clsmCmykCyan
+  else if ModeStr = 'CMYKMAGENTA' then Result := clsmCmykMagenta
+  else if ModeStr = 'CMYKYELLOW' then Result := clsmCmykYellow
+  else if ModeStr = 'CMYKBLACK' then Result := clsmCmykBlack
+  else if ModeStr = 'HSLHUE' then Result := clsmHslHue
+  else if ModeStr = 'HSLSAT' then Result := clsmHslSat
+  else if ModeStr = 'HSLLUM' then Result := clsmHslLum
+  else Result := Default;
+end;
+
+{$endregion helpers}
 
 
 {$region ' -------------------------------- TColorList -------------------------------- '}
