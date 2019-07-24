@@ -39,15 +39,28 @@ function PercentOf(const Percent: integer; const x100PercentValue: Double): inte
 
 function InRange(const Value, Min, Max: integer): Boolean;
 
+function RandomInt(const Min, Max: integer; ErrorValue: integer = -1): integer;
+function RandomByte(Min: Byte = 0; Max: Byte = 255; ErrorValue: Byte = 0): Byte;
 
 
 implementation
 
 
-function PercentOf(const Percent: integer; const x100PercentValue: Double): integer;
+
+function RandomInt(const Min, Max: integer; ErrorValue: integer = -1): integer;
 begin
-  Result := Round(Percent * x100PercentValue / 100);
+  if Min > Max then Exit(ErrorValue);
+  if Min = Max then Exit(Min);
+  Result := Random((Max - Min) + 1) + Min;
 end;
+
+function RandomByte(Min: Byte = 0; Max: Byte = 255; ErrorValue: Byte = 0): Byte;
+begin
+  if Min > Max then Exit(ErrorValue);
+  if Min = Max then Exit(Min);
+  Result := Random((Max - Min) + 1) + Min;
+end;
+
 
 function InRange(const Value, Min, Max: integer): Boolean;
 begin
@@ -57,6 +70,11 @@ end;
 function PercentOf(const Percent, x100PercentValue: Double): Double;
 begin
   Result := (Percent * x100PercentValue) / 100;
+end;
+
+function PercentOf(const Percent: integer; const x100PercentValue: Double): integer;
+begin
+  Result := Round(Percent * x100PercentValue / 100);
 end;
 
 function PercentValue(const Value, x100Percent: Double): Double;
