@@ -101,7 +101,7 @@ type
     function AddAction(const Action: TCustomAction; bCaption: Boolean = True; bHint: Boolean = True): TLangComponentItem;
     function AddCheckBox(const CheckBox: TCheckBox; bCaption: Boolean = True; bHint: Boolean = True): TLangComponentItem;
     function AddRadioButton(const RadioButton: TRadioButton; bCaption: Boolean = True; bHint: Boolean = True): TLangComponentItem;
-    function AddLabeledEdit(const LabeledEdit: TLabeledEdit; bLabelCaption: Boolean = True; bEditText: Boolean = False): TLangComponentItem;
+    function AddLabeledEdit(const LabeledEdit: TCustomLabeledEdit; bLabelCaption: Boolean = True; bEditText: Boolean = False): TLangComponentItem;
 
     function TryGetComponentItem(const KeyName: string; out Item: TLangComponentItem): Boolean;
     function GetComponentProperty(const ComponentName, PropertyName: string; Default: string = ''): string;
@@ -366,7 +366,7 @@ begin
   if bHint then Result.AddProperty('Hint', ALabel.Hint);
 end;
 
-function TLangSection.AddLabeledEdit(const LabeledEdit: TLabeledEdit; bLabelCaption, bEditText: Boolean): TLangComponentItem;
+function TLangSection.AddLabeledEdit(const LabeledEdit: TCustomLabeledEdit; bLabelCaption, bEditText: Boolean): TLangComponentItem;
 begin
   Result := AddComponent(LabeledEdit);
   if bLabelCaption then Result.AddProperty('EditLabel.Caption', LabeledEdit.EditLabel.Caption);
