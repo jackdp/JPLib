@@ -78,6 +78,8 @@ function GetIntInRange(const Value, Min, Max: Int64): Int64; overload;
 function GetFloatInRange(const Value, Min, Max: Single): Single; overload;
 function GetFloatInRange(const Value, Min, Max: Real): Real; overload;
 function GetFloatInRange(const Value, Min, Max: Double): Double; overload;
+procedure LimitValue(var Value: integer; const Min, Max: integer); overload;
+procedure LimitValue(var Value: Int64; const Min, Max: Int64); overload;
 
 function IsValidBinStr(BinStr: string; IgnoreSpaces: Boolean = False): Boolean;
 function IsValidHexStr(HexStr: string; IgnoreSpaces: Boolean = False): Boolean;
@@ -179,6 +181,17 @@ begin
   else Result := Value;
 end;
 
+procedure LimitValue(var Value: integer; const Min, Max: integer);
+begin
+  if Value < Min then Value := Min
+  else if Value > Max then Value := Max;
+end;
+
+procedure LimitValue(var Value: Int64; const Min, Max: Int64);
+begin
+  if Value < Min then Value := Min
+  else if Value > Max then Value := Max;
+end;
 
 
 function IsValidFloatStr(FloatStr: string; IgnoreSpaces: Boolean = False): Boolean;
