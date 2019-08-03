@@ -110,7 +110,8 @@ function CopyString(const s: string; Copies: integer = 2): string;
 
 //procedure StrToList(LineToParse: string; var List: TStringList; Separator: string = ',');
 procedure SplitStrToArray(s: string; var Arr: {$IFDEF FPC}specialize{$ENDIF} TArray<string>; const EndLineStr: string = sLineBreak);
-function SplitStr(const InStr: string; out LeftStr, RightStr: string; const Separator: string): Boolean;
+function SplitStr(const InStr: string; out LeftStr, RightStr: string; const Separator: string): Boolean; overload;
+function SplitStr(const InStr: string; out LeftInt, RightInt: integer; const Separator: string): Boolean; overload;
 
 function TrimBounds(s: string; LeftBound, RightBound: string): string;
 function AddBounds(const s: string; LeftBound, RightBound: Char): string; overload;
@@ -148,6 +149,17 @@ begin
   if xp <= 0 then Exit;
   LeftStr := Copy(InStr, 1, xp - 1);
   RightStr := Copy(InStr, xp + Length(Separator), Length(InStr));
+  Result := True;
+end;
+
+function SplitStr(const InStr: string; out LeftInt, RightInt: integer; const Separator: string): Boolean; overload;
+var
+  sLeft, sRight: string;
+begin
+  Result := False;
+  if not SplitStr(InStr, sLeft, sRight, Separator) then Exit;
+  if not TryStrToInt(sLeft, LeftInt) then Exit;
+  if not TryStrToInt(sRight, RightInt) then Exit;
   Result := True;
 end;
 
