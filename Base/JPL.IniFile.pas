@@ -1,4 +1,4 @@
-unit JPL.IniFile;
+ï»¿unit JPL.IniFile;
 
 {
   Jacek Pazera
@@ -7,14 +7,16 @@ unit JPL.IniFile;
 
   TJPIniFile - INI file with comments support
 
-  // Co mnie napad³o, ¿eby to zrobiæ na Kolekcjach?!
+  // Co mnie napadÅ‚o, Å¼eby to zrobiÄ‡ na Kolekcjach?!
 }
 
 interface
 
 uses
   //Winapi.Windows,
-  System.SysUtils, System.Classes, System.Generics.Collections, Vcl.Graphics;
+  System.SysUtils, System.Classes, System.Generics.Collections,
+  Vcl.Graphics,
+  JPL.Strings, JPL.Conversion, JPL.Colors;
 
   //System.ZLib, JP.Common.Procs;
 
@@ -65,6 +67,7 @@ type
 
     function ReadString(const Key, Default: string): string;
     function ReadInteger(const Key: string; Default: integer): integer;
+    function ReadIntegerInRange(const Key: string; const Default, Min, Max: integer): integer;
     function ReadBool(const Key: string; Default: Boolean): Boolean;
     function ReadFloat(const Key: string; Default: Double): Double;
     function ReadDate(const Key: string; Default: TDateTime): TDateTime;
@@ -72,6 +75,7 @@ type
     function ReadTime(const Key: string; Default: TDateTime): TDateTime;
     function ReadBinaryStream(const Key: string; Value: TStream): integer;
     function ReadColor(const Key: string; Default: TColor): TColor;
+    function ReadHtmlColor(const Key: string; const Default: TColor): TColor;
     function ReadFontStyle(const Key: string; Default: TFontStyles): TFontStyles;
 
     procedure WriteString(const Key, Value: string);
@@ -84,6 +88,7 @@ type
     procedure WriteBinaryStream(const Key: string; Value: TStream);
 
     procedure WriteColor(const Key: string; const Value: TColor);
+    procedure WriteHtmlColor(const Key: string; const Value: TColor);
     procedure WriteFontStyle(const Key: string; const Value: TFontStyles);
 
     procedure WriteComment(const Value: string); overload;
@@ -111,6 +116,7 @@ type
 
     function ReadString(const Key, Default: string): string;
     function ReadInteger(const Key: string; Default: integer): integer;
+    function ReadIntegerInRange(const Key: string; const Default, Min, Max: integer): integer;
     function ReadBool(const Key: string; Default: Boolean): Boolean;
     function ReadFloat(const Key: string; Default: Double): Double;
     function ReadDate(const Key: string; Default: TDateTime): TDateTime;
@@ -118,6 +124,7 @@ type
     function ReadTime(const Key: string; Default: TDateTime): TDateTime;
     function ReadBinaryStream(const Key: string; Value: TStream): integer;
     function ReadColor(const Key: string; Default: TColor): TColor;
+    function ReadHtmlColor(const Key: string; const Default: TColor): TColor;
     function ReadFontStyle(const Key: string; Default: TFontStyles): TFontStyles;
 
     procedure WriteString(const Key, Value: string);
@@ -130,6 +137,7 @@ type
     procedure WriteBinaryStream(const Key: string; Value: TStream);
 
     procedure WriteColor(const Key: string; const Value: TColor);
+    procedure WriteHtmlColor(const Key: string; const Value: TColor);
     procedure WriteFontStyle(const Key: string; const Value: TFontStyles);
 
     procedure WriteComment(const Value: string); overload;
@@ -208,6 +216,7 @@ type
     FCurrentSection: string;
     FEncoding: TEncoding;
     FUpdateFileOnExit: Boolean;
+    FIgnoreExceptionsOnSave: Boolean;
     procedure LoadFile;
     procedure ParseText(Source: string);
     procedure SetSectionsSeparator(const Value: string);
@@ -216,9 +225,11 @@ type
     function GetText: string;
     procedure SetEncoding(const Value: TEncoding);
     procedure SetUpdateFileOnExit(const Value: Boolean);
+    procedure SetIgnoreExceptionsOnSave(const Value: Boolean);
   public
     constructor Create(const FileName: string); overload;
     constructor Create(const FileName: string; Encoding: TEncoding); overload;
+    constructor Create(const FileName: string; Encoding: TEncoding; bIgnoreExceptionsOnSave: Boolean); overload;
     destructor Destroy; override;
 
     procedure Clear;
@@ -326,6 +337,7 @@ type
     property Text: string read GetText write SetText; // Reads/sets INI source
     property Encoding: TEncoding read FEncoding write SetEncoding;
     property UpdateFileOnExit: Boolean read FUpdateFileOnExit write SetUpdateFileOnExit; // if True, FileName will be saved on Destroy. Default True
+    property IgnoreExceptionsOnSave: Boolean read FIgnoreExceptionsOnSave write SetIgnoreExceptionsOnSave;
   end;
   {$endregion}
 
@@ -366,30 +378,32 @@ end;
 
 {$region ' ------------------------------------ TJPIniFile ---------------------------------------- '}
 
-constructor TJPIniFile.Create(const FileName: string);
-begin
-//  inherited Create;
-//  FFileName := FileName;
-//  FSectionsSeparator := #13#10;
-//  FSections := TJPIniSections.Create(TJPIniSection);
-//  FSections.SectionsSeparator := FSectionsSeparator;
-//  LoadFile;
-  Create(FileName, nil);
-end;
-
-
-
-constructor TJPIniFile.Create(const FileName: string; Encoding: TEncoding);
+constructor TJPIniFile.Create(const FileName: string; Encoding: TEncoding; bIgnoreExceptionsOnSave: Boolean);
 begin
   inherited Create;
   FEncoding := Encoding;
   FFileName := FileName;
-  FSectionsSeparator := #13#10;
+  FSectionsSeparator := ENDL; //#13#10
   FSections := TJPIniSections.Create(TJPIniSection);
   FSections.SectionsSeparator := FSectionsSeparator;
   FUpdateFileOnExit := True;
+  FIgnoreExceptionsOnSave := bIgnoreExceptionsOnSave;
   LoadFile;
 end;
+
+constructor TJPIniFile.Create(const FileName: string);
+begin
+  Create(FileName, nil, False);
+end;
+
+constructor TJPIniFile.Create(const FileName: string; Encoding: TEncoding);
+begin
+  Create(FileName, Encoding, False);
+end;
+
+
+
+
 
 destructor TJPIniFile.Destroy;
 begin
@@ -734,6 +748,11 @@ begin
   FEncoding := Value;
 end;
 
+procedure TJPIniFile.SetIgnoreExceptionsOnSave(const Value: Boolean);
+begin
+  FIgnoreExceptionsOnSave := Value;
+end;
+
 procedure TJPIniFile.SetSectionsSeparator(const Value: string);
 begin
   FSectionsSeparator := Value;
@@ -774,8 +793,15 @@ begin
   if FileName.Trim = '' then Exit; //raise Exception.Create('File name can not be blank!');
   sl := TStringList.Create;
   try
+  
     sl.Text := Text;
-    sl.SaveToFile(FileName, FEncoding);
+    if FIgnoreExceptionsOnSave then
+      try
+        sl.SaveToFile(FileName, FEncoding);
+      except
+      end
+    else sl.SaveToFile(FileName, FEncoding);
+    
   finally
     sl.Free;
   end;
@@ -1278,7 +1304,8 @@ begin
       dataLen := Length(Text) div 2;
       SetLength(DataBytes, dataLen);
       Pos := Stream.Position;
-      HexToBin(BytesOf(Text), 0, DataBytes, 0, dataLen);
+
+      System.Classes.HexToBin(BytesOf(Text), 0, DataBytes, 0, dataLen);
       Stream.Write(DataBytes[0], dataLen);
       Stream.Position := Pos;
       if Value <> Stream then Value.CopyFrom(Stream, dataLen);
@@ -1313,6 +1340,15 @@ begin
   end;
 
   Result := xColor;
+end;
+
+function TJPIniSectionItems.ReadHtmlColor(const Key: string; const Default: TColor): TColor;
+var
+  s: string;
+begin
+  s := ReadString(Key, '');
+  if s = '' then Exit(Default);
+  if not TryHtmlStrToColor(s, Result) then Result := Default;
 end;
 
 function TJPIniSectionItems.ReadDate(const Key: string; Default: TDateTime): TDateTime;
@@ -1375,6 +1411,14 @@ begin
   Result := StrToIntDef(s, Default);
 end;
 
+function TJPIniSectionItems.ReadIntegerInRange(const Key: string; const Default, Min, Max: integer): integer;
+var
+  x: integer;
+begin
+  x := ReadInteger(Key, Default);
+  Result := GetIntInRange(x, Min, Max);
+end;
+
 function TJPIniSectionItems.ReadString(const Key, Default: string): string;
 var
   IniItem: TJPIniItem;
@@ -1419,7 +1463,7 @@ begin
         Stream.Position := 0;
       end;
       SetLength(Buffer, Stream.Size * 2);
-      BinToHex(TBytes(Stream.Memory), Stream.Position, Buffer, 0, Stream.Size - Stream.Position);
+      System.Classes.BinToHex(TBytes(Stream.Memory), Stream.Position, Buffer, 0, Stream.Size - Stream.Position);
       Text := StringOf(Buffer);
     finally
       if Value <> Stream then Stream.Free;
@@ -1476,6 +1520,11 @@ end;
 procedure TJPIniSectionItems.WriteFontStyle(const Key: string; const Value: TFontStyles);
 begin
   WriteString(Key, FontStylesToStr(Value));
+end;
+
+procedure TJPIniSectionItems.WriteHtmlColor(const Key: string; const Value: TColor);
+begin
+  WriteString(Key, ColorToHtmlColorStr(Value, '#', True));
 end;
 
 procedure TJPIniSectionItems.WriteInteger(const Key: string; const Value: Integer);
@@ -1567,6 +1616,11 @@ begin
   Result := SectionItems.ReadColor(Key, Default);
 end;
 
+function TJPIniSection.ReadHtmlColor(const Key: string; const Default: TColor): TColor;
+begin
+  Result := SectionItems.ReadHtmlColor(Key, Default);
+end;
+
 function TJPIniSection.ReadDate(const Key: string; Default: TDateTime): TDateTime;
 begin
   Result := SectionItems.ReadDate(Key, Default);
@@ -1590,6 +1644,11 @@ end;
 function TJPIniSection.ReadInteger(const Key: string; Default: integer): integer;
 begin
   Result := SectionItems.ReadInteger(Key, Default);
+end;
+
+function TJPIniSection.ReadIntegerInRange(const Key: string; const Default, Min, Max: integer): integer;
+begin
+  Result := SectionItems.ReadIntegerInRange(Key, Default, Min, Max);
 end;
 
 function TJPIniSection.ReadString(const Key, Default: string): string;
@@ -1646,6 +1705,11 @@ end;
 procedure TJPIniSection.WriteFontStyle(const Key: string; const Value: TFontStyles);
 begin
   SectionItems.WriteFontStyle(Key, Value);
+end;
+
+procedure TJPIniSection.WriteHtmlColor(const Key: string; const Value: TColor);
+begin
+  SectionItems.WriteHtmlColor(Key, Value);
 end;
 
 procedure TJPIniSection.WriteInteger(const Key: string; const Value: Integer);
