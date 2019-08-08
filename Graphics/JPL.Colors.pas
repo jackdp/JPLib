@@ -178,6 +178,20 @@ function TryHslRangeToColor(s: string; var Color: TColor; Separator: string = ',
 function HslToHslCssStr(const Hue, Sat, Lum: integer; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100; bShowPercent: Boolean = True;
   Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','): string;
 
+// HSL - color wheel - shift colors
+function HslCssShiftHue(const AColor: TColor; const ShiftValue: integer): TColor;
+function ComplementaryColor(const AColor: TColor): TColor;
+function TriadicColor1(const AColor: TColor; DistanceFromComplementaryColor: integer = 60): TColor;
+function TriadicColor2(const AColor: TColor; DistanceFromComplementaryColor: integer = 60): TColor;
+procedure GetTriadicColors(const AColor: TColor; out TriadicColor_1, TriadicColor_2: TColor; DistanceFromComplementaryColor: integer = 60);
+function SquareColor1(const AColor: TColor): TColor;
+function SquareColor2(const AColor: TColor): TColor;
+function SquareColor3(const AColor: TColor): TColor;
+procedure GetSquareColors(const AColor: TColor; out SqColor1, SqColor2, SqColor3: TColor);
+function TetradicColor1(const AColor: TColor; DegDistance: integer = 90): TColor;
+function TetradicColor2(const AColor: TColor): TColor; // = ComplementaryColor
+function TetradicColor3(const AColor: TColor; DistanceFromComplementaryColor: integer = 90): TColor;
+procedure GetTetradicColors(const AColor: TColor; out TetradColor1, TetradColor2, TetradColor3: TColor; DegDistance: integer = 90);
 
 
 function RandomColor(bRandomize: Boolean = True): TColor;
@@ -1961,7 +1975,17 @@ var
 begin
   SetHslCssMaxValues;
   ColortoHSLRange(AColor, Hue, Sat, Lum);
-  Result := HSLRangeToRGB(Hue + DeltaHue, Sat + DeltaSat, Lum + DeltaLum);
+
+  Hue := Hue + DeltaHue;
+  LimitValue(Hue, 0, HSL_MAX_CSS_HUE);
+
+  Sat := Sat + DeltaSat;
+  LimitValue(Sat, 0, HSL_MAX_CSS_SAT);
+
+  Lum := Lum + DeltaLum;
+  LimitValue(Lum, 0, HSL_MAX_CSS_LUM);
+
+  Result := HSLRangeToRGB(Hue, Sat, Lum);
 end;
 
 
@@ -2027,15 +2051,94 @@ begin
   Result := HSLRangeToRGB(Hue + DeltaHue, Sat + DeltaSat, Lum + DeltaLum);
 end;
 
+
+
+
+function HslCssShiftHue(const AColor: TColor; const ShiftValue: integer): TColor;
+var
+  Hue, Sat, Lum: integer;
+begin
+  if ShiftValue = 0 then Exit(AColor);
+
+  SetHslCssMaxValues;
+  ColortoHSLRange(AColor, Hue, Sat, Lum);
+  Hue := Hue + ShiftValue;
+
+  if Hue > HSL_MAX_CSS_HUE then Hue := Hue - HSL_MAX_CSS_HUE
+  else if Hue < 0 then Hue := Hue + HSL_MAX_CSS_HUE;
+
+  Result := HSLRangeToRGB(Hue, Sat, Lum);
+end;
+
+function ComplementaryColor(const AColor: TColor): TColor;
+begin
+  Result := HslCssShiftHue(AColor, HSL_MAX_CSS_HUE div 2 { 180° });
+end;
+
+function TriadicColor1(const AColor: TColor; DistanceFromComplementaryColor: integer = 60): TColor;
+begin
+  Result := HslCssShiftHue(AColor, (HSL_MAX_CSS_HUE div 2) - DistanceFromComplementaryColor { default: 180° - 60° = 120° });
+end;
+
+function TriadicColor2(const AColor: TColor; DistanceFromComplementaryColor: integer = 60): TColor;
+begin
+  Result := HslCssShiftHue(AColor, (HSL_MAX_CSS_HUE div 2) + DistanceFromComplementaryColor { default: 180° + 60° = 240° });
+end;
+
+procedure GetTriadicColors(const AColor: TColor; out TriadicColor_1, TriadicColor_2: TColor; DistanceFromComplementaryColor: integer = 60);
+begin
+  TriadicColor_1 := TriadicColor1(AColor, DistanceFromComplementaryColor);
+  TriadicColor_2 := TriadicColor2(AColor, DistanceFromComplementaryColor);
+end;
+
+function SquareColor1(const AColor: TColor): TColor;
+begin
+  Result := HslCssShiftHue(AColor, HSL_MAX_CSS_HUE div 4 { 90° });
+end;
+
+function SquareColor2(const AColor: TColor): TColor;
+begin
+  Result := HslCssShiftHue(AColor, HSL_MAX_CSS_HUE div 2 { 180° });
+end;
+
+function SquareColor3(const AColor: TColor): TColor;
+begin
+  Result := HslCssShiftHue(AColor, (HSL_MAX_CSS_HUE div 4) * 3 { 270° });
+end;
+
+procedure GetSquareColors(const AColor: TColor; out SqColor1, SqColor2, SqColor3: TColor);
+begin
+  SqColor1 := SquareColor1(AColor);
+  SqColor2 := SquareColor2(AColor);
+  SqColor3 := SquareColor3(AColor);
+end;
+
+function TetradicColor1(const AColor: TColor; DegDistance: integer = 90): TColor;
+begin
+  Result := HslCssShiftHue(AColor, DegDistance);
+end;
+
+function TetradicColor2(const AColor: TColor): TColor;
+begin
+  Result := ComplementaryColor(AColor);
+end;
+
+function TetradicColor3(const AColor: TColor; DistanceFromComplementaryColor: integer = 90): TColor;
+begin
+  Result := HslCssShiftHue(AColor, (HSL_MAX_CSS_HUE div 2) + DistanceFromComplementaryColor);
+end;
+
+procedure GetTetradicColors(const AColor: TColor; out TetradColor1, TetradColor2, TetradColor3: TColor; DegDistance: integer = 90);
+begin
+  TetradColor1 := TetradicColor1(AColor, DegDistance);
+  TetradColor2 := TetradicColor2(AColor);
+  TetradColor3 := TetradicColor3(AColor, DegDistance);
+end;
+
+
+
 {$endregion HSL colors}
 
 
 end.
-
-
-
-
-
-
-
 
