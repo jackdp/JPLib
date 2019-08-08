@@ -26,6 +26,7 @@ const
   CRLF = #13#10;
   TAB = #9;
   ENDL = sLineBreak;
+  DEG = '°';
 
 
 
