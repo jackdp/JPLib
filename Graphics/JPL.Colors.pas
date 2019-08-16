@@ -2064,8 +2064,10 @@ begin
   ColortoHSLRange(AColor, Hue, Sat, Lum);
   Hue := Hue + ShiftValue;
 
-  if Hue > HSL_MAX_CSS_HUE then Hue := Hue - HSL_MAX_CSS_HUE
-  else if Hue < 0 then Hue := Hue + HSL_MAX_CSS_HUE;
+  if Hue > HSL_MAX_CSS_HUE then
+    while Hue > HSL_MAX_CSS_HUE do Hue := Hue - HSL_MAX_CSS_HUE
+  else if Hue < 0 then
+    while Hue < 0 do Hue := Hue + HSL_MAX_CSS_HUE;
 
   Result := HSLRangeToRGB(Hue, Sat, Lum);
 end;
