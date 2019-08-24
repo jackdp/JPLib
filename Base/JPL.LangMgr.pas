@@ -42,6 +42,7 @@ type
     procedure Clear;
     procedure GetLanguageNames_EN(const Strings: TStrings);
     procedure GetLanguageNames_Native(const Strings: TStrings);
+    procedure GetLanguageNames_EnglishAndNative(const Strings: TStrings; const Separator: string = ' - ');
     procedure GetLanguageFileNames(const Strings: TStrings);
 
     property IniInfoSectionName: string read FIniInfoSectionName write FIniInfoSectionName;
@@ -149,6 +150,7 @@ type
     procedure AddFilesFromDir(const Dir: string; Ext: string = 'ini');
     procedure GetLanguageNames_EN(const Strings: TStrings);
     procedure GetLanguageNames_Native(const Strings: TStrings);
+    procedure GetLanguageNames_EnglishAndNative(const Strings: TStrings; const Separator: string = ' - ');
     procedure GetLanguageFileNames(const Strings: TStrings);
     function GetLanguageFileNameByIndex(const Index: integer): string;
 
@@ -519,7 +521,7 @@ begin
     ChangeProc := FComboBox.OnChange;
     FComboBox.OnChange := nil;
   end;
-  GetLanguageNames_Native(FComboBox.Items);
+  GetLanguageNames_EnglishAndNative(FComboBox.Items, '  -  ');
   FComboBox.OnChange := ChangeProc;
 end;
 
@@ -601,6 +603,11 @@ end;
 procedure TLangMgr.GetLanguageNames_Native(const Strings: TStrings);
 begin
   FLangIniList.GetLanguageNames_Native(Strings);
+end;
+
+procedure TLangMgr.GetLanguageNames_EnglishAndNative(const Strings: TStrings; const Separator: string = ' - ');
+begin
+  FLangIniList.GetLanguageNames_EnglishAndNative(Strings, Separator);
 end;
 
 function TLangMgr.GetSection(Index: integer): TLangSection;
@@ -783,6 +790,22 @@ begin
   Strings.Clear;
   for i := 0 to FItems.Count - 1 do
     Strings.Add(FItems[i].LangName_Native);
+end;
+
+procedure TLangIniList.GetLanguageNames_EnglishAndNative(const Strings: TStrings; const Separator: string = ' - ');
+var
+  i: integer;
+  sEn, sNat, s: string;
+begin
+  Strings.Clear;
+  for i := 0 to FItems.Count - 1 do
+  begin
+    sEn := FItems[i].LangName_InEnglish;
+    sNat := FItems[i].LangName_Native;
+    if sEn = sNat then s := sEn
+    else s := sEn + Separator + sNat;
+    Strings.Add(s);
+  end;
 end;
 
 function TLangIniList.TryGetLangIniListItem(LangName: string; out Item: TLangIniListItem): Boolean;
