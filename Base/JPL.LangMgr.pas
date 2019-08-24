@@ -380,7 +380,7 @@ begin
   if bHint then Result.AddProperty('Hint', RadioButton.Hint);
 end;
 
-function TLangSection.AddCheckBox(const CheckBox: TCheckBox; bCaption, bHint: Boolean): TLangComponentItem;
+function TLangSection.AddCheckBox(const CheckBox: TCheckBox; bCaption: Boolean = True; bHint: Boolean = True): TLangComponentItem;
 begin
   Result := AddComponent(CheckBox);
   if bCaption then Result.AddProperty('Caption', CheckBox.Caption);
@@ -644,13 +644,15 @@ var
   Section: TLangSection;
 begin
   if not FileExists(IniFileName) then Exit;
-  Ini := TJPIniFile.Create(IniFileName);
+  Ini := TJPIniFile.Create(IniFileName, TEncoding.UTF8);
   try
+    Ini.UpdateFileOnExit := False;
     for Section in FLangSections do
     begin
       Section.LoadFromIniSection(Ini);
       Section.UpdateComponents;      //ShowMessage(Section.SectionName + '    ' + IniFileName);
     end;
+    Ini.UpdateFileOnExit := False;
   finally
     Ini.Free;
   end;
