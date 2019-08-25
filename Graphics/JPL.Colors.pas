@@ -109,6 +109,12 @@ function TryBgrHexToColor(s: string; out Color: TColor): Boolean;
 
 function ColorToCmykStr(const Color: TColor; Padding: Byte = 3; PaddingChar: Char = '0'; Separator: string = ','): string;
 function TryCmykStrToColor(s: string; var Color: TColor; Separator: string = ','): Boolean;
+procedure GetCmykComponents(const AColor: TColor; out Cyan, Magenta, Yellow, Black: integer); overload;
+procedure GetCmykComponents(const AColor: TColor; out Cyan, Magenta, Yellow, Black: Double); overload;
+function GetCmykCyanValue(const AColor: TColor): integer;
+function GetCmykMagentaValue(const AColor: TColor): integer;
+function GetCmykYellowValue(const AColor: TColor): integer;
+function GetCmykBlackValue(const AColor: TColor): integer;
 // The following 4 CMYK functions are from https://github.com/hippy2094/codelib/tree/master/cymk-delphi-lazarus (with my small mods)
 function ColorToCMYK(const Color: TColor): TCMYKColor;
 function CmykToColor(const CmykColor: TCMYKColor): TColor; overload;
@@ -168,17 +174,17 @@ function ColorToHslStr(const Color: TColor; AMaxHue: integer = 239; AMaxSat: int
 procedure ColorToHslSys(const Color: TColor; out Hue, Sat, Lum: integer);
 function HslSysToColor(const Hue, Sat, Lum: integer): TColor;
 function ColorToHslRangeStr(const Color: TColor; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100; bShowPercent: Boolean = True;
-  Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','): string;
+  Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','; bShowDeg: Boolean = True): string;
 procedure ColorToHslCss(const Color: TColor; out H, S, L: integer);
-function ColorToHslCssStr(const Color: TColor; UsePercent: Boolean = True; Padding: Byte = 0; PaddingChar: Char = ' '): string;
-function ColorToHslWinStr(const Color: TColor; UsePercent: Boolean = False; Padding: Byte = 0; PaddingChar: Char = ' '): string;
+function ColorToHslCssStr(const Color: TColor; UsePercent: Boolean = True; Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','; bShowDeg: Boolean = True): string;
+function ColorToHslWinStr(const Color: TColor; UsePercent: Boolean = False; Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','): string;
 function HslCssToColor(const Hue, Sat, Lum: Single): TColor;
 function HslWinToColor(const Hue, Sat, Lum: Single): TColor;
 function TryHslRangeToColor(s: string; var Color: TColor; Separator: string = ','; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100): Boolean;
 function HslToHslCssStr(const Hue, Sat, Lum: integer; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100; bShowPercent: Boolean = True;
   Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','): string;
 
-// HSL - color wheel - shift colors
+// HSL - color wheel - shifted colors
 function HslCssShiftHue(const AColor: TColor; const ShiftValue: integer): TColor;
 function ComplementaryColor(const AColor: TColor): TColor;
 function TriadicColor1(const AColor: TColor; DistanceFromComplementaryColor: integer = 60): TColor;
@@ -864,6 +870,60 @@ begin
   Result := Result + FloatToStrF(c.Y, ffGeneral, 3, 3);
   Result := Result + ',';
   Result := Result + FloatToStrF(c.K, ffGeneral, 3, 3);
+end;
+
+procedure GetCmykComponents(const AColor: TColor; out Cyan, Magenta, Yellow, Black: integer);
+var
+  ck: TCMYKColor;
+begin
+  ck := ColorToCMYK(AColor);
+  Cyan := Round(ck.C);
+  Magenta := Round(ck.M);
+  Yellow := Round(ck.Y);
+  Black := Round(ck.K);
+end;
+
+procedure GetCmykComponents(const AColor: TColor; out Cyan, Magenta, Yellow, Black: Double);
+var
+  ck: TCMYKColor;
+begin
+  ck := ColorToCMYK(AColor);
+  Cyan := ck.C * 100;
+  Magenta := ck.M * 100;
+  Yellow := ck.Y * 100;
+  Black := ck.K * 100;
+end;
+
+function GetCmykCyanValue(const AColor: TColor): integer;
+var
+  ck: TCMYKColor;
+begin
+  ck := ColorToCMYK(AColor);
+  Result := Round(ck.C * 100);
+end;
+
+function GetCmykMagentaValue(const AColor: TColor): integer;
+var
+  ck: TCMYKColor;
+begin
+  ck := ColorToCMYK(AColor);
+  Result := Round(ck.M * 100);
+end;
+
+function GetCmykYellowValue(const AColor: TColor): integer;
+var
+  ck: TCMYKColor;
+begin
+  ck := ColorToCMYK(AColor);
+  Result := Round(ck.Y * 100);
+end;
+
+function GetCmykBlackValue(const AColor: TColor): integer;
+var
+  ck: TCMYKColor;
+begin
+  ck := ColorToCMYK(AColor);
+  Result := Round(ck.K * 100);
 end;
 {$endregion CMYK colors}
 
@@ -1575,6 +1635,7 @@ begin
   s := RemoveAll(s, '(');
   s := RemoveAll(s, ')');
   s := RemoveAll(s, '%');
+  s := RemoveAll(s, DEG);
   SplitStrToArray(s, Arr{%H-}, Separator);
   sH := '';
   sS := '';
@@ -1638,7 +1699,7 @@ begin
 end;
 
 function ColorToHslRangeStr(const Color: TColor; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100; bShowPercent: Boolean = True;
-  Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','): string;
+  Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','; bShowDeg: Boolean = True): string;
 var
   H1, S1, L1: integer;
   sH, sS, sL: string;
@@ -1648,22 +1709,25 @@ begin
   ColortoHSLRange(Color, H1, S1, L1);
 
   sH := Pad(IntToStr(H1), Padding, PaddingChar);
+  if bShowDeg then sH := sH + DEG;
+
   sS := Pad(IntToStr(S1), Padding, PaddingChar);
   if bShowPercent then sS := sS + '%';
+
   sL := Pad(IntToStr(L1), Padding, PaddingChar);
   if bShowPercent then sL := sL + '%';
 
   Result := sH + Separator + sS + Separator + sL;
 end;
 
-function ColorToHslCssStr(const Color: TColor; UsePercent: Boolean = True; Padding: Byte = 0; PaddingChar: Char = ' '): string;
+function ColorToHslCssStr(const Color: TColor; UsePercent: Boolean = True; Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','; bShowDeg: Boolean = True): string;
 begin
-  Result := ColorToHslRangeStr(Color, HSL_MAX_CSS_HUE, HSL_MAX_CSS_SAT, HSL_MAX_CSS_LUM, UsePercent, Padding, PaddingChar, ',');
+  Result := ColorToHslRangeStr(Color, HSL_MAX_CSS_HUE, HSL_MAX_CSS_SAT, HSL_MAX_CSS_LUM, UsePercent, Padding, PaddingChar, Separator, bShowDeg);
 end;
 
-function ColorToHslWinStr(const Color: TColor; UsePercent: Boolean = False; Padding: Byte = 0; PaddingChar: Char = ' '): string;
+function ColorToHslWinStr(const Color: TColor; UsePercent: Boolean = False; Padding: Byte = 0; PaddingChar: Char = ' '; Separator: string = ','): string;
 begin
-  Result := ColorToHslRangeStr(Color, HSL_MAX_WIN_HUE, HSL_MAX_WIN_SAT, HSL_MAX_WIN_LUM, UsePercent, Padding, PaddingChar, ',');
+  Result := ColorToHslRangeStr(Color, HSL_MAX_WIN_HUE, HSL_MAX_WIN_SAT, HSL_MAX_WIN_LUM, UsePercent, Padding, PaddingChar, Separator, False);
 end;
 
 procedure ColorToHslCss(const Color: TColor; out H, S, L: integer);
