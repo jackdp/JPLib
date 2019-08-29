@@ -231,7 +231,7 @@ begin
   FHtmlColorStr := FHtmlColorPrefix + FRgbHex;
 
   // HSL
-  FHslCssStr := ColorToHslCssStr(Color); // ColorToHslRangeStr(FColor, 360, 100, 100, True, 0, ' ', ',');
+  FHslCssStr := ColorToHslCssStr(Color, True, 0, ' ', ',', False); // ColorToHslRangeStr(FColor, 360, 100, 100, True, 0, ' ', ',');
   ColorToHslCss(FColor, Hue, Sat, Lum);
   FHueCss := Hue;
   FSatCss := Sat;
