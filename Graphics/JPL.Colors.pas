@@ -712,7 +712,7 @@ begin
     ctPascalInt: Result := ColorToDelphiIntStr(Color);
     ctPascalHex: Result := ColorToDelphiHex(Color, '$');
     ctCmyk: Result := ColorToCmykStr(Color);
-    ctHslCss: Result := ColorToHslCssStr(Color);
+    ctHslCss: Result := ColorToHslCssStr(Color, True, 0, ' ', ',', False);
     ctHslWin: Result := ColorToHslStr(Color, 239, 240, 240, 3, '0', Separator);
     ctCppHex: Result := ColorToDelphiHex(Color, '0x');
   else
@@ -877,10 +877,10 @@ var
   ck: TCMYKColor;
 begin
   ck := ColorToCMYK(AColor);
-  Cyan := Round(ck.C);
-  Magenta := Round(ck.M);
-  Yellow := Round(ck.Y);
-  Black := Round(ck.K);
+  Cyan := Round(ck.C * 100);
+  Magenta := Round(ck.M * 100);
+  Yellow := Round(ck.Y * 100);
+  Black := Round(ck.K * 100);
 end;
 
 procedure GetCmykComponents(const AColor: TColor; out Cyan, Magenta, Yellow, Black: Double);
