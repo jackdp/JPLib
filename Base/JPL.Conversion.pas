@@ -198,6 +198,7 @@ function IsValidFloatStr(FloatStr: string; IgnoreSpaces: Boolean = False): Boole
 var
   i, xCount, xDots, xCommas: integer;
 begin
+
   Result := False;
   if IgnoreSpaces then FloatStr := StrRemove(FloatStr, ' ');
 
@@ -221,7 +222,7 @@ begin
 
   for i := 1 to Length(FloatStr) do
     if not (
-      CharInSet(FloatStr[i], ['0'..'9']) or (FloatStr[i] = '-') or (FloatStr[i] = 'E') or (FloatStr[i] = '.') or (FloatStr[1] = ',')
+      CharInSet(FloatStr[i], ['0'..'9']) or (FloatStr[i] = '-') or (FloatStr[i] = 'E') or (FloatStr[i] = '.') or (FloatStr[i] = ',')
     ) then
     begin
       Result := False;
