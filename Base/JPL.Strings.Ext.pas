@@ -11,15 +11,34 @@ unit JPL.Strings.Ext;
 interface
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, StrUtils;
 
 
 procedure SplitStrToList(LineToParse: string; var List: TStringList; DataSeparator: string = ',');
 function SaveStringToFile(const FileName, FileContent: string; Encoding: TEncoding): Boolean;
+function GetLineStartingWith(List: TStrings; const TextToFind: string; IgnoreCase: Boolean = True; StartIndex: integer = 0): string;
 
 
 implementation
 
+
+function GetLineStartingWith(List: TStrings; const TextToFind: string; IgnoreCase: Boolean = True; StartIndex: integer = 0): string;
+var
+  i: integer;
+  b: Boolean;
+begin
+  Result := '';
+  for i := StartIndex to List.Count - 1 do
+  begin
+    if IgnoreCase then b := AnsiStartsText(TextToFind, List[i])
+    else b := AnsiStartsStr(TextToFind, List[i]);
+    if b then
+    begin
+      Result := List[i];
+      Break;
+    end;
+  end;
+end;
 
 function SaveStringToFile(const FileName, FileContent: string; Encoding: TEncoding): Boolean;
 var
