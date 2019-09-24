@@ -39,7 +39,8 @@ function IsValidLongFileName(const LongFileName: string): Boolean;
 function FixFileNameSlashes(const FileName: string): string; deprecated 'Use FixPathDelimiters instead';
 function FixPathDelimiters(const FileName: string): string;
 function PadString(Text: string; i: integer; znak: Char = ' '): string;
-function Pad(Text: string; Len: integer; PaddingChar: Char = ' '): string;
+function Pad(Text: string; Len: integer; PaddingChar: Char = ' '): string; overload;
+function Pad(const x: integer; Len: integer; PaddingChar: Char = '0'): string; overload;
 function PadRight(Text: string; i: integer; znak: Char = ' '): string;
 function UnquoteStr(s: string; bDoubleQuote: Boolean = True): string;
 function IntToStrEx(const x: int64; c: Char = ' '): string; overload;
@@ -1025,6 +1026,11 @@ begin
   Result := Text;
 end;
 {$hints on}
+
+function Pad(const x: integer; Len: integer; PaddingChar: Char = '0'): string;
+begin
+  Result := Pad(IntToStr(x), Len, PaddingChar);
+end;
 
 {$hints off}
 function PadRight(Text: string; i: integer; znak: Char = ' '): string;
