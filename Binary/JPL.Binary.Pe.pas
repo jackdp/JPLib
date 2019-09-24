@@ -4,13 +4,24 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes,
-  JPL.Files,
+  JPL.Strings, JPL.Files,
   JPL.Binary.Types, JPL.UPX, JPL.Conversion, JPL.Binary.Misc
   ;
 
+{
+  Usefule links:
+
+  https://docs.microsoft.com/en-us/windows/win32/debug/pe-format
+  https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#coff-file-header-object-and-image
+}
 
 const
   {$region '   CONST   '}
+
+
+  IMAGE_DOS_SIGNATURE =    $5A4D; // MZ
+  IMAGE_OS2_SIGNATURE =    $454E; // NE
+  IMAGE_VXD_SIGNATURE =    $454C; // LE
 
   IMAGE_FILE_DLL = $2000;  { File is a DLL. }
   IMAGE_FILE_EXECUTABLE_IMAGE = $0002;  { File is executable  (i.e. no unresolved externel references). }
@@ -20,8 +31,8 @@ const
   SIGNATURE_PE = $00004550;
   SIGNATURE_NE = $0A05454E;
 
-  OPTIONAL_HEADER_MAGIC_PE32 = $010B;
-  OPTIONAL_HEADER_MAGIC_PE32PLUS = $020B;
+  OPTIONAL_HEADER_MAGIC_PE32 = $010B;      // 32-bit
+  OPTIONAL_HEADER_MAGIC_PE32PLUS = $020B;  // 64-bit
 
 
     {$region '   CONST - Machine   '}
@@ -38,8 +49,8 @@ const
   IMAGE_FILE_MACHINE_CEF       = $0CEF;
   IMAGE_FILE_MACHINE_EBC       = $0EBC; // EFI Byte Code
   IMAGE_FILE_MACHINE_I386      = $014c; // Intel 386.
-  IMAGE_FILE_MACHINE_I486      = $14D; // Intel 486
-  IMAGE_FILE_MACHINE_I586      = $14E; // Intel 586
+  IMAGE_FILE_MACHINE_I486      = $14D;  // Intel 486
+  IMAGE_FILE_MACHINE_I586      = $14E;  // Intel 586
   IMAGE_FILE_MACHINE_IA64      = $0200; // Intel 64
   IMAGE_FILE_MACHINE_M32R      = $9041; // Mitsubishi M32R little-endian
   IMAGE_FILE_MACHINE_MIPS16    = $0266; // MIPS
@@ -58,43 +69,218 @@ const
   IMAGE_FILE_MACHINE_THUMB     = $01c2;
   IMAGE_FILE_MACHINE_TRICORE   = $0520; // Infineon
   IMAGE_FILE_MACHINE_WCEMIPSV2 = $0169; // MIPS little-endian WCE v2
+  IMAGE_FILE_MACHINE_RISCV32   = $5032; // RISC-V 32-bit address space
+  IMAGE_FILE_MACHINE_RISCV64   = $5064; // RISC-V 64-bit address space
+  IMAGE_FILE_MACHINE_RISCV128  = $5128; // RISC-V 128-bit address space
     {$endregion}
 
-  MAGIC_PE32 = $10b;
-  MAGIC_PE32PLUS = $20b;
+  //MAGIC_PE32 = $10b;
+  //MAGIC_PE32PLUS = $20b;
+
+type
+
+  TPeInfoItem = record
+    FieldName: string;
+    TypeName: string;
+    Bytes: Byte;
+    Desc: string;
+  end;
+
+
+const
+
+   IMAGE_FILE_AGGRESSIVE_WS_TRIM = IMAGE_FILE_AGGRESIVE_WS_TRIM; // $0010
 
 
     {$region '   CONST - DOS Header   '}
+
   DosHeaderFieldCount = 31;
 
-  DosHeaderFieldNames: array[0..30] of string =
-  (
-    'e_magic', 'e_cblp', 'e_cp', 'e_crlc', 'e_cparhdr', 'e_minalloc', 'e_maxalloc', 'e_ss', 'e_sp', 'e_csum',
-    'e_ip', 'e_cs', 'e_lfarlc', 'e_ovno', 'e_res[0]', 'e_res[1]', 'e_res[2]', 'e_res[3]', 'e_oemid', 'e_oeminfo',
-    'e_res2[0]', 'e_res2[1]', 'e_res2[2]', 'e_res2[3]', 'e_res2[4]', 'e_res2[5]', 'e_res2[6]', 'e_res2[7]', 'e_res2[8]', 'e_res2[9]',
-    'e_lfanew'
+  DosHeaderInfo: array[0..DosHeaderFieldCount - 1] of TPeInfoItem = (
+    (FieldName: 'e_magic';    TypeName: 'WORD';  Bytes: 2;   Desc: 'Magic number'),
+    (FieldName: 'e_cblp';     TypeName: 'WORD';  Bytes: 2;   Desc: 'Bytes on last page of file'),
+    (FieldName: 'e_cp';       TypeName: 'WORD';  Bytes: 2;   Desc: 'Pages in file'),
+    (FieldName: 'e_crlc';     TypeName: 'WORD';  Bytes: 2;   Desc: 'Relocations'),
+    (FieldName: 'e_cparhdr';  TypeName: 'WORD';  Bytes: 2;   Desc: 'Size of header in paragraphs'),
+    (FieldName: 'e_minalloc'; TypeName: 'WORD';  Bytes: 2;   Desc: 'Minimum extra paragraphs needed'),
+    (FieldName: 'e_maxalloc'; TypeName: 'WORD';  Bytes: 2;   Desc: 'Maximum extra paragraphs needed'),
+    (FieldName: 'e_ss';       TypeName: 'WORD';  Bytes: 2;   Desc: 'Initial (relative) SS value'),
+    (FieldName: 'e_sp';       TypeName: 'WORD';  Bytes: 2;   Desc: 'Initial SP value'),
+    (FieldName: 'e_csum';     TypeName: 'WORD';  Bytes: 2;   Desc: 'Checksum'),
+    (FieldName: 'e_ip';       TypeName: 'WORD';  Bytes: 2;   Desc: 'Initial IP value'),
+    (FieldName: 'e_cs';       TypeName: 'WORD';  Bytes: 2;   Desc: 'Initial (relative) CS value'),
+    (FieldName: 'e_lfarlc';   TypeName: 'WORD';  Bytes: 2;   Desc: 'File address of relocation table'),
+    (FieldName: 'e_ovno';     TypeName: 'WORD';  Bytes: 2;   Desc: 'Overlay number'),
+    (FieldName: 'e_res[0]';   TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_res[1]';   TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_res[2]';   TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_res[3]';   TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_oemid';    TypeName: 'WORD';  Bytes: 2;   Desc: 'OEM identifier (for e_oeminfo)'),
+    (FieldName: 'e_oeminfo';  TypeName: 'WORD';  Bytes: 2;   Desc: 'OEM information (e_oemid specific)'),
+    (FieldName: 'e_res2[0]';  TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_res2[1]';  TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_res2[2]';  TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_res2[3]';  TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_res2[4]';  TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_res2[5]';  TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_res2[6]';  TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_res2[7]';  TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_res2[8]';  TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_res2[9]';  TypeName: 'WORD';  Bytes: 2;   Desc: '(Reserved)'),
+    (FieldName: 'e_lfanew';   TypeName: 'LONG';  Bytes: 4;   Desc: 'File address of PE header')
   );
 
-  DosHeaderTypeNames: array[0..30] of string =
-  (
-    'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD',
-    'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD',
-    'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD',
-    'LONG' //<-- LongInt
+    {$endregion CONST - DOS Header}
+
+
+    {$region '   CONST - File (COFF) Header   '}
+
+  CoffHeaderFieldCount = 7;
+
+  CoffHeaderInfo: array[0..CoffHeaderFieldCount - 1] of TPeInfoItem = (
+    (FieldName: 'Machine';               TypeName: 'WORD';   Bytes: 2;  Desc: 'Number identifying type of target machine'),
+    (FieldName: 'NumberOfSections';      TypeName: 'WORD';   Bytes: 2;  Desc: 'Number of sections'),
+    (FieldName: 'TimeDateStamp';         TypeName: 'DWORD';  Bytes: 4;  Desc: 'Time and date the file was created'),
+    (FieldName: 'PointerToSymbolTable';  TypeName: 'DWORD';  Bytes: 4;  Desc: 'File offset of the COFF symbol table or 0 if none is present'),
+    (FieldName: 'NumberOfSymbols';       TypeName: 'DWORD';  Bytes: 4;  Desc: 'Number of entries in the symbol table'),
+    (FieldName: 'SizeOfOptionalHeader';  TypeName: 'WORD';   Bytes: 2;  Desc: 'Size of the optional header'),
+    (FieldName: 'Characteristics';       TypeName: 'WORD';   Bytes: 2;  Desc: 'Flags indicating attributes of the file')
   );
 
-  DosHeaderFieldDesc: array[0..30] of string =
-  (
-    'Magic number', 'Bytes on last page of file', 'Pages in file', 'Relocations', 'Size of header in paragraphs', 'Minimum extra paragraphs needed',
-    'Maximum extra paragraphs needed', 'Initial (relative) SS value', 'Initial SP value', 'Checksum', 'Initial IP value', 'Initial (relative) CS value',
-    'File address of relocation table', 'Overlay number', '(Reserved)', '(Reserved)', '(Reserved)', '(Reserved)', 'OEM identifier (for e_oeminfo)',
-    'OEM information (e_oemid specific)', '(Reserved)', '(Reserved)', '(Reserved)', '(Reserved)', '(Reserved)', '(Reserved)', '(Reserved)', '(Reserved)',
-    '(Reserved)', '(Reserved)', 'File address of new exe header'
+    {$endregion CONST - File (COFF) Header}
+
+
+    {$region '   CONST - Optional (PE) Header   '}
+
+  OptionalHeaderFieldCount32 = 46 - IMAGE_NUMBEROF_DIRECTORY_ENTRIES;
+  OptionalHeaderFieldCount64 = 45 - IMAGE_NUMBEROF_DIRECTORY_ENTRIES;
+
+  OptionalHeaderInfo32: array[0..OptionalHeaderFieldCount32 - 1] of TPeInfoItem = (
+    // ----- Standard fields -----
+    (FieldName: 'Magic';                        TypeName: 'WORD';     Bytes: 2;  Desc: 'Magic number'),
+    (FieldName: 'MajorLinkerVersion';           TypeName: 'BYTE';     Bytes: 1;  Desc: 'Linker major version number'),
+    (FieldName: 'MinorLinkerVersion';           TypeName: 'BYTE';     Bytes: 1;  Desc: 'Linker minor version number'),
+    (FieldName: 'SizeOfCode';                   TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of CODE section, or the sum of all CODE sections'),
+    (FieldName: 'SizeOfInitializedData';        TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of Initialized Data section, or the sum of all such sections'),
+    (FieldName: 'SizeOfUninitializedData';      TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of Uninitialized Data section (BSS), or the sum of all such sections'),
+    (FieldName: 'AddressOfEntryPoint';          TypeName: 'DWORD';    Bytes: 4;  Desc: 'Address of entry point, relative to image base'),
+    (FieldName: 'BaseOfCode';                   TypeName: 'DWORD';    Bytes: 4;  Desc: 'Address of beginning of CODE section, relative to image base'),
+    (FieldName: 'BaseOfData';                   TypeName: 'DWORD';    Bytes: 4;  Desc: 'Address of beginning of DATA section, relative to image base'),
+
+    // ----- NT additional fields -----
+    (FieldName: 'ImageBase';                    TypeName: 'DWORD';    Bytes: 4;  Desc: 'Preferred address of first byte of image when loades into memory'),
+    (FieldName: 'SectionAlignment';             TypeName: 'DWORD';    Bytes: 4;  Desc: 'Alignment of sections when loaded into memory (in bytes)'),
+    (FieldName: 'FileAlignment';                TypeName: 'DWORD';    Bytes: 4;  Desc: 'Alignment factor used to align the raw data of sections in the image file (in bytes)'),
+    (FieldName: 'MajorOperatingSystemVersion';  TypeName: 'WORD';     Bytes: 2;  Desc: 'Major version number of required OS'),
+    (FieldName: 'MinorOperatingSystemVersion';  TypeName: 'WORD';     Bytes: 2;  Desc: 'Minor version number of required OS'),
+    (FieldName: 'MajorImageVersion';            TypeName: 'WORD';     Bytes: 2;  Desc: 'Major version number of image'),
+    (FieldName: 'MinorImageVersion';            TypeName: 'WORD';     Bytes: 2;  Desc: 'Minor version number of image'),
+    (FieldName: 'MajorSubsystemVersion';        TypeName: 'WORD';     Bytes: 2;  Desc: 'Major version number of subsystem'),
+    (FieldName: 'MinorSubsystemVersion';        TypeName: 'WORD';     Bytes: 2;  Desc: 'Minor version number of subsystem'),
+    (FieldName: 'Win32VersionValue';            TypeName: 'DWORD';    Bytes: 4;  Desc: '(Reserved)'),
+    (FieldName: 'SizeOfImage';                  TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of image (in bytes)'),
+    (FieldName: 'SizeOfHeaders';                TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of MS-DOS stub, PE Header, and section headers rounded to a multiple of FileAlignment'),
+    (FieldName: 'CheckSum';                     TypeName: 'DWORD';    Bytes: 4;  Desc: 'Image file checksum'),
+    (FieldName: 'Subsystem';                    TypeName: 'WORD';     Bytes: 2;  Desc: 'Subsystem required to run the image'),
+    (FieldName: 'DllCharacteristics';           TypeName: 'WORD';     Bytes: 2;  Desc: 'DLL characteristics'),
+    (FieldName: 'SizeOfStackReserve';           TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of stack to reserve'),
+    (FieldName: 'SizeOfStackCommit';            TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of stack to commit'),
+    (FieldName: 'SizeOfHeapReserve';            TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of local heap space to reserve'),
+    (FieldName: 'SizeOfHeapCommit';             TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of local heap space to commit'),
+    (FieldName: 'LoaderFlags';                  TypeName: 'DWORD';    Bytes: 4;  Desc: '(Obsolete)'),
+    (FieldName: 'NumberOfRvaAndSizes';          TypeName: 'DWORD';    Bytes: 4;  Desc: 'Number of data-dictionary entries')
+//    (FieldName: 'DataDirectory [0]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [1]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [2]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [3]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [4]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [5]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [6]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [7]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [8]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [9]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [10]';           TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [11]';           TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [12]';           TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [13]';           TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [14]';           TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [15]';           TypeName: 'pointer';  Desc: '')
   );
-    {$endregion}
+
+  OptionalHeaderInfo64: array[0..OptionalHeaderFieldCount64 - 1] of TPeInfoItem = (
+    // ----- Standard fields -----
+    (FieldName: 'Magic';                        TypeName: 'WORD';     Bytes: 2 ; Desc: 'Magic number'),
+    (FieldName: 'MajorLinkerVersion';           TypeName: 'BYTE';     Bytes: 1;  Desc: 'Linker major version number'),
+    (FieldName: 'MinorLinkerVersion';           TypeName: 'BYTE';     Bytes: 1;  Desc: 'Linker minor version number'),
+    (FieldName: 'SizeOfCode';                   TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of CODE section, or the sum of all CODE sections'),
+    (FieldName: 'SizeOfInitializedData';        TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of Initialized Data section, or the sum of all such sections'),
+    (FieldName: 'SizeOfUninitializedData';      TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of Uninitialized Data section (BSS), or the sum of all such sections'),
+    (FieldName: 'AddressOfEntryPoint';          TypeName: 'DWORD';    Bytes: 4;  Desc: 'Address of entry point, relative to image base'),
+    (FieldName: 'BaseOfCode';                   TypeName: 'DWORD';    Bytes: 4;  Desc: 'Address of beginning of CODE section, relative to image base'),
+    //(FieldName: 'BaseOfData';                   TypeName: 'DWORD';    Desc: 'Address of beginning of DATA section, relative to image base'),
+
+    // ----- NT additional fields -----
+    (FieldName: 'ImageBase';                    TypeName: 'UInt64';   Bytes: 8;  Desc: 'Preferred address of first byte of image when loades into memory'),
+    (FieldName: 'SectionAlignment';             TypeName: 'DWORD';    Bytes: 4;  Desc: 'Alignment of sections when loaded into memory (in bytes)'),
+    (FieldName: 'FileAlignment';                TypeName: 'DWORD';    Bytes: 4;  Desc: 'Alignment factor used to align the raw data of sections in the image file (in bytes)'),
+    (FieldName: 'MajorOperatingSystemVersion';  TypeName: 'WORD';     Bytes: 2; Desc: 'Major version number of required OS'),
+    (FieldName: 'MinorOperatingSystemVersion';  TypeName: 'WORD';     Bytes: 2;  Desc: 'Minor version number of required OS'),
+    (FieldName: 'MajorImageVersion';            TypeName: 'WORD';     Bytes: 2;  Desc: 'Major version number of image'),
+    (FieldName: 'MinorImageVersion';            TypeName: 'WORD';     Bytes: 2;  Desc: 'Minor version number of image'),
+    (FieldName: 'MajorSubsystemVersion';        TypeName: 'WORD';     Bytes: 2;  Desc: 'Major version number of subsystem'),
+    (FieldName: 'MinorSubsystemVersion';        TypeName: 'WORD';     Bytes: 2;  Desc: 'Minor version number of subsystem'),
+    (FieldName: 'Win32VersionValue';            TypeName: 'DWORD';    Bytes: 4;  Desc: '(Reserved)'),
+    (FieldName: 'SizeOfImage';                  TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of image (in bytes)'),
+    (FieldName: 'SizeOfHeaders';                TypeName: 'DWORD';    Bytes: 4;  Desc: 'Size of MS-DOS stub, PE Header, and section headers rounded to a multiple of FileAlignment'),
+    (FieldName: 'CheckSum';                     TypeName: 'DWORD';    Bytes: 4;  Desc: 'Image file checksum'),
+    (FieldName: 'Subsystem';                    TypeName: 'WORD';     Bytes: 2;  Desc: 'Subsystem required to run the image'),
+    (FieldName: 'DllCharacteristics';           TypeName: 'WORD';     Bytes: 2;  Desc: 'DLL characteristics'),
+
+    (FieldName: 'SizeOfStackReserve';           TypeName: 'UInt64';   Bytes: 8;  Desc: 'Size of stack to reserve'),
+    (FieldName: 'SizeOfStackCommit';            TypeName: 'UInt64';   Bytes: 8;  Desc: 'Size of stack to commit'),
+    (FieldName: 'SizeOfHeapReserve';            TypeName: 'UInt64';   Bytes: 8;  Desc: 'Size of local heap space to reserve'),
+    (FieldName: 'SizeOfHeapCommit';             TypeName: 'UInt64';   Bytes: 8;  Desc: 'Size of local heap space to commit'),
+
+    (FieldName: 'LoaderFlags';                  TypeName: 'DWORD';    Bytes: 4;  Desc: '(Obsolete)'),
+    (FieldName: 'NumberOfRvaAndSizes';          TypeName: 'DWORD';    Bytes: 4;  Desc: 'Number of data-dictionary entries')
+//    (FieldName: 'DataDirectory [0]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [1]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [2]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [3]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [4]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [5]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [6]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [7]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [8]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [9]';            TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [10]';           TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [11]';           TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [12]';           TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [13]';           TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [14]';           TypeName: 'pointer';  Desc: ''),
+//    (FieldName: 'DataDirectory [15]';           TypeName: 'pointer';  Desc: '')
+  );
 
 
-  DataDirectoryNames: array[0..15] of string =
+    {$endregion CONST - Optional (PE) Header}
+
+
+
+  ResourceDataEntryFieldsNames: array[0..3] of string = ('OffsetToData', 'Size', 'CodePage', 'Reserved');
+
+  ResourceDataEntryTypesNames: array[0..3] of string = ('DWORD', 'DWORD', 'DWORD', 'DWORD');
+
+  ResourceDataEntryFieldsDesc: array[0..3] of string =
+  (
+    'Address of a unit of resource data in the Resource Data area',
+    'Size of the resource data pointed to by the OffsetToData',
+    'Code Page used to decode code point values within the resource data',
+    '(Reserved)'
+  );
+
+
+  PeDataDirectoryCount = IMAGE_NUMBEROF_DIRECTORY_ENTRIES; // 16
+  PeDataDirectoryNames: array[0..PeDataDirectoryCount - 1] of string =
   (
     'Export', 'Import', 'Resource', 'Exception', 'Security', 'Base Reloc',
     'Debug', 'Copyright', 'Global Ptr', 'TLS', 'Load Config', 'Bound Import',
@@ -102,6 +288,236 @@ const
   );
 
   {$endregion CONST}
+
+
+
+
+  {$region '   COFF Machine   '}
+
+
+type
+
+  TCoffMachineInfoItem = record
+    ConstantName: string;
+    Machine: Word;
+    Desc: string;
+  end;
+
+const
+
+  CoffMachineInfoArray: array[0..35] of TCoffMachineInfoItem = (
+    (ConstantName: 'IMAGE_FILE_MACHINE_UNKNOWN'; Machine: IMAGE_FILE_MACHINE_UNKNOWN;   Desc: 'Unknown machine'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_I386';    Machine: IMAGE_FILE_MACHINE_I386;   Desc: 'Intel 386 or later processors and compatible processors'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_I486';    Machine: IMAGE_FILE_MACHINE_I486;   Desc: 'Intel 486'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_I586';    Machine: IMAGE_FILE_MACHINE_I586;   Desc: 'Intel 586'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_R3000';    Machine: IMAGE_FILE_MACHINE_R3000;   Desc: 'MIPS little endian R3000'),
+
+    (ConstantName: '0x0160';    Machine: $0160;   Desc: 'MIPS big-endian'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_R4000';    Machine: IMAGE_FILE_MACHINE_R4000;   Desc: 'MIPS little endian R4000'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_R10000';    Machine: IMAGE_FILE_MACHINE_R10000;   Desc: 'MIPS little endian R10000'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_WCEMIPSV2';    Machine: IMAGE_FILE_MACHINE_WCEMIPSV2;   Desc: 'MIPS little endian WCE v2'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_RISCV32';    Machine: IMAGE_FILE_MACHINE_RISCV32;   Desc: 'RISC-V 32-bit address space'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_RISCV64';    Machine: IMAGE_FILE_MACHINE_RISCV64;   Desc: 'RISC-V 64-bit address space'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_RISCV128';    Machine: IMAGE_FILE_MACHINE_RISCV128;   Desc: 'RISC-V 128-bit address space'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_ALPHA';    Machine: IMAGE_FILE_MACHINE_ALPHA;   Desc: 'Alpha_AXP'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_SH3';    Machine: IMAGE_FILE_MACHINE_SH3;   Desc: 'Hitachi SH3 little endian'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_SH3DSP';    Machine: IMAGE_FILE_MACHINE_SH3DSP;   Desc: 'Hitachi SH3 DSP'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_SH3E';    Machine: IMAGE_FILE_MACHINE_SH3E;   Desc: 'SH3E little endian'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_SH4';    Machine: IMAGE_FILE_MACHINE_SH4;   Desc: 'Hitachi SH4 little endian'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_SH5';    Machine: IMAGE_FILE_MACHINE_SH5;   Desc: 'Hitachi SH5'),
+
+    (ConstantName: 'IMAGE_FILE_MACHINE_ARM';    Machine: IMAGE_FILE_MACHINE_ARM;   Desc: 'ARM little endian'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_ARM64';    Machine: IMAGE_FILE_MACHINE_ARM64;   Desc: 'ARM64 little endian'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_ARMNT';    Machine: IMAGE_FILE_MACHINE_ARMNT;   Desc: 'ARM Thumb-2 little endian'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_THUMB';    Machine: IMAGE_FILE_MACHINE_THUMB;   Desc: 'ARM or Thumb'),
+
+    (ConstantName: 'IMAGE_FILE_MACHINE_AM33';    Machine: IMAGE_FILE_MACHINE_AM33;   Desc: 'Matsushita AM33'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_POWERPC';    Machine: IMAGE_FILE_MACHINE_POWERPC;   Desc: 'IBM PowerPC little endian'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_POWERPCFP';    Machine: IMAGE_FILE_MACHINE_POWERPCFP;   Desc: 'IBM PowerPC with floating point support'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_IA64';    Machine: IMAGE_FILE_MACHINE_IA64;   Desc: 'Intel Itanium 64 processor family'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_MIPS16';    Machine: IMAGE_FILE_MACHINE_MIPS16;   Desc: 'MIPS16'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_ALPHA64';    Machine: IMAGE_FILE_MACHINE_ALPHA64;   Desc: 'ALPHA64'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_MIPSFPU';    Machine: IMAGE_FILE_MACHINE_MIPSFPU;   Desc: 'MIPS with FPU'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_MIPSFPU16';    Machine: IMAGE_FILE_MACHINE_MIPSFPU16;   Desc: 'MIPS16 with FPU'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_TRICORE';    Machine: IMAGE_FILE_MACHINE_TRICORE;   Desc: 'Infineon'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_CEF';    Machine: IMAGE_FILE_MACHINE_CEF;   Desc: 'CEF'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_EBC';    Machine: IMAGE_FILE_MACHINE_EBC;   Desc: 'EFI byte code'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_AMD64';    Machine: IMAGE_FILE_MACHINE_AMD64;   Desc: 'AMD64 (x64)'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_M32R';    Machine: IMAGE_FILE_MACHINE_M32R;   Desc: 'Mitsubishi M32R little endian'),
+    (ConstantName: 'IMAGE_FILE_MACHINE_CEE';    Machine: IMAGE_FILE_MACHINE_CEE;   Desc: 'CEE')
+  );
+
+
+
+type
+  // https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#machine-types
+
+  // How to use:
+  //   Set Machine property than read Description and MachineConstantName
+  TCoffMachine = record
+  strict private
+    class var FMachine: Word;
+    class procedure SetMachine(const Value: Word); static;
+    class function GetDescription: string; static;
+    class function GetMachineConstantName: string; static;
+  public
+    class function IsIntel386Machine: Boolean; static;
+    class function IsIntel486Machine: Boolean; static;
+    class function IsIntel586Machine: Boolean; static;
+    class function IsAmd64Machine: Boolean; static;
+    class function InfoURL: string; static;
+
+    class property Machine: Word read FMachine write SetMachine;
+    class property Description: string read GetDescription;
+    class property MachineConstantName: string read GetMachineConstantName;
+  end;
+  {$endregion COFF Machine}
+
+
+
+  {$region '   COFF Flags (Characteristics)   '}
+
+type
+
+  TCoffFlagItem = record
+    FlagName: string;
+    Flag: Word;
+    Desc: string;
+  end;
+
+
+const
+  CoffCharacteristicsInfoArray: array[0..15] of TCoffFlagItem = (
+    (FlagName: 'IMAGE_FILE_RELOCS_STRIPPED';       Flag: IMAGE_FILE_RELOCS_STRIPPED;    Desc: 'Relocation info stripped from file'),
+    (FlagName: 'IMAGE_FILE_EXECUTABLE_IMAGE';      Flag: IMAGE_FILE_EXECUTABLE_IMAGE;   Desc: 'File is executable'),
+    (FlagName: 'IMAGE_FILE_LINE_NUMS_STRIPPED';    Flag: IMAGE_FILE_LINE_NUMS_STRIPPED;   Desc: 'COFF line numbers have been removed. This flag is deprecated and should be zero.'),
+    (FlagName: 'IMAGE_FILE_LOCAL_SYMS_STRIPPED';   Flag: IMAGE_FILE_LOCAL_SYMS_STRIPPED;   Desc: 'COFF symbol table entries for local symbols have been removed. This flag is deprecated and should be zero.'),
+    (FlagName: 'IMAGE_FILE_AGGRESSIVE_WS_TRIM';    Flag: IMAGE_FILE_AGGRESSIVE_WS_TRIM;   Desc: 'Obsolete. Aggressively trim working set. This flag is deprecated for Windows 2000 and later and must be zero.'),
+    (FlagName: 'IMAGE_FILE_LARGE_ADDRESS_AWARE';   Flag: IMAGE_FILE_LARGE_ADDRESS_AWARE;   Desc: 'Application can handle > 2-GB addresses.'),
+    (FlagName: '0x0040';                           Flag: $0040;   Desc: 'This flag is reserved for future use.'),
+    (FlagName: 'IMAGE_FILE_BYTES_REVERSED_LO';     Flag: IMAGE_FILE_BYTES_REVERSED_LO;   Desc: 'Little endian: the least significant bit (LSB) precedes the most significant bit (MSB) in memory. This flag is deprecated and should be zero.'),
+    (FlagName: 'IMAGE_FILE_32BIT_MACHINE';         Flag: IMAGE_FILE_32BIT_MACHINE;   Desc: 'Machine is based on a 32-bit-word architecture.'),
+    (FlagName: 'IMAGE_FILE_DEBUG_STRIPPED';        Flag: IMAGE_FILE_DEBUG_STRIPPED;   Desc: 'Debugging information is removed from the image file.'),
+    (FlagName: 'IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP';   Flag: IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP;   Desc: 'If the image is on removable media, fully load it and copy it to the swap file.'),
+    (FlagName: 'IMAGE_FILE_NET_RUN_FROM_SWAP';         Flag: IMAGE_FILE_NET_RUN_FROM_SWAP;   Desc: 'If the image is on network media, fully load it and copy it to the swap file.'),
+    (FlagName: 'IMAGE_FILE_SYSTEM';             Flag: IMAGE_FILE_SYSTEM;   Desc: 'The image file is a system file, not a user program.'),
+    (FlagName: 'IMAGE_FILE_DLL';                Flag: IMAGE_FILE_DLL;   Desc: 'The image file is a dynamic-link library (DLL). Such files are considered executable files for almost all purposes, although they cannot be directly run.'),
+    (FlagName: 'IMAGE_FILE_UP_SYSTEM_ONLY';     Flag: IMAGE_FILE_UP_SYSTEM_ONLY;   Desc: 'The file should be run only on a uniprocessor machine.'),
+    (FlagName: 'IMAGE_FILE_BYTES_REVERSED_HI';  Flag: IMAGE_FILE_BYTES_REVERSED_HI;   Desc: 'Big endian: the MSB precedes the LSB in memory. This flag is deprecated and should be zero.')
+  );
+
+
+type
+
+  // https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#characteristics
+  TCoffCharacteristics = record
+  strict private
+    class var FSeparatorIsSet: Boolean;
+    class var FCharacteristics: Word;
+    class var FFlagNameDescSeparator: string;
+    class procedure SetCharacteristics(const Value: Word); static;
+    class function GetDesc(bIncludeFlagNames: Boolean): string; static;
+    class function GetDescription: string; static;
+    class function GetDescriptionWithFlagNames: string; static;
+    class procedure SetFlagNameDescSeparator(const Value: string); static;
+  public
+    class function InfoURL: string; static;
+    class property FlagNameDescSeparator: string read FFlagNameDescSeparator write SetFlagNameDescSeparator;
+    class property Characteristics: Word read FCharacteristics write SetCharacteristics;
+    class property Description: string read GetDescription;
+    class property DescriptionWithFlagNames: string read GetDescriptionWithFlagNames;
+  end;
+
+  {$endregion COFF Flags (Characteristics)}
+
+
+
+  {$region '   PE Section Flags (Characteristics)   '}
+type
+
+  TPeSectionFlagItem = record
+    FlagName: string;
+    Flag: DWORD;
+    Desc: string;
+  end;
+
+const
+  // https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#section-flags
+
+  IMAGE_SCN_GPREL = $00008000;
+  IMAGE_SCN_ALIGN_128BYTES = $00800000;
+  IMAGE_SCN_ALIGN_256BYTES = $00900000;
+  IMAGE_SCN_ALIGN_512BYTES = $00A00000;
+  IMAGE_SCN_ALIGN_1024BYTES = $00B00000;
+  IMAGE_SCN_ALIGN_2048BYTES = $00C00000;
+  IMAGE_SCN_ALIGN_4096BYTES = $00D00000;
+  IMAGE_SCN_ALIGN_8192BYTES = $00E00000;
+
+  PeSectionFlagsArray: array[0..40] of TPeSectionFlagItem = (
+    (FlagName: '0x00000000';              Flag: $00000000;    Desc: 'Reserved for future use (0x00000000).'),
+    (FlagName: '0x00000001';              Flag: $00000001;    Desc: 'Reserved for future use (0x00000001).'),
+    (FlagName: '0x00000002';              Flag: $00000002;    Desc: 'Reserved for future use (0x00000002).'),
+    (FlagName: '0x00000004';              Flag: $00000004;    Desc: 'Reserved for future use (0x00000004).'),
+    (FlagName: 'IMAGE_SCN_TYPE_NO_PAD';   Flag: IMAGE_SCN_TYPE_NO_PAD;     Desc: 'The section should not be padded to the next boundary. This flag is obsolete and is replaced by IMAGE_SCN_ALIGN_1BYTES. This is valid only for object files.'),
+    (FlagName: '0x00000010';              Flag: $00000010;                 Desc: 'Reserved for future use (0x00000010).'),
+    (FlagName: 'IMAGE_SCN_CNT_CODE';      Flag: IMAGE_SCN_CNT_CODE;        Desc: 'The section contains executable code.'),
+    (FlagName: 'IMAGE_SCN_CNT_INITIALIZED_DATA';    Flag: IMAGE_SCN_CNT_INITIALIZED_DATA;      Desc: 'The section contains initialized data.'),
+    (FlagName: 'IMAGE_SCN_CNT_UNINITIALIZED_DATA';  Flag: IMAGE_SCN_CNT_UNINITIALIZED_DATA;    Desc: 'The section contains uninitialized data.'),
+    (FlagName: 'IMAGE_SCN_LNK_OTHER';        Flag: IMAGE_SCN_LNK_OTHER;          Desc: 'Reserved for future use.'),
+    (FlagName: 'IMAGE_SCN_LNK_INFO';         Flag: IMAGE_SCN_LNK_INFO;           Desc: 'The section contains comments or other information. The .drectve section has this type. This is valid for object files only.'),
+    (FlagName: '0x00000400';                 Flag: $00000400;                    Desc: 'Reserved for future use (0x00000400).'),
+    (FlagName: 'IMAGE_SCN_LNK_REMOVE';       Flag: IMAGE_SCN_LNK_REMOVE;         Desc: 'The section will not become part of the image. This is valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_LNK_COMDAT';       Flag: IMAGE_SCN_LNK_COMDAT;         Desc: 'The section contains COMDAT data. This is valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_GPREL';            Flag: IMAGE_SCN_GPREL;              Desc: 'The section contains data referenced through the global pointer (GP).'),
+    (FlagName: 'IMAGE_SCN_MEM_PURGEABLE';    Flag: IMAGE_SCN_MEM_PURGEABLE;      Desc: 'Reserved for future use.'),
+    (FlagName: 'IMAGE_SCN_MEM_16BIT';        Flag: IMAGE_SCN_MEM_16BIT;          Desc: 'Reserved for future use.'),
+    (FlagName: 'IMAGE_SCN_MEM_LOCKED';       Flag: IMAGE_SCN_MEM_LOCKED;         Desc: 'Reserved for future use.'),
+    (FlagName: 'IMAGE_SCN_MEM_PRELOAD';      Flag: IMAGE_SCN_MEM_PRELOAD;        Desc: 'Reserved for future use.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_1BYTES';     Flag: IMAGE_SCN_ALIGN_1BYTES;       Desc: 'Align data on a 1-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_2BYTES';     Flag: IMAGE_SCN_ALIGN_2BYTES;       Desc: 'Align data on a 2-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_4BYTES';     Flag: IMAGE_SCN_ALIGN_4BYTES;       Desc: 'Align data on a 4-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_8BYTES';     Flag: IMAGE_SCN_ALIGN_8BYTES;       Desc: 'Align data on an 8-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_16BYTES';    Flag: IMAGE_SCN_ALIGN_16BYTES;      Desc: 'Align data on a 16-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_32BYTES';    Flag: IMAGE_SCN_ALIGN_32BYTES;      Desc: 'Align data on a 32-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_64BYTES';    Flag: IMAGE_SCN_ALIGN_64BYTES;      Desc: 'Align data on a 64-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_128BYTES';   Flag: IMAGE_SCN_ALIGN_128BYTES;     Desc: 'Align data on a 128-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_256BYTES';   Flag: IMAGE_SCN_ALIGN_256BYTES;     Desc: 'Align data on a 256-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_512BYTES';   Flag: IMAGE_SCN_ALIGN_512BYTES;     Desc: 'Align data on a 512-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_1024BYTES';  Flag: IMAGE_SCN_ALIGN_1024BYTES;    Desc: 'Align data on a 1024-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_2048BYTES';  Flag: IMAGE_SCN_ALIGN_2048BYTES;    Desc: 'Align data on a 2048-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_4096BYTES';  Flag: IMAGE_SCN_ALIGN_4096BYTES;    Desc: 'Align data on a 4096-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_ALIGN_8192BYTES';  Flag: IMAGE_SCN_ALIGN_8192BYTES;    Desc: 'Align data on an 8192-byte boundary. Valid only for object files.'),
+    (FlagName: 'IMAGE_SCN_LNK_NRELOC_OVFL';  Flag: IMAGE_SCN_LNK_NRELOC_OVFL;    Desc: 'The section contains extended relocations.'),
+    (FlagName: 'IMAGE_SCN_MEM_DISCARDABLE';  Flag: IMAGE_SCN_MEM_DISCARDABLE;    Desc: 'The section can be discarded as needed.'),
+    (FlagName: 'IMAGE_SCN_MEM_NOT_CACHED';   Flag: IMAGE_SCN_MEM_NOT_CACHED;     Desc: 'The section cannot be cached.'),
+    (FlagName: 'IMAGE_SCN_MEM_NOT_PAGED';    Flag: IMAGE_SCN_MEM_NOT_PAGED;      Desc: 'The section is not pageable.'),
+    (FlagName: 'IMAGE_SCN_MEM_SHARED';       Flag: IMAGE_SCN_MEM_SHARED;         Desc: 'The section can be shared in memory.'),
+    (FlagName: 'IMAGE_SCN_MEM_EXECUTE';      Flag: IMAGE_SCN_MEM_EXECUTE;        Desc: 'The section can be executed as code.'),
+    (FlagName: 'IMAGE_SCN_MEM_READ';         Flag: IMAGE_SCN_MEM_READ;           Desc: 'The section can be read.'),
+    (FlagName: 'IMAGE_SCN_MEM_WRITE';        Flag: IMAGE_SCN_MEM_WRITE;          Desc: 'The section can be written to.')
+  );
+
+type
+
+  TPeSectionCharacteristics = record
+  private
+    class var FSeparatorIsSet: Boolean;
+    class var FCharacteristics: DWORD;
+    class var FFlagNameDescSeparator: string;
+    class procedure SetCharacteristics(const Value: DWORD); static;
+    class procedure SetFlagNameDescSeparator(const Value: string); static;
+    class function GetDesc(bIncludeFlagNames: Boolean): string; static;
+    class function GetDescription: string; static;
+    class function GetDescriptionWithFlagNames: string; static;
+  public
+    class function InfoURL: string; static;
+    class property FlagNameDescSeparator: string read FFlagNameDescSeparator write SetFlagNameDescSeparator;
+    class property Characteristics: DWORD read FCharacteristics write SetCharacteristics;
+    class property Description: string read GetDescription;
+    class property DescriptionWithFlagNames: string read GetDescriptionWithFlagNames;
+  end;
+
+  {$endregion PE Section Flags (Characteristics)}
 
 
 type
@@ -148,6 +564,8 @@ type
     procedure ClearInfo;
     procedure SetMaxMemoryStreamSize(const Value: integer);
     function GetDataStream: TStream;
+    function GetDataDirectoryCount: integer;
+    function GetSectionCount: integer;
     property DataStream: TStream read GetDataStream;
     procedure FreeStreams;
     procedure GetUpxInfo;
@@ -157,6 +575,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure GetFileInfo;
+    procedure ReadFileInfo;
 
 
     property FileName: string read FFileName write SetFileName;
@@ -177,6 +596,7 @@ type
     property Offset_SectionsTable: Int64 read FOffset_SectionsTable;
     property SectionNames: TStringList read FSectionNames;
     property Sections: TImageSections read FSections;
+    property SectionCount: integer read GetSectionCount;
     property MaxMemoryStreamSize: integer read FMaxMemoryStreamSize write SetMaxMemoryStreamSize;
     property IsFileLoaded: Boolean read FIsFileLoaded;
     property FirstFile4Bits: TBitsInfo read FFirstFile4Bits;
@@ -185,28 +605,263 @@ type
     property UpxHeader: TPeUpxHeader read FUpxHeader;
     property UpxVersion: string read FUpxVersion;
     property Offset_UpxHeader: Int64 read FOffset_UpxHeader;
+    property DataDirectoryCount: integer read GetDataDirectoryCount;
     property DataDirectory[Index: integer]: IMAGE_DATA_DIRECTORY read GetDataDirectory;
   end;
   {$endregion}
 
 
 
+
 function CoffHeaderMachineToStr(const Machine: WORD): string;
-function Is64Bit(Machine: Word): Boolean;
+procedure GetCoffHeaderCharacteristics(const Characteristics: WORD; var sl: TStrings);
+function GetSectionCommonFlagsStr(const Characteristics: DWORD): string;
+function ImageSignatureToStr(const Signature: WORD): string;
+function CoffHeaderTimeStampToDateTime(const TimeStamp: DWORD): TDateTime;
+
+function IsMachine64Bit(const Machine: Word): Boolean;
 function GetStrFromBytes(AB: array of Byte): string;
-function GetSectionFlagsStr(const Characteristics: DWORD): string;
 
 
 
 implementation
 
-//uses
-//  JP.Binary.Procs;
+
+
+{$region '                         TPeSectionCharacteristics                           '}
+
+class function TPeSectionCharacteristics.GetDesc(bIncludeFlagNames: Boolean): string;
+var
+  i: integer;
+  Sep: string;
+  Item: TPeSectionFlagItem;
+begin
+  Result := '';
+  if not FSeparatorIsSet then Sep := ' - ' else Sep := FFlagNameDescSeparator;
+
+  for i := 0 to High(PeSectionFlagsArray) do
+  begin
+    Item := PeSectionFlagsArray[i];
+    if (Item.Flag and FCharacteristics) > 0 then
+      if bIncludeFlagNames then Result := Result + Item.FlagName + Sep + Item.Desc + ENDL
+      else Result := Result + Item.Desc + ENDL;
+  end;
+
+  Result := Trim(Result);
+end;
+
+class function TPeSectionCharacteristics.GetDescription: string;
+begin
+  Result := GetDesc(False);
+end;
+
+class function TPeSectionCharacteristics.GetDescriptionWithFlagNames: string;
+begin
+  Result := GetDesc(True);
+end;
+
+class procedure TPeSectionCharacteristics.SetCharacteristics(const Value: DWORD);
+begin
+  FCharacteristics := Value;
+end;
+
+class procedure TPeSectionCharacteristics.SetFlagNameDescSeparator(const Value: string);
+begin
+  FFlagNameDescSeparator := Value;
+  FSeparatorIsSet := True;
+end;
+
+class function TPeSectionCharacteristics.InfoURL: string;
+begin
+  Result := 'https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#section-flags';
+end;
+
+{$endregion TPeSectionCharacteristics}
+
+
+{$region '                         TCoffCharacteristics                         '}
+
+class procedure TCoffCharacteristics.SetFlagNameDescSeparator(const Value: string);
+begin
+  FFlagNameDescSeparator := Value;
+  FSeparatorIsSet := True;
+end;
+
+class function TCoffCharacteristics.GetDesc(bIncludeFlagNames: Boolean): string;
+var
+  i: integer;
+  Sep: string;
+  Item: TCoffFlagItem;
+begin
+  Result := '';
+  if not FSeparatorIsSet then Sep := ' - ' else Sep := FFlagNameDescSeparator;
+
+  for i := 0 to High(CoffCharacteristicsInfoArray) do
+  begin
+    Item := CoffCharacteristicsInfoArray[i];
+    if (Item.Flag and FCharacteristics) > 0 then
+      if bIncludeFlagNames then Result := Result + Item.FlagName + Sep + Item.Desc + ENDL
+      else Result := Result + Item.Desc + ENDL;
+  end;
+
+  Result := Trim(Result);
+end;
+
+class function TCoffCharacteristics.GetDescription: string;
+begin
+  Result := GetDesc(False);
+end;
+
+class function TCoffCharacteristics.GetDescriptionWithFlagNames: string;
+begin
+  Result := GetDesc(True);
+end;
+
+class function TCoffCharacteristics.InfoURL: string;
+begin
+  Result := 'https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#characteristics';
+end;
+
+class procedure TCoffCharacteristics.SetCharacteristics(const Value: Word);
+begin
+  FCharacteristics := Value;
+end;
+
+
+
+{$endregion TCoffCharacteristics}
+
+
+
+{$region '                           TCoffMachine                             '}
+
+
+class function TCoffMachine.GetDescription: string;
+var
+  i: integer;
+begin
+  Result := '';
+  for i := 0 to High(CoffMachineInfoArray) do
+    if CoffMachineInfoArray[i].Machine = FMachine then
+    begin
+      Result := CoffMachineInfoArray[i].Desc;
+      Break;
+    end;
+end;
+
+class function TCoffMachine.GetMachineConstantName: string;
+var
+  i: integer;
+begin
+  Result := '';
+  for i := 0 to High(CoffMachineInfoArray) do
+    if CoffMachineInfoArray[i].Machine = FMachine then
+    begin
+      Result := CoffMachineInfoArray[i].ConstantName;
+      Break;
+    end;
+end;
+
+class function TCoffMachine.InfoURL: string;
+begin
+  Result := 'https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#machine-types';
+end;
+
+class function TCoffMachine.IsAmd64Machine: Boolean;
+begin
+  Result := FMachine = IMAGE_FILE_MACHINE_AMD64;
+end;
+
+class function TCoffMachine.IsIntel386Machine: Boolean;
+begin
+  Result := FMachine = IMAGE_FILE_MACHINE_I386;
+end;
+
+class function TCoffMachine.IsIntel486Machine: Boolean;
+begin
+  Result := FMachine = IMAGE_FILE_MACHINE_I486;
+end;
+
+class function TCoffMachine.IsIntel586Machine: Boolean;
+begin
+  Result := FMachine = IMAGE_FILE_MACHINE_I586;
+end;
+
+class procedure TCoffMachine.SetMachine(const Value: Word);
+begin
+  FMachine := Value;
+end;
+
+{$endregion TCoffMachine}
 
 
 
 
-{$region '         helpers            '}
+{$region '            Routines              '}
+
+function CoffHeaderTimeStampToDateTime(const TimeStamp: DWORD): TDateTime;
+// UnixDateDelta = 25569; // Days between TDateTime basis (12/31/1899) and Unix time_t basis (1/1/1970)
+begin
+  Result := TimeStamp / SecsPerDay + UnixDateDelta;
+end;
+
+function ImageSignatureToStr(const Signature: WORD): string;
+begin
+  case Signature of
+    IMAGE_DOS_SIGNATURE: Result := 'MZ';
+    IMAGE_OS2_SIGNATURE: Result := 'NE';
+    IMAGE_VXD_SIGNATURE: Result := 'LE';
+  else
+    Result := '';
+  end;
+end;
+
+function GetSectionCommonFlagsStr(const Characteristics: DWORD): string;
+var
+  c: DWORD;
+  s: string;
+begin
+  s := '';
+  c := Characteristics;
+  if (c and IMAGE_SCN_CNT_CODE) > 0 then s := 'C';
+  if (c and IMAGE_SCN_CNT_INITIALIZED_DATA) > 0 then s := s + 'I';
+  if (c and IMAGE_SCN_CNT_UNINITIALIZED_DATA) > 0 then s := s + 'U';
+  if (c and IMAGE_SCN_LNK_INFO) > 0 then s := s + 'Comm';
+  if (c and IMAGE_SCN_LNK_REMOVE) > 0 then s := s + 'Rmv';
+  if (c and IMAGE_SCN_LNK_COMDAT) > 0 then s := s + 'Comdat';
+  if (c and IMAGE_SCN_LNK_NRELOC_OVFL) > 0 then s := s + 'ExtReloc';
+  if (c and IMAGE_SCN_MEM_DISCARDABLE) > 0 then s := s + 'D';
+  if (c and IMAGE_SCN_MEM_NOT_CACHED) > 0 then s := s + 'NotC';
+  if (c and IMAGE_SCN_MEM_NOT_PAGED) > 0 then s := s + 'NotP';
+  if (c and IMAGE_SCN_MEM_SHARED) > 0 then s := s + 'S';
+  if (c and IMAGE_SCN_MEM_EXECUTE) > 0 then s := s + 'E';
+  if (c and IMAGE_SCN_MEM_READ) > 0 then s := s + 'R';
+  if (c and IMAGE_SCN_MEM_WRITE) > 0 then s := s + 'W';
+  Result := s;
+end;
+
+
+
+function CoffHeaderMachineToStr(const Machine: WORD): string;
+begin
+  TCoffMachine.Machine := Machine;
+  Result := TCoffMachine.Description;
+end;
+
+procedure GetCoffHeaderCharacteristics(const Characteristics: WORD; var sl: TStrings);
+begin
+  TCoffCharacteristics.Characteristics := Characteristics;
+  sl.Text := TCoffCharacteristics.Description;
+end;
+
+function IsMachine64Bit(const Machine: Word): Boolean;
+begin
+  case Machine of
+    IMAGE_FILE_MACHINE_ALPHA64, IMAGE_FILE_MACHINE_AMD64, IMAGE_FILE_MACHINE_ARM64, IMAGE_FILE_MACHINE_IA64: Result := True;
+  else
+    Result := False;
+  end;
+end;
 
 function BufferFind2(const Buffer: array of Byte; const s: AnsiString): integer;
 //returns the 0-based index of the start of the first occurrence of S or -1 if there is no occurrence
@@ -271,78 +926,6 @@ begin
   Result := True;
 end;
 
-function GetSectionFlagsStr(const Characteristics: DWORD): string;
-var
-  c: DWORD;
-  s: string;
-begin
-  s := '';
-  c := Characteristics;
-  if (c and IMAGE_SCN_CNT_CODE) > 0 then s := 'C';
-  if (c and IMAGE_SCN_CNT_INITIALIZED_DATA) > 0 then s := s + 'I';
-  if (c and IMAGE_SCN_CNT_UNINITIALIZED_DATA) > 0 then s := s + 'U';
-  if (c and IMAGE_SCN_LNK_INFO) > 0 then s := s + 'Comm';
-  if (c and IMAGE_SCN_LNK_REMOVE) > 0 then s := s + 'Rmv';
-  if (c and IMAGE_SCN_LNK_COMDAT) > 0 then s := s + 'Comdat';
-  if (c and IMAGE_SCN_LNK_NRELOC_OVFL) > 0 then s := s + 'ExtReloc';
-  if (c and IMAGE_SCN_MEM_DISCARDABLE) > 0 then s := s + 'D';
-  if (c and IMAGE_SCN_MEM_NOT_CACHED) > 0 then s := s + 'NotC';
-  if (c and IMAGE_SCN_MEM_NOT_PAGED) > 0 then s := s + 'NotP';
-  if (c and IMAGE_SCN_MEM_SHARED) > 0 then s := s + 'S';
-  if (c and IMAGE_SCN_MEM_EXECUTE) > 0 then s := s + 'E';
-  if (c and IMAGE_SCN_MEM_READ) > 0 then s := s + 'R';
-  if (c and IMAGE_SCN_MEM_WRITE) > 0 then s := s + 'W';
-  Result := s;
-end;
-
-function Is64Bit(Machine: Word): Boolean;
-begin
-  case Machine of
-    IMAGE_FILE_MACHINE_ALPHA64, IMAGE_FILE_MACHINE_AMD64, IMAGE_FILE_MACHINE_ARM64, IMAGE_FILE_MACHINE_IA64: Result := True;
-  else
-    Result := False;
-  end;
-end;
-
-function CoffHeaderMachineToStr(const Machine: WORD): string;
-begin
-  case Machine of
-    IMAGE_FILE_MACHINE_UNKNOWN: Result := 'Unknown (0)';
-    IMAGE_FILE_MACHINE_I386: Result := 'Intel 386'; //Intel 386 or compatible
-    IMAGE_FILE_MACHINE_I486: Result := 'Intel 486';
-    IMAGE_FILE_MACHINE_I586: Result := 'Intel 586';
-    IMAGE_FILE_MACHINE_R3000: Result := 'MIPS little-endian R3000';
-    $160: Result := 'MIPS big-endian';
-    IMAGE_FILE_MACHINE_R4000: Result := 'MIPS little-endian R4000';
-    IMAGE_FILE_MACHINE_R10000: Result := 'MIPS little-endian R10000';
-    IMAGE_FILE_MACHINE_WCEMIPSV2: Result := 'MIPS little-endian WCE v2';
-    IMAGE_FILE_MACHINE_ALPHA: Result := 'Alpha_AXP';
-    IMAGE_FILE_MACHINE_SH3: Result := 'Hitachi SH3 little-endian';
-    IMAGE_FILE_MACHINE_SH3DSP: Result := 'Hitachi SH3 DSP';
-    IMAGE_FILE_MACHINE_SH3E: Result := 'SH3E little-endian';
-    IMAGE_FILE_MACHINE_SH4: Result := 'Hitachi SH4 little-endian';
-    IMAGE_FILE_MACHINE_SH5: Result := 'Hitachi SH5';
-    IMAGE_FILE_MACHINE_ARM: Result := 'ARM little-endian';
-    IMAGE_FILE_MACHINE_THUMB: Result := 'ARM or Thumb';
-    IMAGE_FILE_MACHINE_AM33: Result := 'Matsushita AM33';
-    IMAGE_FILE_MACHINE_POWERPC: Result := 'IBM PowerPC little-endian';
-    IMAGE_FILE_MACHINE_POWERPCFP: Result := 'IBM PowerPC with floating point support';
-    IMAGE_FILE_MACHINE_IA64: Result := 'Intel Itanium 64';
-    IMAGE_FILE_MACHINE_MIPS16: Result := 'MIPS16';
-    IMAGE_FILE_MACHINE_ALPHA64: Result := 'ALPHA64';
-    IMAGE_FILE_MACHINE_MIPSFPU: Result := 'MIPS with FPU';
-    IMAGE_FILE_MACHINE_MIPSFPU16: Result := 'MIPS16 with FPU';
-    IMAGE_FILE_MACHINE_TRICORE: Result := 'Infineon';
-    IMAGE_FILE_MACHINE_CEF: Result := 'CEF';
-    IMAGE_FILE_MACHINE_EBC: Result := 'EFI byte code';
-    IMAGE_FILE_MACHINE_AMD64: Result := 'AMD64'; // AMD64 (K8)';
-    IMAGE_FILE_MACHINE_M32R: Result := 'Mitsubishi M32R little-endian';
-    IMAGE_FILE_MACHINE_CEE: Result := 'CEE';
-  else
-    Result := 'UNKNOWN (' + IntToStr(Machine) + ')';
-  end;
-end;
-
 function GetStrFromBytes(AB: array of Byte): string;
 var
   i: integer;
@@ -351,7 +934,7 @@ begin
   for i := Low(AB) to High(AB) do Result := Result + Chr(AB[i]);
 end;
 
-{$endregion}
+{$endregion Routines}
 
 
 {$region ' ---------------------------- TPeFile ------------------------------ '}
@@ -421,6 +1004,12 @@ begin
   Result := FDataDirectory[Index];
 end;
 
+
+function TPeFile.GetDataDirectoryCount: integer;
+begin
+  if not FIsValidPeFile then Result := -1
+  else Result := IMAGE_NUMBEROF_DIRECTORY_ENTRIES;
+end;
 
 procedure TPeFile.SetMaxMemoryStreamSize(const Value: integer);
 begin
@@ -595,6 +1184,11 @@ begin
 end;
 
 
+function TPeFile.GetSectionCount: integer;
+begin
+  Result := Length(FSections);
+end;
+
 procedure TPeFile.GetUpxInfo;
 var
   s, Section1, Section2: string;
@@ -711,6 +1305,11 @@ begin
 end;
 
 
+procedure TPeFile.ReadFileInfo;
+begin
+  GetFileInfo;
+end;
+
 function GetBit(Value: UInt64 {QWord}; Index: Byte): Boolean;
 begin
   Result := ((Value shr Index) and 1) = 1;
@@ -721,4 +1320,10 @@ end;
 
 
 {$endregion TPeFile}
+
+
+
+
+
+
 end.
