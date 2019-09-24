@@ -41,7 +41,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure ReadFileInfo;
-    function AsString: string;
+    function AsString(bHexNumSep: Boolean = True; HexPrefix: string = ''; HexLowerCase: Boolean = False): string;
 
     property FileName: string read FFileName write SetFileName;
     property FileSize: Int64 read FFileSize;
@@ -202,30 +202,42 @@ begin
   FSearchUpxInfo := Value;
 end;
 
-function TMachFatFile.AsString: string;
+function TMachFatFile.AsString(bHexNumSep: Boolean = True; HexPrefix: string = ''; HexLowerCase: Boolean = False): string;
 const
   CRLF = #13#10;
 var
-  s: string;
+  s, hs: string;
   x: integer;
   fa: fat_arch;
   mof: TMachOFile;
 
   function DwordStr(x: DWORD; Desc: string = ''): string;
   begin
-    Result := 'hex: ' + InsertNumSep(IntToHex(x, 8), ' ', 2) + ' | dec: ' + Pad(IntToStrEx(x), 16, ' ') + ' | ';
+    hs := IntToHex(x, 8);
+    if bHexNumSep then InsertNumSep(hs, ' ', 2);
+    if HexLowerCase then hs := LowerCase(hs);
+    hs := HexPrefix + hs;
+    Result := 'hex: ' + hs + ' | dec: ' + Pad(IntToStrEx(x), 16, ' ') + ' | ';
     if Desc <> '' then Result := Result + Desc;
   end;
 
   function IntStr(x: Integer; Desc: string = ''): string;
   begin
-    Result := 'hex: ' + InsertNumSep(IntToHex(x, 8), ' ', 2) + ' | dec: ' + Pad(IntToStrEx(x), 16, ' ') + ' | ';
+    hs := IntToHex(x, 8);
+    if bHexNumSep then InsertNumSep(hs, ' ', 2);
+    if HexLowerCase then hs := LowerCase(hs);
+    hs := HexPrefix + hs;
+    Result := 'hex: ' + hs + ' | dec: ' + Pad(IntToStrEx(x), 16, ' ') + ' | ';
     if Desc <> '' then Result := Result + Desc;
   end;
 
   function Int64Str(x: Int64; Desc: string = ''): string;
   begin
-    Result := 'hex: ' + InsertNumSep(IntToHex(x, 8), ' ', 2) + ' | dec: ' + Pad(IntToStrEx(x), 16, ' ') + ' | ';
+    hs := IntToHex(x, 8);
+    if bHexNumSep then InsertNumSep(hs, ' ', 2);
+    if HexLowerCase then hs := LowerCase(hs);
+    hs := HexPrefix + hs;
+    Result := 'hex: ' + hs + ' | dec: ' + Pad(IntToStrEx(x), 16, ' ') + ' | ';
     if Desc <> '' then Result := Result + Desc;
   end;
 
@@ -251,12 +263,12 @@ begin
 
     //s := s + '  fat archs: ' + FFatArchs.Count.ToString + CRLF;
 
-    s := s + '---------------- Fat Header -----------------' + CRLF;
+    s := s + '////////////////////////// Fat Header //////////////////////////' + CRLF;
     s := s + '       magic: ' + DwordStr(FFatHeader.magic) + CRLF;
     s := s + '   nfat_arch: ' + DwordStr(FFatHeader.nfat_arch) + CRLF + CRLF;
 
 
-    s := s + '------------------ Fat Archs ----------------------' + CRLF;
+    s := s + '////////////////////////// Fat Archs //////////////////////////' + CRLF;
     x := 1;
     for fa in FFatArchs do
     begin
@@ -269,10 +281,13 @@ begin
       Inc(x);
     end;
 
-    s := s + '---------------------------- Mach Objects -------------------------------' + CRLF;
+    s := s + '//////////////////////////////////// Mach Objects ////////////////////////////////////' + CRLF;
+    x := 1;
     for mof in FMachObjects do
     begin
-      s := s + mof.AsString + CRLF;
+      s := s + '//////////////////// Mach Object ' + itos(x) + ' / ' + itos(FMachObjects.Count) +  ' ////////////////////' + CRLF;
+      s := s + mof.AsString(bHexNumSep, HexPrefix, HexLowerCase, True) + CRLF;
+      Inc(x);
     end;
 
   end;

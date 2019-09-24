@@ -53,7 +53,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure ReadFileInfo;
-    function AsString: string;
+    function AsString(bHexNumSep: Boolean = True; HexPrefix: string = ''; HexLowerCase: Boolean = False; bFromMachFat: Boolean = False): string;
 
     property FileName: string read FFileName write SetFileName;
 
@@ -505,7 +505,7 @@ begin
   FStartOffset := Value;
 end;
 
-function TMachOFile.AsString: string;
+function TMachOFile.AsString(bHexNumSep: Boolean = True; HexPrefix: string = ''; HexLowerCase: Boolean = False; bFromMachFat: Boolean = False): string;
 const
   CRLF = #13#10;
 var
@@ -514,28 +514,46 @@ var
   x: integer;
   uh: TUpxHeader;
   ufn: TUpxFormatName;
+  hs: string;
 
   function DwordStr(x: DWORD; Desc: string = ''): string;
   begin
-    Result := 'hex: ' + InsertNumSep(IntToHex(x, 8), ' ', 2) + ' | dec: ' + Pad(IntToStrEx(x), 16, ' ') + ' | ';
+    hs := IntToHex(x, 8);
+    if bHexNumSep then InsertNumSep(hs, ' ', 2);
+    if HexLowerCase then hs := LowerCase(hs);
+    hs := HexPrefix + hs;
+    Result := 'hex: ' + hs + ' | dec: ' + Pad(IntToStrEx(x), 16, ' ') + ' | ';
     if Desc <> '' then Result := Result + Desc;
   end;
 
-  function ByteStr(x: Byte; Desc: string = ''): string;
+  function ByteStr(x: Byte; Desc: string = ''; HexPad: integer = -1; IntPad: integer = 3): string;
   begin
-    Result := 'hex: ' + InsertNumSep(IntToHex(x, 2), ' ', 2) + ' | dec: ' + Pad(IntToStrEx(x), 3, ' ') + ' | ';
+    hs := IntToHex(x, 2);
+    if bHexNumSep then InsertNumSep(hs, ' ', 2);
+    if HexLowerCase then hs := LowerCase(hs);
+    hs := HexPrefix + hs;
+    if HexPad > 0 then hs := Pad(hs, HexPad);
+    Result := 'hex: ' + hs + ' | dec: ' + Pad(IntToStrEx(x), IntPad, ' ') + ' | ';
     if Desc <> '' then Result := Result + Desc;
   end;
 
   function IntStr(x: Integer; Desc: string = ''): string;
   begin
-    Result := 'hex: ' + InsertNumSep(IntToHex(x, 8), ' ', 2) + ' | dec: ' + Pad(IntToStrEx(x), 16, ' ') + ' | ';
+    hs := IntToHex(x, 8);
+    if bHexNumSep then InsertNumSep(hs, ' ', 2);
+    if HexLowerCase then hs := LowerCase(hs);
+    hs := HexPrefix + hs;
+    Result := 'hex: ' + hs + ' | dec: ' + Pad(IntToStrEx(x), 16, ' ') + ' | ';
     if Desc <> '' then Result := Result + Desc;
   end;
 
   function Int64Str(x: Int64; Desc: string = ''): string;
   begin
-    Result := 'hex: ' + InsertNumSep(IntToHex(x, 8), ' ', 2) + ' | dec: ' + Pad(IntToStrEx(x), 16, ' ') + ' | ';
+    hs := IntToHex(x, 8);
+    if bHexNumSep then InsertNumSep(hs, ' ', 2);
+    if HexLowerCase then hs := LowerCase(hs);
+    hs := HexPrefix + hs;
+    Result := 'hex: ' + hs + ' | dec: ' + Pad(IntToStrEx(x), 16, ' ') + ' | ';
     if Desc <> '' then Result := Result + Desc;
   end;
 
@@ -544,11 +562,18 @@ begin
   s := '';
   if FFileName = '' then Exit;
 
-  s := 'File name: ' + FFileName + CRLF;
+  s := '';
 
-  s := s + 'File size: ' + IntToStrEx(FFileSize) + ' bytes  (' + GetFileSizeString(FFileSize) + ')' + CRLF;
-
-  s := s + 'IsValidMachFile: ' + BoolToStr(IsValidMachFile) + CRLF;
+  if not bFromMachFat then
+  begin
+    s := s + 'File name: ' + FFileName + CRLF;
+    s := s + 'File size: ' + IntToStrEx(FFileSize) + ' bytes  (' + GetFileSizeString(FFileSize) + ')' + CRLF;
+    s := s + 'IsValidMachFile: ' + BoolToStr(IsValidMachFile) + CRLF;
+  end
+  else
+  begin
+    s := s + 'Is valid Mach Object: ' + BoolToStr(IsValidMachFile) + CRLF;
+  end;
 
   if IsValidMachFile then
   begin
@@ -558,7 +583,7 @@ begin
     if FSearchUpxInfo then s := s + 'Packed by UPX: ' + BoolToStr(FIsPackedByUpx) + CRLF;
 
     // --------------------------- mach header ----------------------------
-    s := s + CRLF + ' --------------------- Mach Header ----------------------' + CRLF;
+    s := s + CRLF + '//////////////////////////// Mach Header ////////////////////////////' + CRLF;
     s := s + '       magic: ' + DwordStr(MachHeader.magic, MachMagicStr) + CRLF; // InsertNumSep(IntToHex(MachHeader.magic, 8), ' ', 2) + '   (' + MachMagicStr + ')' + CRLF;
     s := s + '     cputype: ' + IntStr(MachHeader.cputype, CpuTypeStr) + CRLF;
     s := s + '  cpusubtype: ' + IntStr(MachHeader.cpusubtype) + CRLF;
@@ -574,30 +599,30 @@ begin
     if FSearchUpxInfo and FIsPackedByUpx then
     begin
       uh := FUpxHeader;
-      s := s + CRLF + ' ------------------------------- UPX ---------------------------- ' + CRLF;
+      s := s + CRLF + '//////////////////////////// UPX ////////////////////////////' + CRLF;
       s := s + ' UPX header offset: ' + Int64Str(FUpxHeaderOffset) + CRLF;
       s := s + '  ---- UPX Header ---- ' + CRLF;
       s := s + '           magic: ' + string(uh.UpxMagic) + CRLF;
-      s := s + '         version: ' + ByteStr(uh.Compressor) + CRLF;
+      s := s + '         version: ' + ByteStr(uh.Compressor, '', 9, 16) + CRLF;
       GetUpxFormatName(uh.Format, ufn);
-      s := s + '          format: ' + ByteStr(uh.Format, ufn.FullName + ' - ' + ufn.ShortName) + CRLF;
-      s := s + '          method: ' + ByteStr(uh.Method, UpxCompressionMethodToStr(uh.Method)) + CRLF;
-      s := s + '           level: ' + ByteStr(uh.Level) + CRLF;
+      s := s + '          format: ' + ByteStr(uh.Format, ufn.FullName + ' - ' + ufn.ShortName, 9, 16) + CRLF;
+      s := s + '          method: ' + ByteStr(uh.Method, UpxCompressionMethodToStr(uh.Method), 9, 16) + CRLF;
+      s := s + '           level: ' + ByteStr(uh.Level, '', 9, 16) + CRLF;
       s := s + '           u_len: ' + DwordStr(uh.u_len) + CRLF;
       s := s + '           c_len: ' + DwordStr(uh.c_len) + CRLF;
       s := s + '         u_adler: ' + DwordStr(uh.u_adler) + CRLF;
       s := s + '         c_adler: ' + DwordStr(uh.c_adler) + CRLF;
       s := s + '     u_file_size: ' + DwordStr(uh.UncompressedFileSize) + CRLF;
-      s := s + '          filter: ' + ByteStr(uh.Filter1) + CRLF;
-      s := s + '      filter_cto: ' + ByteStr(uh.Filter2) + CRLF;
-      s := s + '           n_mru: ' + ByteStr(uh.n_mru) + CRLF;
-      s := s + ' header_checksum: ' + ByteStr(uh.header_cheksum) + CRLF;
+      s := s + '          filter: ' + ByteStr(uh.Filter1, '', 9, 16) + CRLF;
+      s := s + '      filter_cto: ' + ByteStr(uh.Filter2, '', 9, 16) + CRLF;
+      s := s + '           n_mru: ' + ByteStr(uh.n_mru, '', 9, 16) + CRLF;
+      s := s + ' header_checksum: ' + ByteStr(uh.header_cheksum, '', 9, 16) + CRLF;
     end;
 
 
 
     // -------------------------- Load Commands --------------------------------
-    s := s + CRLF + ' ------------------- Load Commands -------------------- ' + CRLF;
+    s := s + CRLF + ' //////////////////////////// Load Commands //////////////////////////// ' + CRLF;
     x := 1;
     for lce in Self.LoadCommands do
     begin
