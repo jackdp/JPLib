@@ -38,10 +38,19 @@ function WinToIso(const Text: string): string;
 function WinToIso1(s: string): string;
 //function ConvertFileIsoToWin(const FileName: string): Boolean;
 
+function IntToHexEx(const Value: integer; HexDigits: integer = 2; HexPrefix: string = '$'; bLowerCase: Boolean = True; BytesSeparator: string = '';
+  TrimLeadingZeros: Boolean = False): string;
+function Int64ToHexEx(const Value: Int64; HexDigits: integer = 2; HexPrefix: string = '$'; bLowerCase: Boolean = True; BytesSeparator: string = '';
+  TrimLeadingZeros: Boolean = False): string;
+function UInt64ToHexEx(const Value: UInt64; HexDigits: integer = 2; HexPrefix: string = '$'; bLowerCase: Boolean = True; BytesSeparator: string = '';
+  TrimLeadingZeros: Boolean = False): string;
+
 function HexToInt(Hex: string; ErrorVal: integer = -1): integer;
 function HexToInt64(Hex: string; ErrorVal: integer = -1): int64;
 function PowerInt(Base, Exponent: integer): integer;
+function PowerInt64(Base, Exponent: Int64): Int64;
 function BinToInt(Bin: string): integer;
+function TryBinToInt(BinStr: string; var xInt: Int64): Boolean;
 function BinToInt64(Bin: string): int64;
 function IntToBin(Int: int64): string;
 function IntToBinEx(Int: int64; Digits: byte): string;
@@ -587,6 +596,37 @@ begin
   end;
 end;
 
+function TryBinToInt(BinStr: string; var xInt: Int64): Boolean;
+var
+  LengthBin, Deleted, i, x: integer;
+  arr: array of Int64;
+begin
+  Result := True;
+  try
+
+    xInt := 0;
+    if Pos('1', BinStr) > 0 then
+    begin
+      Deleted := 0;
+      LengthBin := Length(BinStr);
+      repeat
+        x := Pos('1', BinStr);
+        Deleted := Deleted + x;
+        SetLength(arr, Length(arr) + 1);
+        arr[Length(arr) - 1] := LengthBin - Deleted;
+        BinStr := Copy(BinStr, x + 1, Length(BinStr));
+      until (Pos('1', BinStr) = 0);
+
+      for i := 0 to Length(arr) - 1 do
+        xInt := xInt + PowerInt64(2, arr[i]);
+      if xInt < 0 then Result := False;
+    end;
+
+  except
+    Result := False;
+  end;
+end;
+
 function BinToInt64(Bin: string): int64;
 var
   LengthBin, deleted, i, x: integer;
@@ -615,17 +655,104 @@ function PowerInt(Base, Exponent: integer): integer;
 var
   x, i: integer;
 begin
-  if Exponent = 0 then
-    Result := 1
-  else if Exponent = 1 then
-    Result := Base
+  if Exponent = 0 then Result := 1
+  else if Exponent = 1 then Result := Base
   else
   begin
     x := Base;
-    for i := 1 to Exponent - 1 do
-      Base := Base * x;
+    for i := 1 to Exponent - 1 do Base := Base * x;
     Result := Base;
   end;
+end;
+
+function PowerInt64(Base, Exponent: Int64): Int64;
+var
+  x, i: integer;
+begin
+  if Exponent = 0 then Result := 1
+  else if Exponent = 1 then Result := Base
+  else
+  begin
+    x := Base;
+    for i := 1 to Exponent - 1 do Base := Base * x;
+    Result := Base;
+  end;
+end;
+
+
+function IntToHexEx(const Value: integer; HexDigits: integer = 2; HexPrefix: string = '$'; bLowerCase: Boolean = True; BytesSeparator: string = '';
+  TrimLeadingZeros: Boolean = False): string;
+var
+  s: string;
+begin
+  s := IntToHex(Value, HexDigits);
+  if bLowerCase then s := LowerCase(s);
+
+  if TrimLeadingZeros then
+  begin
+    while True do
+    begin
+      if s = '' then Break;
+      if s[1] <> '0' then Break;
+      Delete(s, 1, 1);
+    end;
+    if Odd(Length(s)) then s := '0' + s;
+    if s = '' then s := '00';
+  end;
+
+  if BytesSeparator <> '' then s := InsertNumSep(s, BytesSeparator, 2);
+  s := HexPrefix + s;
+  Result := s;
+end;
+
+function Int64ToHexEx(const Value: Int64; HexDigits: integer = 2; HexPrefix: string = '$'; bLowerCase: Boolean = True; BytesSeparator: string = '';
+  TrimLeadingZeros: Boolean = False): string;
+var
+  s: string;
+begin
+  s := IntToHex(Value, HexDigits);
+  if bLowerCase then s := LowerCase(s);
+
+  if TrimLeadingZeros then
+  begin
+    while True do
+    begin
+      if s = '' then Break;
+      if s[1] <> '0' then Break;
+      Delete(s, 1, 1);
+    end;
+    if Odd(Length(s)) then s := '0' + s;
+    if s = '' then s := '00';
+  end;
+
+  if BytesSeparator <> '' then s := InsertNumSep(s, BytesSeparator, 2);
+  s := HexPrefix + s;
+  Result := s;
+end;
+
+function UInt64ToHexEx(const Value: UInt64; HexDigits: integer = 2; HexPrefix: string = '$'; bLowerCase: Boolean = True; BytesSeparator: string = '';
+  TrimLeadingZeros: Boolean = False): string;
+var
+  s: string;
+begin
+  s := IntToHex(Value, HexDigits);
+  if bLowerCase then s := LowerCase(s);
+
+  if TrimLeadingZeros then
+  begin
+    while True do
+    begin
+      if s = '' then Break;
+      if s[1] <> '0' then Break;
+      Delete(s, 1, 1);
+    end;
+    if Odd(Length(s)) then s := '0' + s;
+    if s = '' then s := '00';
+  end;
+
+  if BytesSeparator <> '' then s := InsertNumSep(s, BytesSeparator, 2);
+  s := HexPrefix + s;
+  Result := s;
 end;
 
 {$hints off}
