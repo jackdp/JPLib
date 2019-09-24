@@ -595,7 +595,7 @@ type
     destructor Destroy; override;
 
     procedure ReadFileInfo;
-    function AsString: string;
+    function AsString(bHexNumSep: Boolean = True; HexPrefix: string = ''; HexLowerCase: Boolean = False): string;
     function FullElfHeaderSize: Integer;
 
     property FileName: string read FFileName write SetFileName;
@@ -657,7 +657,7 @@ type
 
 
 
-function ELF_EIdentToStr(E_IDENT: TE_IDENT): string;
+function ELF_EIdentToStr(E_IDENT: TE_IDENT; HexPrefix: string = ''; HexLowerCase: Boolean = False): string;
 function ELF_EiMagicToStr(Magic: array of Byte; IncludeFirstByte: Boolean = False): string;
 function ELF_OsAbiToStr(OsAbi: Byte): string;
 function ELF_ObjectTypeToStr(ObjectType: Word): string;
@@ -1070,19 +1070,20 @@ begin
   for i := 1 to Length(Magic) - 1 do Result := Result + Chr(Magic[i]);
 end;
 
-function ELF_EIdentToStr(E_IDENT: TE_IDENT): string;
+function ELF_EIdentToStr(E_IDENT: TE_IDENT; HexPrefix: string = ''; HexLowerCase: Boolean = False): string;
 var
   i: integer;
 begin
   Result := '';
-  for i := 0 to Length(E_IDENT.EI_MAGIC) - 1 do Result := Result + IntToHex(E_IDENT.EI_MAGIC[i], 2) + ' ';
-  Result := Result + IntToHex(E_IDENT.EI_CLASS, 2) + ' ';
-  Result := Result + IntToHex(E_IDENT.EI_DATA, 2) + ' ';
-  Result := Result + IntToHex(E_IDENT.EI_VERSION, 2) + ' ';
-  Result := Result + IntToHex(E_IDENT.EI_OSABI, 2) + ' ';
-  Result := Result + IntToHex(E_IDENT.EI_ABIVERSION, 2) + ' ';
-  for i := 0 to Length(E_IDENT.EI_PAD) - 1 do Result := Result + IntToHex(E_IDENT.EI_PAD[i], 2) + ' ';
+  for i := 0 to Length(E_IDENT.EI_MAGIC) - 1 do Result := Result + HexPrefix + IntToHex(E_IDENT.EI_MAGIC[i], 2) + ' ';
+  Result := Result + HexPrefix + IntToHex(E_IDENT.EI_CLASS, 2) + ' ';
+  Result := Result + HexPrefix + IntToHex(E_IDENT.EI_DATA, 2) + ' ';
+  Result := Result + HexPrefix + IntToHex(E_IDENT.EI_VERSION, 2) + ' ';
+  Result := Result + HexPrefix + IntToHex(E_IDENT.EI_OSABI, 2) + ' ';
+  Result := Result + HexPrefix + IntToHex(E_IDENT.EI_ABIVERSION, 2) + ' ';
+  for i := 0 to Length(E_IDENT.EI_PAD) - 1 do Result := Result + HexPrefix + IntToHex(E_IDENT.EI_PAD[i], 2) + ' ';
 
+  if HexLowerCase then Result := LowerCase(Result);
   Delete(Result, Length(Result), 1);
 end;
 
@@ -1399,7 +1400,7 @@ end;
 
 
   {$region '              AsString                      '}
-function TElfFile.AsString: string;
+function TElfFile.AsString(bHexNumSep: Boolean = True; HexPrefix: string = ''; HexLowerCase: Boolean = False): string;
 const
   CRLF = #13#10;
   BoundLen = 36;
@@ -1407,7 +1408,7 @@ const
   BoundSep = ' ';
   ShortLineChar = '-';
 var
-  s: string;
+  s, s2: string;
   xp1, hsPad, xNum: integer;
   uh: TUpxHeader;
   ufn: TUpxFormatName;
@@ -1427,13 +1428,15 @@ var
     Result := StringOfChar(ShortLineChar, CharCount);
   end;
 
-  procedure Line_B(FieldName: string; Value: Byte; Desc: string = '');
+  procedure Line_B(FieldName: string; Value: Byte; Desc: string = ''; HexPad: integer = 2; IntPad: integer = 3);
   var
     hs: string;
   begin
-    //hs := InsertNumSep(Value.ToHexString(SizeOf(Value) * 2), ' ', 4);
-    hs := InsertNumSep(IntToHex(Value, SizeOf(Value) * 2), ' ', 4);
-    s := s + Pad(FieldName, xp1, ' ') + ':  hex: ' + Pad(hs, 2, ' ') + ' | dec: ' + Pad(IntToStrEx(Value), 3, ' ');
+    if bHexNumSep then hs := InsertNumSep(IntToHex(Value, SizeOf(Value) * 2), ' ', 4)
+    else hs := IntToHex(Value, SizeOf(Value) * 2);
+    hs := HexPrefix + hs;
+    if HexLowerCase then hs := LowerCase(hs);
+    s := s + Pad(FieldName, xp1, ' ') + ':  hex: ' + Pad(hs, HexPad, ' ') + ' | dec: ' + Pad(IntToStrEx(Value), IntPad, ' ');
     if Desc <> '' then s := s + ' | ' + Desc;
     s := s + CRLF;
   end;
@@ -1442,8 +1445,10 @@ var
   var
     hs: string;
   begin
-    //hs := InsertNumSep(Value.ToHexString(SizeOf(Value) * 2), ' ', 4);
-    hs := InsertNumSep(IntToHex(Value, SizeOf(Value) * 2), ' ', 4);
+    if bHexNumSep then hs := InsertNumSep(IntToHex(Value, SizeOf(Value) * 2), ' ', 4)
+    else hs := IntToHex(Value, SizeOf(Value) * 2);
+    hs := HexPrefix + hs;
+    if HexLowerCase then hs := LowerCase(hs);
     s := s + Pad(FieldName, xp1, ' ') + ':  hex: ' + Pad(hs, hsPad, ' ') + ' | dec: ' + Pad(IntToStrEx(Value), 14, ' ');
     if Desc <> '' then s := s + ' | ' + Desc;
     s := s + CRLF;
@@ -1453,8 +1458,10 @@ var
   var
     hs: string;
   begin
-    //hs := InsertNumSep(Value.ToHexString(SizeOf(Value) * 2), ' ', 4);
-    hs := InsertNumSep(IntToHex(Value, SizeOf(Value) * 2), ' ', 4);
+    if bHexNumSep then hs := InsertNumSep(IntToHex(Value, SizeOf(Value) * 2), ' ', 4)
+    else hs := IntToHex(Value, SizeOf(Value) * 2);
+    hs := HexPrefix + hs;
+    if HexLowerCase then hs := LowerCase(hs);
     s := s + Pad(FieldName, xp1, ' ') + ':  hex: ' + Pad(hs, hsPad, ' ') + ' | dec: ' + Pad(IntToStrEx(Value), 14, ' ');
     if Desc <> '' then s := s + ' | ' + Desc;
     s := s + CRLF;
@@ -1464,8 +1471,10 @@ var
   var
     hs: string;
   begin
-    //hs := InsertNumSep(Value.ToHexString(SizeOf(Value) * 2), ' ', 4);
-    hs := InsertNumSep(IntToHex(Value, SizeOf(Value) * 2), ' ', 4);
+    if bHexNumSep then hs := InsertNumSep(IntToHex(Value, SizeOf(Value) * 2), ' ', 4)
+    else hs := IntToHex(Value, SizeOf(Value) * 2);
+    hs := HexPrefix + hs;
+    if HexLowerCase then hs := LowerCase(hs);
     s := s + Pad(FieldName, xp1, ' ') + ':  hex: ' + Pad(hs, hsPad, ' ') + ' | dec: ' + Pad(IntToStrEx(Value), 14, ' ');
     if Desc <> '' then s := s + ' | ' + Desc;
     s := s + CRLF;
@@ -1496,7 +1505,7 @@ begin
 
   xp1 := 16;
   s := s + CRLF + LineText('IDENT') + CRLF;
-  Line_S('E_IDENT', ELF_EIdentToStr(E_IDENT));
+  Line_S('E_IDENT', ELF_EIdentToStr(E_IDENT, HexPrefix, HexLowerCase));
   Line_S('Magic', Magic);
   Line_B('EI_CLASS', E_IDENT.EI_CLASS, ELF_EiClassToStr(E_IDENT.EI_CLASS));
   Line_B('EI_DATA', E_IDENT.EI_DATA, ELF_EiDataToStr(E_IDENT.EI_DATA));
@@ -1637,24 +1646,30 @@ begin
     s := s + CRLF + LineText('UPX') + CRLF;
     //xp1 := 10;
     //Line_S('UPX header offset', 'hex: ' + InsertNumSep(Self.UpxHeaderOffset.ToHexString(16), ' ', 4) + '  dec: ' + IntToStrEx(Self.UpxHeaderOffset));
-    Line_S('UPX header offset', 'hex: ' + InsertNumSep( IntToHex(Self.UpxHeaderOffset, 16), ' ', 4) + '  dec: ' + IntToStrEx(Self.UpxHeaderOffset) );
+    if bHexnumSep then s2 := InsertNumSep( IntToHex(Self.UpxHeaderOffset, 16), ' ', 4) else s2 := IntToHex(Self.UpxHeaderOffset, 16);
+    s2 := HexPrefix + s2;
+    if HexLowerCase then s2 := LowerCase(s2);
+    Line_S('UPX header offset', 'hex: ' + s2 + '  dec: ' + IntToStrEx(Self.UpxHeaderOffset) );
+
     uh := FUpxHeader.Header;
     s := s + '  ---- UPX Header ---- ' + CRLF;
     Line_S('Magic', string(uh.UpxMagic));
-    Line_B('version', uh.Compressor, 'Compressor version');
+    Line_B('version', uh.Compressor, 'Compressor version', 10, 14);
     GetUpxFormatName(uh.Format, ufn);
-    Line_B('format', uh.Format, ufn.FullName + ' - ' + ufn.ShortName);
-    Line_B('method', uh.Method, UpxCompressionMethodToStr(uh.Method));
-    Line_B('level', uh.Level, 'Compression level (1..10)');
+    Line_B('format', uh.Format, ufn.FullName + ' - ' + ufn.ShortName, 10, 14);
+    Line_B('method', uh.Method, UpxCompressionMethodToStr(uh.Method), 10, 14);
+    Line_B('level', uh.Level, 'Compression level (1..10)', 10, 14);
+
     Line_DW('u_len', uh.u_len);
     Line_DW('c_len', uh.c_len);
     Line_DW('u_adler', uh.u_adler);
     Line_DW('c_adler', uh.c_adler);
     Line_DW('u_file_size', uh.UncompressedFileSize, 'Uncompressed file size');
-    Line_B('filter', uh.Filter1);
-    Line_B('filter_cto', uh.Filter2);
-    Line_B('n_mru', uh.n_mru);
-    Line_B('header_checksum', uh.header_cheksum);
+
+    Line_B('filter', uh.Filter1, '', 10, 14);
+    Line_B('filter_cto', uh.Filter2, '', 10, 14);
+    Line_B('n_mru', uh.n_mru, '', 10, 14);
+    Line_B('header_checksum', uh.header_cheksum, '', 10, 14);
   end;
 
 
