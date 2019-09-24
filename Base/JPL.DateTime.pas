@@ -32,7 +32,13 @@ const
 type
 
   TEtimeFormat = (etfShort, etfMid, etfLong);
-  TTimeFormat = (tfShort, tfMid, tfLong, tfVLong);
+  TTimeFormat = (
+    tfShort,
+    tfMid,
+    tfLong,
+    tfVLong,
+    tfExtraLong
+  );
   TDateFormat = (dfLongNames, dfShortNames, dfLongDay, dfShortDay, dfShort, dfRev);
 
 
@@ -80,8 +86,18 @@ function MsToSecStr(const Ms: integer; PaddingS: Byte = 4; PaddingMs: Byte = 3):
 function SecToTimeStrShort(Sec: DWORD): string;
 function MsToDateTime(Ms: DWORD): TDateTime;
 
+function CurrentDate: TDateTime;
+
 
 implementation
+
+function CurrentDate: TDateTime;
+var
+  Year, Month, Day: Word;
+begin
+  DecodeDate(Now, Year, Month, Day);
+  Result := EncodeDate(Year, Month, Day);
+end;
 
 
 function SecToTimeStrShort(Sec: DWORD): string;
@@ -424,7 +440,7 @@ begin
   s := ms div MsSec;
   ms := ms - s * MsSec;
   msecv := ms;
-  msec := ms div 100;
+  msec := ms div 100; // 10-te czêœci sekundy
 
 
   if TimeFormat = tfShort then
@@ -460,6 +476,21 @@ begin
         IntToStr(msec);
   end
 
+  else if TimeFormat = tfExtraLong then
+  begin
+    if Trim0Hour and (h = 0) then
+      sr :=
+        Pad(IntToStr(m), 2, '0') + ':' +
+        Pad(IntToStr(s), 2, '0') + '.' +
+        Pad(IntToStr(msecv), 3, '0')
+    else
+      sr :=
+        Pad(IntToStr(h), 2, '0') + ':' +
+        Pad(IntToStr(m), 2, '0') + ':' +
+        Pad(IntToStr(s), 2, '0') + '.' +
+        Pad(IntToStr(msecv), 3, '0');
+  end
+
   else
 
   begin
@@ -467,13 +498,13 @@ begin
       sr :=
         Pad(IntToStr(m), 2, '0') + ':' +
         Pad(IntToStr(s), 2, '0') + '.' +
-        IntToStr(msecv)
+        Pad(IntToStr(msecv), 3, '0')
     else
       sr :=
         Pad(IntToStr(h), 2, '0') + ':' +
         Pad(IntToStr(m), 2, '0') + ':' +
         Pad(IntToStr(s), 2, '0') + '.' +
-        IntToStr(msecv);
+        Pad(IntToStr(msecv), 3, '0');
   end;
 
   Result := sr;
