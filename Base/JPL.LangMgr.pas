@@ -136,7 +136,7 @@ type
     function GetSectionCount: integer;
     procedure SetComboBox(const Value: TComboBox);
     procedure LoadStringsFromFile(const IniFileName: string);
-    function GetLangIndexByFileName(const IniFileName: string): integer;
+
   public
     constructor Create;
     destructor Destroy; override;
@@ -153,6 +153,7 @@ type
     procedure GetLanguageNames_EnglishAndNative(const Strings: TStrings; const Separator: string = ' - ');
     procedure GetLanguageFileNames(const Strings: TStrings);
     function GetLanguageFileNameByIndex(const Index: integer): string;
+    function GetLangIndexByFileName(const IniFileName: string): integer;
 
     function AddSection(const SectionName: string): TLangSection;
     function GetSectionByName(const SectionName: string): TLangSection;
