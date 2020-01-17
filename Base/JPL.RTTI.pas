@@ -1,6 +1,8 @@
 ﻿unit JPL.RTTI;
 
-{$IFDEF FPC} {$mode delphi} {$ENDIF}
+{$IFDEF FPC} {$mode delphi} {$I JppFPC.inc} {$ENDIF}
+
+{$IFDEF DCC}{$DEFINE HAS_RTTI}{$ENDIF}
 
 interface
 
@@ -10,12 +12,12 @@ uses
   System.SysUtils, System.Classes,
   System.Rtti, System.TypInfo;
   {$ELSE}
-  SysUtils, Classes, Rtti, TypInfo;
+  SysUtils, Classes {$IFDEF HAS_RTTI}, Rtti, TypInfo{$ENDIF};
   {$ENDIF}
 
 
 
-
+{$IFDEF HAS_RTTI}
 function GetPropertyAsObject(const Obj: TObject; const PropertyName: string): TObject;
 function TryGetPropertyAsObject(const Obj: TObject; const PropertyName: string; out OutObj: TObject): Boolean;
 
@@ -23,11 +25,12 @@ function GetPropertyAsClass(const Obj: TObject; const PropertyName: string): TCl
 function TryGetPropertyAsClass(const Obj: TObject; const PropertyName: string; out OutClass: TClass): Boolean;
 
 function SetPropertyText(Obj: TObject; PropertyName: string; Text: string): Boolean;
+{$ENDIF}
 
   
 implementation
 
-
+{$IFDEF HAS_RTTI}
 function SetPropertyText(Obj: TObject; PropertyName: string; Text: string): Boolean;
 var
   RContext: TRttiContext;
@@ -140,6 +143,8 @@ begin
   OutClass := GetPropertyAsClass(Obj, PropertyName);
   Result := OutClass <> nil;
 end;
+
+{$ENDIF} // HAS_RTTI
 
 
 end.

@@ -100,9 +100,9 @@ uses
 
 const
 
-  {$IFDEF DCC}
+  //{$IFDEF DCC}
   ENABLE_VIRTUAL_TERMINAL_PROCESSING = $0004;
-  {$ENDIF}
+  //{$ENDIF}
 
   // Console application exit codes
   CON_EXIT_CODE_OK = 0;

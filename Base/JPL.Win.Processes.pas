@@ -1,5 +1,7 @@
 unit JPL.Win.Processes;
 
+{$IFDEF FPC} {$mode delphi} {$ENDIF}
+
 interface
 
 uses

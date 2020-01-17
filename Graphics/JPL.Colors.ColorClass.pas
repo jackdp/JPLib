@@ -1,7 +1,7 @@
 unit JPL.Colors.ColorClass;
 
 {$IFDEF FPC}
-  {$mode objfpc}{$H+}
+  {$mode delphi}
 {$ENDIF}
 
 

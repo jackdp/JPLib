@@ -1,5 +1,7 @@
 unit JPL.Dialogs;
 
+{$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
+
 interface
 
 uses

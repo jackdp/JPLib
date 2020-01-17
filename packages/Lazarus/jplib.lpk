@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="jplib"/>
+    <Type Value="RunAndDesignTime"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <IncludeFiles Value="..\.."/>
+        <OtherUnitFiles Value="..\..\Base;..\..\Binary;..\..\Containers;..\..\Graphics;..\..\Logging"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+    </CompilerOptions>
+    <Description Value="JPLib"/>
+    <Files Count="33">
+      <Item1>
+        <Filename Value="..\..\Base\JPL.CmdLineParser.pas"/>
+        <UnitName Value="JPL.CmdLineParser"/>
+      </Item1>
+      <Item2>
+        <Filename Value="..\..\Base\JPL.Console.ColorParser.pas"/>
+        <UnitName Value="JPL.Console.ColorParser"/>
+      </Item2>
+      <Item3>
+        <Filename Value="..\..\Base\JPL.Console.pas"/>
+        <UnitName Value="JPL.Console"/>
+      </Item3>
+      <Item4>
+        <Filename Value="..\..\Base\JPL.ConsoleApp.pas"/>
+        <UnitName Value="JPL.ConsoleApp"/>
+      </Item4>
+      <Item5>
+        <Filename Value="..\..\Base\JPL.Conversion.pas"/>
+        <UnitName Value="JPL.Conversion"/>
+      </Item5>
+      <Item6>
+        <Filename Value="..\..\Base\JPL.DateTime.pas"/>
+        <UnitName Value="JPL.DateTime"/>
+      </Item6>
+      <Item7>
+        <Filename Value="..\..\Base\JPL.Dialogs.pas"/>
+        <UnitName Value="JPL.Dialogs"/>
+      </Item7>
+      <Item8>
+        <Filename Value="..\..\Base\JPL.Files.pas"/>
+        <UnitName Value="JPL.Files"/>
+      </Item8>
+      <Item9>
+        <Filename Value="..\..\Base\JPL.FileSearch.pas"/>
+        <UnitName Value="JPL.FileSearch"/>
+      </Item9>
+      <Item10>
+        <Filename Value="..\..\Base\JPL.FileSearcher.pas"/>
+        <UnitName Value="JPL.FileSearcher"/>
+      </Item10>
+      <Item11>
+        <Filename Value="..\..\Base\JPL.JsonHelpers.pas"/>
+        <UnitName Value="JPL.JsonHelpers"/>
+      </Item11>
+      <Item12>
+        <Filename Value="..\..\Base\JPL.Language.pas"/>
+        <UnitName Value="JPL.Language"/>
+      </Item12>
+      <Item13>
+        <Filename Value="..\..\Base\JPL.Math.pas"/>
+        <UnitName Value="JPL.Math"/>
+      </Item13>
+      <Item14>
+        <Filename Value="..\..\Base\JPL.MemIniFile.pas"/>
+        <UnitName Value="JPL.MemIniFile"/>
+      </Item14>
+      <Item15>
+        <Filename Value="..\..\Base\JPL.RTTI.pas"/>
+        <UnitName Value="JPL.RTTI"/>
+      </Item15>
+      <Item16>
+        <Filename Value="..\..\Base\JPL.StrHash.pas"/>
+        <UnitName Value="JPL.StrHash"/>
+      </Item16>
+      <Item17>
+        <Filename Value="..\..\Base\JPL.Strings.Ext.pas"/>
+        <UnitName Value="JPL.Strings.Ext"/>
+      </Item17>
+      <Item18>
+        <Filename Value="..\..\Base\JPL.Strings.pas"/>
+        <UnitName Value="JPL.Strings"/>
+      </Item18>
+      <Item19>
+        <Filename Value="..\..\Base\JPL.Units.pas"/>
+        <UnitName Value="JPL.Units"/>
+      </Item19>
+      <Item20>
+        <Filename Value="..\..\Base\JPL.Utils.pas"/>
+        <UnitName Value="JPL.Utils"/>
+      </Item20>
+      <Item21>
+        <Filename Value="..\..\Base\JPL.Win.Dialogs.pas"/>
+        <UnitName Value="JPL.Win.Dialogs"/>
+      </Item21>
+      <Item22>
+        <Filename Value="..\..\Base\JPL.Win.FileSystem.pas"/>
+        <UnitName Value="JPL.Win.FileSystem"/>
+      </Item22>
+      <Item23>
+        <Filename Value="..\..\Base\JPL.Win.Shortcuts.pas"/>
+        <UnitName Value="JPL.Win.Shortcuts"/>
+      </Item23>
+      <Item24>
+        <Filename Value="..\..\Base\JPL.Win.System.pas"/>
+        <UnitName Value="JPL.Win.System"/>
+      </Item24>
+      <Item25>
+        <Filename Value="..\..\Base\JPL.Win.VersionInfo.pas"/>
+        <UnitName Value="JPL.Win.VersionInfo"/>
+      </Item25>
+      <Item26>
+        <Filename Value="..\..\Containers\JPL.StrList.pas"/>
+        <UnitName Value="JPL.StrList"/>
+      </Item26>
+      <Item27>
+        <Filename Value="..\..\Graphics\JPL.ColorArrays.pas"/>
+        <UnitName Value="JPL.ColorArrays"/>
+      </Item27>
+      <Item28>
+        <Filename Value="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
+        <UnitName Value="JPL.Colors.ColorClass"/>
+      </Item28>
+      <Item29>
+        <Filename Value="..\..\Graphics\JPL.Colors.List.pas"/>
+        <UnitName Value="JPL.Colors.List"/>
+      </Item29>
+      <Item30>
+        <Filename Value="..\..\Graphics\JPL.Colors.pas"/>
+        <UnitName Value="JPL.Colors"/>
+      </Item30>
+      <Item31>
+        <Filename Value="..\..\Logging\JPL.SimpleLogger.pas"/>
+        <UnitName Value="JPL.SimpleLogger"/>
+      </Item31>
+      <Item32>
+        <Filename Value="..\..\Logging\JPL.TimeLogger.pas"/>
+        <UnitName Value="JPL.TimeLogger"/>
+      </Item32>
+      <Item33>
+        <Filename Value="..\..\JppFPC.inc"/>
+        <Type Value="Include"/>
+      </Item33>
+    </Files>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="LCLBase"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+      </Item2>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

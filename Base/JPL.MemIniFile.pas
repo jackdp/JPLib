@@ -1,6 +1,6 @@
 ﻿unit JPL.MemIniFile;
 
-{$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
+{$IFDEF FPC} {$mode objfpc}{$H+} {$I JppFPC.inc} {$ENDIF}
 
 interface
 
@@ -34,10 +34,13 @@ type
     procedure SetCurrentSection(const Value: string);
     function GetCaseSensitive: Boolean;
     procedure SetCaseSensitive(const Value: Boolean);
-    function GetEncoding: TEncoding;
     {$IFDEF DCC}
+    function GetEncoding: TEncoding;
     procedure SetEncoding(const Value: TEncoding);
     {$ENDIF}
+    {$IFDEF FPC}{$IFDEF HAS_INIFILE_WITH_ENCODING}
+    function GetEncoding: TEncoding;
+    {$ENDIF}{$ENDIF}
   public
 
     constructor Create(const AFileName: string); overload;
@@ -162,7 +165,10 @@ type
     property CurrentSection: string read GetCurrentSection write SetCurrentSection;
     property Ini: TMemIniFile read FIni;
     property CaseSensitive: Boolean read GetCaseSensitive write SetCaseSensitive;
-    property Encoding: TEncoding read GetEncoding {$IFDEF DCC}write SetEncoding{$ENDIF};
+    {$IFDEF DCC}property Encoding: TEncoding read GetEncoding write SetEncoding;{$ENDIF}
+    {$IFDEF FPC}{$IFDEF HAS_INIFILE_WITH_ENCODING}
+    property Encoding: TEncoding read GetEncoding;
+    {$ENDIF}{$ENDIF}
   end;
 
   
@@ -215,7 +221,14 @@ end;
 
 constructor TJppMemIniFile.Create(const AFileName: string; const AEncoding: TEncoding; AUpdateOnExit: Boolean);
 begin
-  FIni := TMemIniFile.Create(AFileName, AEncoding);
+  {$IFDEF DCC}FIni := TMemIniFile.Create(AFileName, AEncoding);{$ENDIF}
+  {$IFDEF FPC}
+    {$IFDEF HAS_INIFILE_WITH_ENCODING}
+    FIni := TMemIniFile.Create(AFileName, AEncoding);
+    {$ELSE}
+    FIni := TMemIniFile.Create(AFileName);
+    {$ENDIF}
+  {$ENDIF}
   FUpdateOnExit := AUpdateOnExit;
   FFileName := AFileName;
   FLeftStringBound := '[';
@@ -254,12 +267,19 @@ procedure TJppMemIniFile.SetEncoding(const Value: TEncoding);
 begin
   FIni.Encoding := Value;
 end;
-{$ENDIF}
 
 function TJppMemIniFile.GetEncoding: TEncoding;
 begin
   Result := FIni.Encoding;
 end;
+{$ENDIF}
+
+{$IFDEF FPC}{$IFDEF HAS_INIFILE_WITH_ENCODING}
+function TJppMemIniFile.GetEncoding: TEncoding;
+begin
+  Result := FIni.Encoding;
+end;
+{$ENDIF}{$ENDIF}
 
 procedure TJppMemIniFile.SetLeftStringBound(const Value: string);
 begin
@@ -713,11 +733,12 @@ procedure TJppMemIniFile.ReadStrings(const Section: string; Items: TStrings {$IF
 var
   sl, slNames: TStringList;
   i, xp: integer;
+  s: string;
   {$IFDEF DCC}
   ss: TStringStream;
   ms: TMemoryStream;
   x: integer;
-  s, Hex, sName: string;
+  Hex, sName: string;
   xb: Byte;
   {$ENDIF}
 begin

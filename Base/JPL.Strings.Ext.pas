@@ -48,7 +48,14 @@ begin
   try
     sl.Text := FileContent;
     try
-      sl.SaveToFile(FileName, Encoding);
+      {$IFDEF DCC}sl.SaveToFile(FileName, Encoding);{$ENDIF}
+      {$IFDEF FPC}
+        {$IFDEF HAS_SAVE_WITH_ENCODING}
+        sl.SaveToFile(FileName, Encoding);
+        {$ELSE}
+        sl.SaveToFile(FileName);
+        {$ENDIF}
+      {$ENDIF}
       Result := True;
     except
       Result := False;

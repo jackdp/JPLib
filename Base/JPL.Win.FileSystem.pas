@@ -1,11 +1,12 @@
 unit JPL.Win.FileSystem;
 
+{$IFDEF FPC} {$mode delphi} {$ENDIF}
 
 interface
 
 
 uses
-  Windows, SysUtils, Classes, IOUtils,
+  Windows, SysUtils, Classes, {$IFDEF DCC}IOUtils,{$ENDIF}
   //JP_Lists,
   JPL.Strings, JPL.Conversion,
   Dialogs,
@@ -386,7 +387,10 @@ begin
     hInstApp := 0;
     lpIDList := nil;
   end;
-  Result := ShellExecuteEx(@sei);
+  {$IFDEF DCC}Result := ShellExecuteEx(@sei);{$ENDIF}
+  {$IFDEF FPC}
+    {$IFDEF UNICODE}Result := ShellExecuteExW(@sei);{$ELSE}Result := ShellExecuteExA(@sei);{$ENDIF}
+  {$ENDIF}
 end;
 
 function CopyFile(const SrcFile, DestFile: string): Boolean;
@@ -1016,7 +1020,10 @@ var
   fName: WideString;
   x: integer;
   Buffer: array[0..511] of Char;
-  pwd: _WIN32_FIND_DATAW;
+  {$IFDEF DCC}pwd: _WIN32_FIND_DATAW;{$ENDIF}
+  {$IFDEF FPC}
+    {$IFDEF UNICODE}pwd: _WIN32_FIND_DATAW;{$ELSE}pwd: _WIN32_FIND_DATAA;{$ENDIF}
+  {$ENDIF}
   w: WORD;
 
   procedure CB;
