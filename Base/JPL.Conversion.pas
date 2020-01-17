@@ -604,6 +604,8 @@ begin
   Result := True;
   try
 
+    SetLength(arr, 0);
+
     xInt := 0;
     if Pos('1', BinStr) > 0 then
     begin
