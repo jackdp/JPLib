@@ -36,6 +36,7 @@
 
 interface
 
+{$IFDEF MSWINDOWS}
 uses 
   Windows, SysUtils,
   JPL.Strings, JPL.Language, JPL.Conversion;
@@ -135,10 +136,12 @@ function VIStringInfoItemToStr(const sii: TVIStringInfoItem; bIncludeTranslation
   bIncludeLangInfo: Boolean = False; PadStr: string = ''): string;
 function VIFileVersionToStr(const fv: TVIFileVersion): string;
 
+{$ENDIF}
 
 
 implementation
 
+{$IFDEF MSWINDOWS}
 
 function VIFixedFileInfoToStr(const ffi: TVSFIXEDFILEINFO): string;
 begin
@@ -438,7 +441,7 @@ begin
     itos(fv.Build);
 end;
 
-
+{$ENDIF} // MSWINDOWS
 
 
 end.

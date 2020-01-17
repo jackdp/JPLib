@@ -1,9 +1,11 @@
 unit JPL.Win.System;
 
+{$IFDEF FPC} {$mode delphi} {$ENDIF}
+
 
 interface
 
-
+{$IFDEF MSWINDOWS}
 uses
   Windows, SysUtils, Classes, Messages,
   JPL.Strings;
@@ -32,10 +34,12 @@ const
   PBM_SETBKCOLOR = $2000 + 1;
   PBM_SETBARCOLOR = WM_USER + 9;
 
+{$ENDIF}
 
 implementation
 
 
+{$IFDEF MSWINDOWS}
 
 function SetWindowOnTop(const WinHandle: HWND; const OnTop: Boolean): Boolean;
 var
@@ -243,7 +247,7 @@ begin
 end;
 
 
-
+{$ENDIF} // MSWINDOWS
 
 
 

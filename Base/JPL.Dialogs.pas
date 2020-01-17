@@ -5,7 +5,7 @@ unit JPL.Dialogs;
 interface
 
 uses
-  Windows,
+  {$IFDEF MSWINDOWS}Windows,{$ENDIF}
   SysUtils, Graphics, {$IFDEF DCC}System.UITypes, {$ENDIF}
   Forms, Dialogs, Controls, StdCtrls;
 

@@ -16,7 +16,8 @@
 interface
 
 uses 
-  Windows, SysUtils;
+  {$IFDEF MSWINDOWS}Windows,{$ENDIF}
+  SysUtils;
 
 type
   TJPCodePageNameRec = record
@@ -25,13 +26,16 @@ type
   end;
 
 
+{$IFDEF MSWINDOWS}
 function LanguageIDToStr(const LangID: WORD): string;
+{$ENDIF}
 procedure GetCodePageNames(const CP: WORD; out cpnr: TJPCodePageNameRec);
 function GetCodePageDesc(const CP: WORD): string;
 function GetCodePageDotNetName(const CP: WORD): string;
   
 implementation
 
+{$IFDEF MSWINDOWS}
 function LanguageIDToStr(const LangID: WORD): string;
 var
   Buffer: array[0..255] of Char;
@@ -40,6 +44,7 @@ begin
   if VerLanguageName(LangID, Buffer, {size in characters-->}Length(Buffer)) > 0 then Result := Buffer
   else Result := '';
 end;
+{$ENDIF}
 
 function GetCodePageDesc(const CP: WORD): string;
 var

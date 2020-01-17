@@ -5,6 +5,7 @@ unit JPL.Win.FileSystem;
 interface
 
 
+{$IFDEF MSWINDOWS}
 uses
   Windows, SysUtils, Classes, {$IFDEF DCC}IOUtils,{$ENDIF}
   //JP_Lists,
@@ -210,10 +211,11 @@ function GetSpecialFolder(const CSIDL: integer; Default: string = ''): string;
 
 function GetTmpFileName(Prefix: string = ''; Ext: string = ''; NameLen: Byte = 12): string;
 
-
+{$ENDIF} // MSWINDOWS
 
 
 implementation
+{$IFDEF MSWINDOWS}
 uses
   JPL.Files,
   JPL.Win.System;
@@ -1214,6 +1216,8 @@ begin
   end;
 end;
 {$endregion TURLFile}
+
+{$ENDIF} //MSWINDOWS
 
 
 end.
