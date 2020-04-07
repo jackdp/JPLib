@@ -4,7 +4,6 @@
   Jacek Pazera
   http://www.pazera-software.com
   https://github.com/jackdp
-  Last mod: 2019.05.21
 
   To jest mój stary moduł z roku 2000 dla Borland Pascala 7.0
   W kolejnych latach rozbudowywany i dostosowywany do nowszych wersji Delphi i FPC.
@@ -30,13 +29,13 @@ const
 
 
 
-function Rbs(Dir: string): string; // remove path delimiter from end
+function Rbs(Dir: string): string; // removes path delimiter from end
 function Qs(const s: string): string;
 function Capitalize(const s: string): string;
 function FixFileName(fName: string; s: string = '_'; ZamieniajCudzyslowy: Boolean = True): string;
 function IsValidShortFileName(const ShortFileName: string): Boolean;
 function IsValidLongFileName(const LongFileName: string): Boolean;
-function FixFileNameSlashes(const FileName: string): string; deprecated 'Use FixPathDelimiters instead';
+function FixFileNameSlashes(const FileName: string): string; deprecated {$IFDEF DCC}{$IF CompilerVersion > 19}'Use FixPathDelimiters instead'{$IFEND}{$ENDIF};
 function FixPathDelimiters(const FileName: string): string;
 function PadString(Text: string; i: integer; znak: Char = ' '): string;
 function Pad(Text: string; Len: integer; PaddingChar: Char = ' '): string; overload;
@@ -47,7 +46,7 @@ function IntToStrEx(const x: int64; c: Char = ' '): string; overload;
 function IntToStrEx(const x: integer; c: Char = ' '): string; overload;
 
 function GetLastCharIndex(const s: string; c: Char): integer;
-function GetLastBIndex(const s: string): integer; deprecated 'Use GetLastBackslashIndex instead';
+function GetLastBIndex(const s: string): integer; deprecated {$IFDEF DCC}{$IF CompilerVersion > 19}'Use GetLastBackslashIndex instead'{$IFEND}{$ENDIF};
 function GetLastBackslashIndex(const s: string): integer;
 
 function DelFirstCharInString(s: string; ToDelete: Char): string;
@@ -83,17 +82,17 @@ function MakeDistinctChars(s: string): string;
 function CharCount(c: Char; s: string): integer;
 function ReverseStr(const s: string): string;
 function FillStrToLen(s: string; Len: integer; FillValue: Char = ' '): string;
-function AnsiUpCase(zn: Char; Default: Char = #0): Char;
-function AnsiLowCase(zn: Char; Default: Char = #0): Char;
+function AnsiUpCase(zn: Char; Default: Char = #0): Char;     // A po co to?
+function AnsiLowCase(zn: Char; Default: Char = #0): Char;    // I to też?
 function RemoveChars(const SrcStr, CharsToRemove: string; IgnoreCase: Boolean = False): string; overload;
 function RemoveChars(const SrcStr: string; Chars: array of Char; IgnoreCase: Boolean = False): string; overload;
-function LeaveChars(SrcStr: string; CharsToLeave: string): string;
+function LeaveOnlyChars(const SrcStr, CharsToLeave: string): string;
 function CutStrBefore(s, CutBeforeText: string; IgnoreCase: Boolean = False): string;
 function CutStrAfter(s, CutAfterText: string; IgnoreCase: Boolean = False; IncludeSearchText: Boolean = True): string;
 
 function GetFileExt(fName: string; bRemoveFirstDot: Boolean = True): string;
 
-function HtmlStringToStr(HTMLStr: string; IgnoreCase: Boolean = False): string; deprecated 'Use ReplaceHtmlEntities instead';
+function HtmlStringToStr(HTMLStr: string; IgnoreCase: Boolean = False): string; deprecated {$IFDEF DCC}{$IF CompilerVersion > 19}'Use ReplaceHtmlEntities instead'{$IFEND}{$ENDIF};
 function ReplaceHtmlEntities(const AStr: string; IgnoreCase: Boolean = False): string;
 
 function GetHref(const InStr: string): string;
@@ -101,9 +100,9 @@ function GetAnchorText(const InStr: string; bReplaceHtmlEntities: Boolean = True
 function GetFirstDigitIndex(const s: string): integer;
 function GetFirstNonDigitIndex(const s: string): integer;
 
-function MyDir(bExcludeTrailingPathDelim: Boolean = True): string; // Returns the executable directory
+function MyDir(bExcludeTrailingPathDelim: Boolean = True): string; // Returns the ParamStr(0) directory
 
-function StrRemove(const s, StringToRemove: string): string;
+function StrRemove(const s, StringToRemove: string; IgnoreCase: Boolean = False): string;
 function GetFileSizeString(const FileSize: Int64; BytesStr: string = ' bytes'): string;
 
 function TrimUp(s: string): string;
@@ -126,8 +125,6 @@ function GetRandomIntStr(Len: integer = 10): string;
 // Case sensitive Pos
 function PosCS(const substr, s: string; bCaseSensitive: Boolean = False): integer;
 
-
-//function TrimFromEnd(InStr, StrToRemove: string): string;
 function TrimFromEnd(const s: string; const StringToCut: string): string;
 function TrimFromStart(const s: string; const StringToCut: string): string;
 function TrimENDL(const s: string): string; // removes trailing sLineBreak (ENDL)
@@ -196,7 +193,6 @@ begin
   BaseFileName := ExtractFileName(fName);
   BaseFileName := ChangeFileExt(BaseFileName, '');
 
-  //Ext := GetFileExt(BaseFileName, bRemoveDotFromExt);
   Ext := GetFileExt(fName, bRemoveDotFromExt);
 end;
 
@@ -205,10 +201,6 @@ var
   Dir, ShortName, Ext: string;
 begin
   if Suffix = '' then Exit(FileName);
-//  Dir := Rbs(ExtractFileDir(FileName));
-//  ShortName := ExtractFileName(FileName);
-//  Ext := ExtractFileExt(ShortName);
-//  ShortName := ChangeFileExt(ShortName, '');
   SplitFileName(FileName, Dir, ShortName, Ext, False, False);
   Result := Dir + PathDelim + ShortName + Suffix + Ext;
 end;
@@ -244,17 +236,6 @@ begin
   else Result := s;
 end;
 
-//function TrimFromEnd(InStr, StrToRemove: string): string;
-//var
-//  xIn, xR: integer;
-//begin
-//  xIn := Length(InStr);
-//  xR := Length(StrToRemove);
-//  if Copy(InStr, xIn - xR + 1, xR) = StrToRemove then Result := Copy(InStr, 1, xIn - xR)
-//  else Result := InStr;
-//end;
-
-
 function PosCS(const substr, s: string; bCaseSensitive: Boolean = False): integer;
 begin
   if bCaseSensitive then Result := Pos(substr, s)
@@ -271,7 +252,7 @@ begin
   for i := 1 to Bytes do
   begin
     bt := Random(255);
-    Result := Result + IntToHex(bt, 2);// + ByteSeparator;
+    Result := Result + IntToHex(bt, 2);
     if i < Bytes then Result := Result + ByteSeparator;
   end;
   if bLowerCase then Result := LowerCase(Result);
@@ -292,7 +273,6 @@ begin
   end;
 end;
 
-
 function AddBounds(const s: string; LeftBound, RightBound: Char): string;
 begin
   Result := LeftBound + s + RightBound;
@@ -311,16 +291,12 @@ begin
   Result := sb + StringToBoundSeparator + s + StringToBoundSeparator + sb;
 end;
 
-
-
 function TrimBounds(s: string; LeftBound, RightBound: string): string;
 begin
   if Copy(s, 1, Length(LeftBound)) = LeftBound then s := Copy(s, 1 + Length(LeftBound), Length(s));
   if Copy(s, Length(s) - Length(RightBound) + 1, Length(RightBound)) = RightBound then s := Copy(s, 1, Length(s) - Length(RightBound));
-             //s := Copy(s, Length(s), 1);
   Result := s;
 end;
-
 
 procedure SplitStrToArray(s: string; var Arr: {$IFDEF FPC}specialize{$ENDIF} TArray<string>; const EndLineStr: string = sLineBreak);
 var
@@ -376,7 +352,6 @@ begin
   end;
 
   s := TrimFromStart(s, Separator);
-  //if Copy(s, 1, Length(Separator)) = Separator then Delete(s, 1, Length(Separator));
   Result := s;
 end;
 
@@ -386,25 +361,34 @@ begin
 end;
 
 function GetFileSizeString(const FileSize: Int64; BytesStr: string = ' bytes'): string;
+const
+  _KB = 1024;
+  _MB = _KB * 1024;
+  _GB = _MB * 1024;
 var
   fs: extended;
   s: ShortString;
+  bNegative: Boolean;
+  xSize: Int64;
 begin
-  Result := IntToStr(FileSize);
-  fs := FileSize;
-  if fs < 1024 then
+  xSize := FileSize;
+  bNegative := xSize < 0;
+  if bNegative then xSize := -xSize;
+
+  Result := IntToStr(xSize);
+  fs := xSize;
+  if fs < _KB then
   begin
-    str(
-    fs: 2: 0, s);
+    str(fs: 2: 0, s);
     Result := string(s) + BytesStr;
   end
-  else if (fs >= 1024) and (fs < (1024 * 1024)) then
+  else if (fs >= _KB) and (fs < _MB) then
   begin
     fs := fs / 1024;
     str(fs: 2: 2, s);
     Result := string(s) + ' KB';
   end
-  else if (fs >= 1024 * 1024) and (fs < (1024 * 1024 * 1024)) then
+  else if (fs >= _MB) and (fs < _GB) then
   begin
     fs := (fs / 1024) / 1024;
     str(fs: 2: 2, s);
@@ -416,11 +400,16 @@ begin
     str(fs: 2: 2, s);
     Result := string(s) + ' GB';
   end;
+  if bNegative then Result := '-' + Result;
 end;
 
-function StrRemove(const s, StringToRemove: string): string;
+function StrRemove(const s, StringToRemove: string; IgnoreCase: Boolean = False): string;
+var
+  rf: TReplaceFlags;
 begin
-  Result := StringReplace(s, StringToRemove, '', [rfReplaceAll]);
+  rf := [rfReplaceAll];
+  if IgnoreCase then Include(rf, rfIgnoreCase);
+  Result := StringReplace(s, StringToRemove, '', rf);
 end;
 
 function MyDir(bExcludeTrailingPathDelim: Boolean = True): string;
@@ -436,7 +425,6 @@ var
 begin
   Result := 0;
   for i := 1 to Length(s) do
-    //if not (s[i] in ['0'..'9']) then
     if not CharInSet(s[i], ['0'..'9']) then
     begin
       Result := i;
@@ -444,14 +432,12 @@ begin
     end;
 end;
 
-
 function GetFirstDigitIndex(const s: string): integer;
 var
   i: integer;
 begin
   Result := 0;
   for i := 1 to Length(s) do
-    //if s[i] in ['0'..'9'] then
     if CharInSet(s[i], ['0'..'9']) then
     begin
       Result := i;
@@ -475,7 +461,6 @@ begin
   Result := sr;
 end;
 
-
 function GetAnchorText(const InStr: string; bReplaceHtmlEntities: Boolean = True): string;
 var
   xp: integer;
@@ -494,20 +479,13 @@ begin
       if xp > 0 then sr := Copy(sr, 1, xp - 1);
     end;
   end;
-  if bReplaceHtmlEntities then sr := ReplaceHtmlEntities(sr); //     sr := HtmlStringToStr(sr);
+  if bReplaceHtmlEntities then sr := ReplaceHtmlEntities(sr);
   Result := sr;
 end;
 
 
 function HtmlStringToStr(HTMLStr: string; IgnoreCase: Boolean = False): string;
-//var
-//  sr: string;
 begin
-//  sr := HTMLStr;
-//  sr := StringReplace(sr, '&lt;', '<', [rfReplaceAll, rfIgnorecase]);
-//  sr := StringReplace(sr, '&gt;', '>', [rfReplaceAll, rfIgnorecase]);
-//  sr := StringReplace(sr, '&amp;', '&', [rfReplaceAll, rfIgnorecase]);
-//  Result := sr;
   Result := ReplaceHtmlEntities(HTMLStr, IgnoreCase);
 end;
 
@@ -564,17 +542,13 @@ begin
   Result := s;
 end;
 
-
-//{$hints off}
 function GetFileExt(fName: string; bRemoveFirstDot: Boolean = True): string;
 begin
   fName := ExtractFileExt(fName);
   if bRemoveFirstDot then
-    if Copy(fName, 1, 1) = '.' then Delete(fName, 1, 1); // fName := Copy(fName, 2, Length(fName));
+    if Copy(fName, 1, 1) = '.' then Delete(fName, 1, 1);
   Result := fName;
 end;
-//{$hints on}
-
 
 {$hints off}
 // obcina łańcuch s po wystąpieniu w nim tekstu CutAfterText
@@ -619,17 +593,15 @@ begin
 end;
 {$hints on}
 
-function LeaveChars(SrcStr: string; CharsToLeave: string): string;
+function LeaveOnlyChars(const SrcStr, CharsToLeave: string): string;
 var
   sr: string;
   c: char;
 begin
   sr := '';
-
   for c in SrcStr do
     if Pos(c, CharsToLeave) > 0 then sr := sr + c;
-
-  Result := (sr);
+  Result := sr;
 end;
 
 function RemoveChars(const SrcStr, CharsToRemove: string; IgnoreCase: Boolean): string;
@@ -656,6 +628,7 @@ begin
     Result := StringReplace(Result, Chars[i], '', rf);
 end;
 
+// A po co to?
 function AnsiUpCase(zn: Char; Default: Char): Char;
 var
   s: string;
@@ -665,7 +638,7 @@ begin
   Result := s[1];
 end;
 
-
+// A po co to?
 function AnsiLowCase(zn: Char; Default: Char): Char;
 var
   s: string;
@@ -674,7 +647,6 @@ begin
   if s = '' then s := Default;
   Result := s[1];
 end;
-
 
 {$hints off}
 function FillStrToLen(s: string; Len: integer; FillValue: Char): string;
@@ -687,7 +659,6 @@ begin
   Result := s;
 end;
 {$hints on}
-
 
 function ReverseStr(const s: string): string;
 var
@@ -731,7 +702,6 @@ begin
 end;
 {$hints on}
 
-
 {$hints off}
 function DistinctChars(s: string; IgnoreCase: Boolean): Boolean;
 var
@@ -745,8 +715,6 @@ begin
   Result := True;
 end;
 {$hints on}
-
-
 
 function IsNumber(const c: Char): Boolean;
 begin
@@ -784,15 +752,11 @@ end;
 
 function IsSmallLetter(const c: Char): Boolean;
 begin
-  //Result := c in ['a'..'z'];
-  //97..122
   Result := CharInSet(c, ['a'..'z']);
 end;
 
 function IsBigLetter(const c: Char): Boolean;
 begin
-  //Result := c in ['A'..'Z'];
-  // 65..90
   Result := CharInSet(c, ['A'..'Z']);
 end;
 
@@ -807,7 +771,7 @@ begin
   Result := sr;
 end;
 
-function RemoveAll(const Text, ToRemove: string; IgnoreCase: Boolean): string;
+function RemoveAll(const Text, ToRemove: string; IgnoreCase: Boolean = False): string;
 var
   rf: TReplaceFlags;
 begin
@@ -849,7 +813,6 @@ begin
 end;
 {$hints on}
 
-
 function RemoveSlashes(const Text: string): string;
 var
   s: string;
@@ -872,17 +835,8 @@ begin
 end;
 
 function GetLastBIndex(const s: string): integer;
-//var
-//  i: integer;
 begin
   Result := GetLastCharIndex(s, '\');
-//  Result := 0;
-//  for i := Length(s) downto 1 do
-//    if s[i] = '\' then
-//    begin
-//      Result := i;
-//      Exit;
-//    end;
 end;
 
 function GetLastBackslashIndex(const s: string): integer;
@@ -929,7 +883,6 @@ begin
   if Copy(s2, 1, 1) = '_' then s2 := Trim(Copy(s2, 2, Length(s2)));
   Result := s2;
 end;
-
 
 {$hints off}
 function DelFirstCharInString(s: string; ToDelete: Char): string;
@@ -988,7 +941,6 @@ begin
 end;
 {$hints on}
 
-
 {$hints off}
 function UnquoteStr(s: string; bDoubleQuote: Boolean = True): string;
 var
@@ -1001,7 +953,6 @@ begin
   Result := s;
 end;
 {$hints on}
-
 
 function PadString(Text: string; i: integer; znak: Char = ' '): string;
 begin
@@ -1064,30 +1015,9 @@ begin
   fName := StringReplace(fName, '<', s, [rfReplaceAll]);
   fName := StringReplace(fName, '>', s, [rfReplaceAll]);
   fName := StringReplace(fName, '|', s, [rfReplaceAll]);
-
   Result := fName;
 end;
 {$hints on}
-
-//function IsValidShortFileName(const FileName: string): Boolean;
-//var
-//  s: string;
-//  x: integer;
-//begin
-//  s := FileName;
-//  x := GetLastCharIndex(s, PathDelim);
-//  if x > 0 then s := Copy(s, x + 1, Length(s));
-//  Result :=
-//    (Trim(FileName) <> '') and
-//    (Pos('?', s) = 0) and
-//    (Pos('*', s) = 0) and
-//    (Pos(':', s) = 0) and
-//    (Pos('/', s) = 0) and
-//    (Pos('\', s) = 0) and
-//    (Pos('<', s) = 0) and
-//    (Pos('>', s) = 0) and
-//    (Pos('|', s) = 0);
-//end;
 
 function IsValidShortFileName(const ShortFileName: string): Boolean;
 const
@@ -1144,7 +1074,6 @@ begin
   Result := StringReplace(Result, '/', PathDelim, [rfReplaceAll]);
 end;
 
-
 function Qs(const s: string): string;
 begin
   Result := '"' + s + '"';
@@ -1155,11 +1084,9 @@ function Rbs(Dir: string): string;
 begin
   if Copy(Dir, Length(Dir), 1) = '.' then Delete(Dir, Length(Dir), 1);
   Dir := ExcludeTrailingPathDelimiter(Dir);
-  //if Copy(Dir, Length(Dir) - 1, 2) = '\.' then Delete(Dir, Length(Dir) - 1, 2);
   Result := Dir;
 end;
 {$hints on}
-
 
 function IntToStrEx(const x: int64; c: Char = ' '): string;
 var
@@ -1175,7 +1102,7 @@ begin
   Result := Trim(s);
 end;
 
-function IntToStrEx(const x: integer; c: Char): string;
+function IntToStrEx(const x: integer; c: Char = ' '): string;
 var
   s: string;
   i, k, Len: integer;
@@ -1184,10 +1111,7 @@ begin
 
   k := Length(s) div 3;
   Len := Length(s);
-  for i := 1 to k do
-  begin
-    Insert(c, s, Len - (i * 3) + 1);
-  end;
+  for i := 1 to k do Insert(c, s, Len - (i * 3) + 1);
 
   Result := Trim(s);
 end;
