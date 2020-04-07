@@ -35,6 +35,8 @@ const
   OPTIONAL_HEADER_MAGIC_PE32PLUS = $020B;  // 64-bit
 
 
+
+
     {$region '   CONST - Machine   '}
   IMAGE_FILE_MACHINE_UNKNOWN   = 0;
   IMAGE_FILE_MACHINE_ALPHA     = $0184; // Alpha_AXP
@@ -390,12 +392,12 @@ const
   CoffCharacteristicsInfoArray: array[0..15] of TCoffFlagItem = (
     (FlagName: 'IMAGE_FILE_RELOCS_STRIPPED';       Flag: IMAGE_FILE_RELOCS_STRIPPED;    Desc: 'Relocation info stripped from file'),
     (FlagName: 'IMAGE_FILE_EXECUTABLE_IMAGE';      Flag: IMAGE_FILE_EXECUTABLE_IMAGE;   Desc: 'File is executable'),
-    (FlagName: 'IMAGE_FILE_LINE_NUMS_STRIPPED';    Flag: IMAGE_FILE_LINE_NUMS_STRIPPED;   Desc: 'COFF line numbers have been removed. This flag is deprecated and should be zero.'),
-    (FlagName: 'IMAGE_FILE_LOCAL_SYMS_STRIPPED';   Flag: IMAGE_FILE_LOCAL_SYMS_STRIPPED;   Desc: 'COFF symbol table entries for local symbols have been removed. This flag is deprecated and should be zero.'),
-    (FlagName: 'IMAGE_FILE_AGGRESSIVE_WS_TRIM';    Flag: IMAGE_FILE_AGGRESSIVE_WS_TRIM;   Desc: 'Obsolete. Aggressively trim working set. This flag is deprecated for Windows 2000 and later and must be zero.'),
+    (FlagName: 'IMAGE_FILE_LINE_NUMS_STRIPPED';    Flag: IMAGE_FILE_LINE_NUMS_STRIPPED;   Desc: 'COFF line numbers have been removed'), //. This flag is deprecated and should be zero.'),
+    (FlagName: 'IMAGE_FILE_LOCAL_SYMS_STRIPPED';   Flag: IMAGE_FILE_LOCAL_SYMS_STRIPPED;   Desc: 'COFF symbol table entries for local symbols have been removed'), //. This flag is deprecated and should be zero.'),
+    (FlagName: 'IMAGE_FILE_AGGRESSIVE_WS_TRIM';    Flag: IMAGE_FILE_AGGRESSIVE_WS_TRIM;   Desc: 'Obsolete. Aggressively trim working set.'), // This flag is deprecated for Windows 2000 and later and must be zero.'),
     (FlagName: 'IMAGE_FILE_LARGE_ADDRESS_AWARE';   Flag: IMAGE_FILE_LARGE_ADDRESS_AWARE;   Desc: 'Application can handle > 2-GB addresses.'),
     (FlagName: '0x0040';                           Flag: $0040;   Desc: 'This flag is reserved for future use.'),
-    (FlagName: 'IMAGE_FILE_BYTES_REVERSED_LO';     Flag: IMAGE_FILE_BYTES_REVERSED_LO;   Desc: 'Little endian: the least significant bit (LSB) precedes the most significant bit (MSB) in memory. This flag is deprecated and should be zero.'),
+    (FlagName: 'IMAGE_FILE_BYTES_REVERSED_LO';     Flag: IMAGE_FILE_BYTES_REVERSED_LO;   Desc: 'Little endian: the least significant bit (LSB) precedes the most significant bit (MSB) in memory.'), // This flag is deprecated and should be zero.'),
     (FlagName: 'IMAGE_FILE_32BIT_MACHINE';         Flag: IMAGE_FILE_32BIT_MACHINE;   Desc: 'Machine is based on a 32-bit-word architecture.'),
     (FlagName: 'IMAGE_FILE_DEBUG_STRIPPED';        Flag: IMAGE_FILE_DEBUG_STRIPPED;   Desc: 'Debugging information is removed from the image file.'),
     (FlagName: 'IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP';   Flag: IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP;   Desc: 'If the image is on removable media, fully load it and copy it to the swap file.'),
@@ -403,7 +405,7 @@ const
     (FlagName: 'IMAGE_FILE_SYSTEM';             Flag: IMAGE_FILE_SYSTEM;   Desc: 'The image file is a system file, not a user program.'),
     (FlagName: 'IMAGE_FILE_DLL';                Flag: IMAGE_FILE_DLL;   Desc: 'The image file is a dynamic-link library (DLL). Such files are considered executable files for almost all purposes, although they cannot be directly run.'),
     (FlagName: 'IMAGE_FILE_UP_SYSTEM_ONLY';     Flag: IMAGE_FILE_UP_SYSTEM_ONLY;   Desc: 'The file should be run only on a uniprocessor machine.'),
-    (FlagName: 'IMAGE_FILE_BYTES_REVERSED_HI';  Flag: IMAGE_FILE_BYTES_REVERSED_HI;   Desc: 'Big endian: the MSB precedes the LSB in memory. This flag is deprecated and should be zero.')
+    (FlagName: 'IMAGE_FILE_BYTES_REVERSED_HI';  Flag: IMAGE_FILE_BYTES_REVERSED_HI;   Desc: 'Big endian: the MSB precedes the LSB in memory.') // This flag is deprecated and should be zero.')
   );
 
 
@@ -536,6 +538,9 @@ type
     FFileHeader: TImageFileHeader;
     FPeSignature: LongWord;
     FBits: Byte;
+    FIs16bit: Boolean;
+    FIs32bit: Boolean;
+    FIs64bit: Boolean;
     FOptionalHeader32: TImageOptionalHeader32;
     FOptionalHeader64: TImageOptionalHeader64;
     FOptionalHeaderMagicStr: string;
@@ -544,6 +549,7 @@ type
     FOffset_FileHeader: Int64;
     FOffset_PeHeader: Int64;
     FOffset_SectionsTable: Int64;
+    FImageBase: NativeUInt;
     FSectionNames: TStringList;
     FSections: TImageSections;
     FMaxMemoryStreamSize: integer;
@@ -559,9 +565,18 @@ type
     FOffset_UpxHeader: Int64;
     FDataDirectory: array [0..IMAGE_NUMBEROF_DIRECTORY_ENTRIES - 1] of IMAGE_DATA_DIRECTORY;
 
+    FCreationTime: TDateTime;
+    FLastWriteTime: TDateTime;
+    FLastAccessTime: TDateTime;
+    {$IFDEF MSWINDOWS}
+    FAttributes: TFileAttributesRec;
+    {$ENDIF}
+    FAddressOfEntryPoint: DWORD;
+
+
+
     function GetDataDirectory(Index: integer): IMAGE_DATA_DIRECTORY;
     procedure SetFileName(const Value: string);
-    procedure ClearInfo;
     procedure SetMaxMemoryStreamSize(const Value: integer);
     function GetDataStream: TStream;
     function GetDataDirectoryCount: integer;
@@ -570,43 +585,67 @@ type
     procedure FreeStreams;
     procedure GetUpxInfo;
     procedure RaiseException(const Message: string);
+    procedure ClearInfo;
+    procedure GetFileInfo;
   public
     PeSignatureArray: array[0..3] of Byte;
-    constructor Create;
-    destructor Destroy; override;
-    procedure GetFileInfo;
-    procedure ReadFileInfo;
 
+    constructor Create; overload;
+    constructor Create(const FileName: string); overload;
+    destructor Destroy; override;
+
+    procedure ReadFileInfo;
 
     property FileName: string read FFileName write SetFileName;
     property FileSize: Int64 read FFileSize;
     property IsValidPeFile: Boolean read FIsValidPeFile;
 
+    property Bits: Byte read FBits;
+    property Is16bit: Boolean read FIs16bit;
+    property Is32bit: Boolean read FIs32bit;
+    property Is64bit: Boolean read FIs64bit;
+
+    property CreationTime: TDateTime read FCreationTime;
+    property LastWriteTime: TDateTime read FLastWriteTime;
+    property LastAccessTime: TDateTime read FLastAccessTime;
+
     property DosHeader: TImageDosHeader read FDosHeader;
     property PeSignature: LongWord read FPeSignature;
     property FileHeader: TImageFileHeader read FFileHeader;
-    property Bits: Byte read FBits;
     property OptionalHeader32: TImageOptionalHeader32 read FOptionalHeader32;
     property OptionalHeader64: TImageOptionalHeader64 read FOptionalHeader64;
     property OptionalHeaderMagicStr: string read FOptionalHeaderMagicStr;
-    property InfoStr: string read FInfoStr;
+
     property Offset_PeSignature: Int64 read FOffset_PeSignature;
     property Offset_FileHeader: Int64 read FOffset_FileHeader;
     property Offset_PeHeader: Int64 read FOffset_PeHeader;
     property Offset_SectionsTable: Int64 read FOffset_SectionsTable;
+
+    property ImageBase: NativeUInt read FImageBase;
+    property AddressOfEntryPoint: DWORD read FAddressOfEntryPoint;
+
     property SectionNames: TStringList read FSectionNames;
     property Sections: TImageSections read FSections;
     property SectionCount: integer read GetSectionCount;
+
+    property DataDirectoryCount: integer read GetDataDirectoryCount;
+    property DataDirectory[Index: integer]: IMAGE_DATA_DIRECTORY read GetDataDirectory;
+
     property MaxMemoryStreamSize: integer read FMaxMemoryStreamSize write SetMaxMemoryStreamSize;
     property IsFileLoaded: Boolean read FIsFileLoaded;
     property FirstFile4Bits: TBitsInfo read FFirstFile4Bits;
+
     property IsPackedByUpx: Boolean read FIsPackedByUpx;
     property IsValidUpxHeader: Boolean read FIsValidUpxHeader;
     property UpxHeader: TPeUpxHeader read FUpxHeader;
     property UpxVersion: string read FUpxVersion;
     property Offset_UpxHeader: Int64 read FOffset_UpxHeader;
-    property DataDirectoryCount: integer read GetDataDirectoryCount;
-    property DataDirectory[Index: integer]: IMAGE_DATA_DIRECTORY read GetDataDirectory;
+
+    {$IFDEF MSWINDOWS}
+    property Attributes: TFileAttributesRec read FAttributes;
+    {$ENDIF}
+
+    property InfoStr: string read FInfoStr;
   end;
   {$endregion}
 
@@ -734,7 +773,6 @@ end;
 
 
 {$region '                           TCoffMachine                             '}
-
 
 class function TCoffMachine.GetDescription: string;
 var
@@ -942,15 +980,22 @@ constructor TPeFile.Create;
 begin
   FMaxMemoryStreamSize := DEFAULT_MAX_MEMORY_STREAM_SIZE;
   FSectionNames := TStringList.Create;
-  //FSections := TList<TImageSectionHeader>.Create;
   SetLength(FSections, 0);
+  fs := nil;
+  ms := nil;
   ClearInfo;
+end;
+
+constructor TPeFile.Create(const FileName: string);
+begin
+  Create;
+  FFileName := FileName;
+  ReadFileInfo;
 end;
 
 destructor TPeFile.Destroy;
 begin
   if Assigned(FSectionNames) then FSectionNames.Free;
-  //if Assigned(FSections) then FSections.Free;
   FreeStreams;
   inherited;
 end;
@@ -962,6 +1007,7 @@ begin
   FIsFileLoaded := False;
 end;
 
+{$region '                       ClearInfo                         '}
 procedure TPeFile.ClearInfo;
 begin
   FIsValidPeFile := False;
@@ -969,26 +1015,47 @@ begin
   FillChar(FFileHeader, SizeOf(FFileHeader), 0);
   FillChar(FOptionalHeader32, SizeOf(FOptionalHeader32), 0);
   FillChar(FOptionalHeader64, SizeOf(FOptionalHeader64), 0);
-  FBits := 0;
+
   FPeSignature := 0;
   FOptionalHeaderMagicStr := '';
   FInfoStr := '';
+
   FOffset_PeSignature := BIN_INVALID_OFFSET;
   FOffset_FileHeader := BIN_INVALID_OFFSET;
   FOffset_PeHeader := BIN_INVALID_OFFSET;
   FOffset_SectionsTable := BIN_INVALID_OFFSET;
+
+  FImageBase := 0;
+  FAddressOfEntryPoint := 0;
+
   FIsFileLoaded := False;
   FFileSize := 0;
   FSectionNames.Clear;
-  SetLength(FSections, 0); //FSections.Clear;
-  FreeStreams;
+  SetLength(FSections, 0);
   ClearBitsInfo(FFirstFile4Bits);
+
   FIsPackedByUpx := False;
   FIsValidUpxHeader := False;
   FillChar(FUpxHeader, SizeOf(FUpxHeader), 0);
   FUpxVersion := '';
   FOffset_UpxHeader := BIN_INVALID_OFFSET;
+
+  FBits := 0;
+  FIs16bit := False;
+  FIs32bit := False;
+  FIs64bit := False;
+
+  FCreationTime := EMPTY_DATE;
+  FLastWriteTime := EMPTY_DATE;
+  FLastAccessTime := EMPTY_DATE;
+
+  {$IFDEF MSWINDOWS}
+  FAttributes.ValidAttributes := False;
+  {$ENDIF}
+
+  FreeStreams;
 end;
+{$endregion ClearInfo}
 
 procedure TPeFile.SetFileName(const Value: string);
 begin
@@ -1023,12 +1090,21 @@ begin
   else Result := nil;
 end;
 
+
+{$region '                             GetFileInfo                           '}
+procedure TPeFile.ReadFileInfo;
+begin
+  GetFileInfo;
+end;
+
 procedure TPeFile.GetFileInfo;
 var
   x, i: integer;
   xw: Word;
-  s {, Section1, Section2} {, Section3}: string;
+  s: string;
   ish: TImageSectionHeader;
+  fir: TFileInfoRec;
+  Stream: TStream;
 begin
   ClearInfo;
 
@@ -1036,55 +1112,73 @@ begin
 
   FBits := 0;
   FOptionalHeaderMagicStr := '';
-  FFileSize := FileSizeInt(FFileName);
+
+
+  if fir.ReadFileInfo(FFileName) then
+  begin
+    {$IFDEF MSWINDOWS}
+    FAttributes := fir.Attributes;
+    {$ENDIF}
+    FFileSize := fir.Size;
+    FCreationTime := fir.CreationTime;
+    FLastWriteTime := fir.LastWriteTime;
+    FLastAccessTime := fir.LastAccessTime;
+  end
+  else FFileSize := FileSizeInt(FFileName);
 
   if FFileSize <= FMaxMemoryStreamSize then
   begin
     ms := TMemoryStream.Create;
     ms.LoadFromFile(FFileName);
+    Stream := ms;
   end
-  else fs := TFileStream.Create(FFileName, fmOpenRead or fmShareDenyWrite);
+  else
+  begin
+    fs := TFileStream.Create(FFileName, fmOpenRead or fmShareDenyWrite);
+    Stream := fs;
+  end;
 
   FIsFileLoaded := True;
 
-  GetBitsInfo(DataStream, FFirstFile4Bits, '.');
+  GetBitsInfo(Stream, FFirstFile4Bits, '.');
 
   try
 
 
     // ------------------------------- DOS Header -------------------------------------
-    if DataStream.Size < SizeOf(FDosHeader) then Exit;
-    x := DataStream.Read(FDosHeader, SizeOf(FDosHeader));
+    if Stream.Size < SizeOf(FDosHeader) then Exit;
+    x := Stream.Read(FDosHeader, SizeOf(FDosHeader));
     if x <> SizeOf(FDosHeader) then Exit;
 
 
     // ------------------------------ PE Signature ---------------------------------------
     FOffset_PeSignature := FDosHeader._lfanew;
-    if DataStream.Size < FOffset_PeSignature + SizeOf(FPeSignature) then Exit;
+    if Stream.Size < FOffset_PeSignature + SizeOf(FPeSignature) then Exit;
 
-    DataStream.Position := FOffset_PeSignature;
-    x := DataStream.Read(FPeSignature, SizeOf(FPeSignature));
+    Stream.Position := FOffset_PeSignature;
+    x := Stream.Read(FPeSignature, SizeOf(FPeSignature));
     if x <> SizeOf(FPeSignature) then Exit;
-    DataStream.Position := FOffset_PeSignature;
-    DataStream.Read(PeSignatureArray, Length(PeSignatureArray));
+    Stream.Position := FOffset_PeSignature;
+    Stream.Read(PeSignatureArray, Length(PeSignatureArray));
 
     if FPeSignature = SIGNATURE_NE then // NE file
     begin
       FBits := 16;
+      FIs16bit := True;
       FInfoStr := 'Win16 NE';
       Exit;
     end;
 
     if FPeSignature <> SIGNATURE_PE then Exit;
 
-    FBits := 32;
+    //FBits := 32;
 
 
     // -------------------------------- File (Coff) Header ------------------------------------
     FOffset_FileHeader := FOffset_PeSignature + SizeOf(FPeSignature);
-    if DataStream.Size < FOffset_FileHeader + SizeOf(FFileHeader) then Exit; //FOffset_CoffHeader + SizeOf(FPeSignature) + SizeOf(FFileHeader) then Exit;
+    if Stream.Size < FOffset_FileHeader + SizeOf(FFileHeader) then Exit; //FOffset_CoffHeader + SizeOf(FPeSignature) + SizeOf(FFileHeader) then Exit;
 
-    x := DataStream.Read(FFileHeader, SizeOf(FFileHeader));
+    x := Stream.Read(FFileHeader, SizeOf(FFileHeader));
     if x <> SizeOf(FFileHeader) then Exit;
 
 
@@ -1092,19 +1186,21 @@ begin
     // --------------------------------- Optional (PE) Header -----------------------------------------
     FOffset_PeHeader := FOffset_FileHeader + SizeOf(FFileHeader);
 
-    if DataStream.Size < DataStream.Position + 2 then Exit;
-    x := DataStream.Read(xw, 2);
+    if Stream.Size < Stream.Position + 2 then Exit;
+    x := Stream.Read(xw, 2);
     if x <> 2 then Exit;
 
     if xw = OPTIONAL_HEADER_MAGIC_PE32 then
     begin
       FOptionalHeaderMagicStr := 'PE32';
       FBits := 32;
+      FIs32bit := True;
     end
     else if xw = OPTIONAL_HEADER_MAGIC_PE32PLUS then
     begin
       FOptionalHeaderMagicStr := 'PE32+';
       FBits := 64;
+      FIs64bit := True;
     end
     else
     begin
@@ -1116,26 +1212,29 @@ begin
 
     //if Is64Bit(FileHeader.Machine) then FBits := 64;
 
-    DataStream.Position := DataStream.Position - 2;
+    Stream.Position := Stream.Position - 2;
 
     // 32 bit
     if FBits = 32 then
     begin
-      if DataStream.Size < DataStream.Position + SizeOf(FOptionalHeader32) then Exit;
-      x := DataStream.Read(FOptionalHeader32, SizeOf(FOptionalHeader32));
+      if Stream.Size < Stream.Position + SizeOf(FOptionalHeader32) then Exit;
+      x := Stream.Read(FOptionalHeader32, SizeOf(FOptionalHeader32));
       if x <> SizeOf(FOptionalHeader32) then Exit;
       FOffset_SectionsTable := FOffset_PeHeader + SizeOf(FOptionalHeader32);
+      FImageBase := FOptionalHeader32.ImageBase;
+      FAddressOfEntryPoint := FOptionalHeader32.AddressOfEntryPoint;
       for i := 0 to IMAGE_NUMBEROF_DIRECTORY_ENTRIES - 1 do FDataDirectory[i] := FOptionalHeader32.DataDirectory[i];
     end
 
-    // 64 bit
     else
-
+    // 64 bit
     begin
-      if DataStream.Size < DataStream.Position + SizeOf(FOptionalHeader64) then Exit;
-      x := DataStream.Read(FOptionalHeader64, SizeOf(FOptionalHeader64));
+      if Stream.Size < Stream.Position + SizeOf(FOptionalHeader64) then Exit;
+      x := Stream.Read(FOptionalHeader64, SizeOf(FOptionalHeader64));
       if x <> SizeOf(FOptionalHeader64) then Exit;
       FOffset_SectionsTable := FOffset_PeHeader + SizeOf(FOptionalHeader64);
+      FImageBase := FOptionalHeader64.ImageBase;
+      FAddressOfEntryPoint := FOptionalHeader64.AddressOfEntryPoint;
       for i := 0 to IMAGE_NUMBEROF_DIRECTORY_ENTRIES - 1 do FDataDirectory[i] := FOptionalHeader64.DataDirectory[i];
     end;
 
@@ -1152,18 +1251,15 @@ begin
 
 
     // -------------------------------------------- Sections ------------------------------------------
-    DataStream.Position := FOffset_SectionsTable;
+    Stream.Position := FOffset_SectionsTable;
     for i := 0 to FFileHeader.NumberOfSections - 1 do
     begin
-      x := DataStream.Read(ish, SizeOf(TImageSectionHeader));
+      x := Stream.Read(ish, SizeOf(TImageSectionHeader));
       if x <> SizeOf(TImageSectionHeader) then Break;
 
-      //FSections.Add(ish);
       SetLength(FSections, Length(FSections) + 1);
       FSections[High(FSections)] := ish;
 
-      //s := '';
-      //for x := 0 to High(ish.Name) do s := s + Chr(ish.Name[x]);
       s := Trim(GetStrFromBytes(ish.Name));
       FSectionNames.Add(s);
     end;
@@ -1172,16 +1268,13 @@ begin
     FIsValidPeFile := True;
 
     GetUpxInfo;
-    //GetResources;
 
   finally
     FreeStreams;
   end;
 
-
-
-
 end;
+{$endregion GetFileInfo}
 
 
 function TPeFile.GetSectionCount: integer;
@@ -1189,6 +1282,7 @@ begin
   Result := Length(FSections);
 end;
 
+{$region '                        GetUpxInfo                           '}
 procedure TPeFile.GetUpxInfo;
 var
   s, Section1, Section2: string;
@@ -1196,7 +1290,11 @@ var
   x: Int64;
   Buffer: array[0..1023] of Byte;
   Buf4Chars: array[0..3] of AnsiChar;
+  Stream: TStream;
 begin
+
+  Stream := DataStream;
+  if not Assigned(Stream) then Exit;
 
   // ----------- UPX Header -------------
   if FSectionNames.Count >= 3 then
@@ -1211,11 +1309,11 @@ begin
     begin
 
       UpxHeaderOffset := Sections[1].PointerToRawData - SizeOf(FUpxHeader);
-      if (UpxHeaderOffset < DataStream.Size) and (DataStream.Size > (Int64(UpxHeaderOffset) + SizeOf(FUpxHeader))) then
+      if (UpxHeaderOffset < Stream.Size) and (Stream.Size > (Int64(UpxHeaderOffset) + SizeOf(FUpxHeader))) then
       begin
         FOffset_UpxHeader := UpxHeaderOffset;
-        DataStream.Position := UpxHeaderOffset;
-        DataStream.Read(FUpxHeader, SizeOf(FUpxHeader));
+        Stream.Position := UpxHeaderOffset;
+        Stream.Read(FUpxHeader, SizeOf(FUpxHeader));
 
         // wyszukiwanie łańcucha 'UPX!'
         if FUpxHeader.Header.UpxMagic <> UPX_MAGIC_STR then
@@ -1227,21 +1325,21 @@ begin
 
           x := FOffset_SectionsTable; // Sections[1].PointerToRawData - SizeOf(Buffer);
 
-          if DataStream.Size >= Int64(x) + SizeOf(Buffer) then
+          if Stream.Size >= Int64(x) + SizeOf(Buffer) then
           begin
 
-            DataStream.Position := x;
-            DataStream.Read(Buffer{%H-}, SizeOf(Buffer));
+            Stream.Position := x;
+            Stream.Read(Buffer{%H-}, SizeOf(Buffer));
 
             xPos := GetStringOffset(UPX_MAGIC_STR, Buffer);
             if xPos >= 0 then
             begin
               // UpxVersion: array[0..4] of AnsiChar; - 5 bytes
               UpxHeaderOffset := x + xPos - 5;
-              if DataStream.Size >= Int64(UpxHeaderOffset) + SizeOf(FUpxHeader) then
+              if Stream.Size >= Int64(UpxHeaderOffset) + SizeOf(FUpxHeader) then
               begin
-                DataStream.Position := UpxHeaderOffset;
-                DataStream.Read(FUpxHeader, SizeOf(FUpxHeader));
+                Stream.Position := UpxHeaderOffset;
+                Stream.Read(FUpxHeader, SizeOf(FUpxHeader));
                 if FUpxHeader.Header.UpxMagic = UPX_MAGIC_STR then
                 begin
                   FIsPackedByUpx := True;
@@ -1274,18 +1372,18 @@ begin
 
       x := FOffset_SectionsTable;
 
-      if DataStream.Size >= Int64(x) + SizeOf(Buffer) then
+      if Stream.Size >= Int64(x) + SizeOf(Buffer) then
       begin
-        DataStream.Position := x;
-        DataStream.Read(Buffer, SizeOf(Buffer));
+        Stream.Position := x;
+        Stream.Read(Buffer, SizeOf(Buffer));
 
         s := 'Id: UPX ';
         xPos := GetStringOffset(AnsiString(s), Buffer);
         if xPos >= 0 then
-          if DataStream.Size >= Int64(x) + xPos + Length(s) + SizeOf(Buf4Chars) then
+          if Stream.Size >= Int64(x) + xPos + Length(s) + SizeOf(Buf4Chars) then
           begin
-            DataStream.Position := Int64(x) + xPos + Length(s);
-            DataStream.Read(Buf4Chars{%H-}, SizeOf(Buf4Chars));
+            Stream.Position := Int64(x) + xPos + Length(s);
+            Stream.Read(Buf4Chars{%H-}, SizeOf(Buf4Chars));
             FUpxVersion := string(Buf4Chars);
           end;
 
@@ -1297,7 +1395,7 @@ begin
   end; // UPX header
 
 end;
-
+{$endregion GetUpxInfo}
 
 procedure TPeFile.RaiseException(const Message: string);
 begin
@@ -1305,10 +1403,7 @@ begin
 end;
 
 
-procedure TPeFile.ReadFileInfo;
-begin
-  GetFileInfo;
-end;
+
 
 function GetBit(Value: UInt64 {QWord}; Index: Byte): Boolean;
 begin
