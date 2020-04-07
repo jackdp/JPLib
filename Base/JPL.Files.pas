@@ -8,26 +8,66 @@
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
   {$WARN 5057 off : Local variable "$1" does not seem to be initialized}
+  {$modeswitch ADVANCEDRECORDS}
 {$ENDIF}
+
+
 interface
 
 uses
   SysUtils, Classes,
   {$IFDEF MSWINDOWS}Windows,{$ENDIF}
   {$IFDEF LINUX}BaseUnix,{$ENDIF}
-  //MFPC.Classes.Streams,
-  {%H-}JPL.Strings;
+  JPL.Strings, JPL.Conversion;
+
+const
+  EMPTY_DATE = -127552;
+  {$IFDEF FPC}
+  INVALID_FILE_ATTRIBUTES  = DWORD(-1);
+  {$ENDIF}
 
 type
-  TFileInfoRec = record
-    FullFileName: string;
-    Directory: string;
-    // directory + path delimiter
-    Path: string;
-    ShortFileName: string;
-    BaseFileName: string;
-    Extension: string;
 
+  TFileNameRec = record
+    FullFileName: string;         //  C:\dir\file.ext   |  /etc/dir/file.ext
+    ShortFileName: string;        //  file.ext          |  file.ext
+    BaseFileName: string;         //  file              |  file
+    Directory: string;            //  C:\dir            |  /etc/dir
+    Path: string;                 //  C:\dir\           |  /etc/dir/
+    ExtensionWithDot: string;     //  .ext              |  .ext
+    ExtensionWithoutDot: string;  //  ext               |  ext
+    procedure AssignFileName(const FileName: string);
+    procedure Clear;
+    function AsString(Indent: string = ''): string;
+  end;
+
+  {$IFDEF MSWINDOWS}
+  TFileAttributesRec = record
+    ValidAttributes: Boolean;
+    ReadOnly: Boolean;
+    Hidden: Boolean;
+    SysFile: Boolean;
+    VolumeID: Boolean;
+    Directory: Boolean;
+    Archive: Boolean;
+    Normal: Boolean;
+    Temporary: Boolean;
+    SymLink: Boolean;
+    Compressed: Boolean;
+    Encrypted: Boolean;
+    Virtual: Boolean;
+    AnyFile: Boolean;
+    function ReadFileAttributes(const FileName: string): Boolean;
+    procedure Clear;
+    function AsString(Separator: string = ', '): string;
+  end;
+  {$ENDIF}
+
+
+  TFileInfoRec = record
+    FileNameRec: TFileNameRec;
+
+    {$IFDEF LINUX}
     StatOK: Boolean;
     DeviceNo: UInt64; // QWord;
     InodeNo: Cardinal;
@@ -35,17 +75,26 @@ type
     HardLinks: UInt64; // QWord;
     OwnerUserID: Cardinal;
     OwnerGroupID: Cardinal;
-    Size: Int64;
     BlockSize: Int64;
     Blocks: Int64;
+    {$ENDIF}
+
+    Size: Int64;
     CreationTime: TDateTime;
     LastWriteTime: TDateTime;
     LastAccessTime: TDateTime;
     ReadOnly: Boolean;
+
+    {$IFDEF MSWINDOWS}
+    Attributes: TFileAttributesRec;
+    {$ENDIF}
+
+    function ReadFileInfo(const FileName: string): Boolean;
+    procedure Clear;
+    function AsString: string;
   end;
 
-procedure ClearFileInfoRec(var fir: TFileInfoRec);
-function GetFileInfoRec(const FileName: string; out fir: TFileInfoRec; bOnlyNames: Boolean = False): Boolean;
+
 function FileSizeInt(const FileName: string): int64;
 {$IFDEF MSWINDOWS}
 function FileGetCreationTime(const FileName: string): TDateTime;
@@ -194,7 +243,8 @@ begin
       {$IFDEF MSWINDOWS}
       Result := DSiFileSize(FileName);
       {$ELSE}
-      if not GetFileInfoRec(FileName, fir, False) then Exit(-1);
+      //if not GetFileInfoRec(FileName, fir, False) then Exit(-1);
+      if not fir.ReadFileInfo(FileName) then Exit(-1);
       Result := fir.Size;
       {$ENDIF}
     except
@@ -248,32 +298,157 @@ end;
 {$WARN SYMBOL_PLATFORM ON}
 {$ENDIF}
 
-procedure ClearFileInfoRec(var fir: TFileInfoRec);
-begin
-  fir.FullFileName := '';
-  fir.Directory := '';
-  fir.Path := '';
-  fir.ShortFileName := '';
-  fir.BaseFileName := '';
-  fir.Extension := '';
 
-  fir.StatOK := False;
-  fir.DeviceNo := 0;
-  fir.InodeNo := 0;
-  fir.FileMode := 0;
-  fir.HardLinks := 0;
-  fir.OwnerUserID := 0;
-  fir.OwnerGroupID := 0;
-  fir.Size := 0;
-  fir.BlockSize := 0;
-  fir.Blocks := 0;
-  fir.CreationTime := 0;
-  fir.LastWriteTime := 0;
-  fir.LastAccessTime := 0;
-  fir.ReadOnly := True;
+
+
+{$region '                   TFileAttributesRec                      '}
+
+{$IFDEF MSWINDOWS}
+
+{$WARN SYMBOL_PLATFORM OFF}
+function TFileAttributesRec.ReadFileAttributes(const FileName: string): Boolean;
+var
+  x: DWORD;
+begin
+  Clear;
+  Result := False;
+  x := GetFileAttributes(PChar(FileName));
+  if x = INVALID_FILE_ATTRIBUTES then Exit;
+
+  ValidAttributes := True;
+  Result := True;
+
+  ReadOnly := x and faReadOnly <> 0;
+  Hidden := x and faHidden <> 0;
+  SysFile := x and faSysFile <> 0;
+  {$WARN SYMBOL_DEPRECATED OFF}
+  VolumeID := x and faVolumeId <> 0;
+  {$WARN SYMBOL_DEPRECATED ON}
+  Directory := x and faDirectory <> 0;
+  Archive := x and faArchive <> 0;
+  Normal := x and faNormal <> 0;
+  Temporary := x and faTemporary <> 0;
+  SymLink := x and faSymLink <> 0;
+  Compressed := x and faCompressed <> 0;
+  Encrypted := x and faEncrypted <> 0;
+  Virtual := x and faVirtual <> 0;
+  AnyFile := x and faAnyFile <> 0;
+end;
+{$WARN SYMBOL_PLATFORM ON}
+
+procedure TFileAttributesRec.Clear;
+begin
+  ValidAttributes := False;
+  ReadOnly := False;
+  Hidden := False;
+  SysFile := False;
+  VolumeID := False;
+  Directory := False;
+  Archive := False;
+  Normal := False;
+  Temporary := False;
+  SymLink := False;
+  Compressed := False;
+  Encrypted := False;
+  Virtual := False;
+  AnyFile := False;
 end;
 
-function GetFileInfoRec(const FileName: string; out fir: TFileInfoRec; bOnlyNames: Boolean = False): Boolean;
+function TFileAttributesRec.AsString(Separator: string = ', '): string;
+begin
+  Result := '';
+  if not ValidAttributes then Exit;
+  if ReadOnly then Result := Result + 'ReadOnly' + Separator;
+  if Hidden then Result := Result + 'Hidden' + Separator;
+  if SysFile then Result := Result + 'SysFile' + Separator;
+  if VolumeID then Result := Result + 'VolumeID' + Separator;
+  if Directory then Result := Result + 'Directory' + Separator;
+  if Archive then Result := Result + 'Archive' + Separator;
+  if Normal then Result := Result + 'Normal' + Separator;
+  if Temporary then Result := Result + 'Temporary' + Separator;
+  if SymLink then Result := Result + 'SymLink' + Separator;
+  if Compressed then Result := Result + 'Compressed' + Separator;
+  if Encrypted then Result := Result + 'Encrypted' + Separator;
+  if Virtual then Result := Result + 'Virtual' + Separator;
+  if AnyFile then Result := Result + 'AnyFile' + Separator;
+
+  Result := TrimFromEnd(Result, Separator);
+end;
+{$ENDIF} // MSWINDOWS
+
+{$endregion TFileAttributesRec}
+
+
+
+{$region '                   TFileNameRec                      '}
+procedure TFileNameRec.AssignFileName(const FileName: string);
+begin
+  FullFileName := ExpandFileName(FileName);
+  Directory := ExtractFileDir(FullFileName);
+  Path := ExtractFilePath(FullFileName);
+  ShortFileName := ExtractFileName(FileName);
+  BaseFileName := ChangeFileExt(ShortFileName, '');
+  ExtensionWithoutDot := GetFileExt(ShortFileName, True);
+  if ExtensionWithoutDot <> '' then ExtensionWithDot := '.' + ExtensionWithoutDot
+  else ExtensionWithoutDot := '';
+end;
+
+procedure TFileNameRec.Clear;
+begin
+  FullFileName := '';
+  ShortFileName := '';
+  BaseFileName := '';
+  Directory := '';
+  Path := '';
+  ExtensionWithDot := '';
+  ExtensionWithoutDot := '';
+end;
+
+function TFileNameRec.AsString(Indent: string = ''): string;
+begin
+  Result :=
+    Indent + 'FullFileName: ' + FullFileName + ENDL +
+    Indent + 'ShortFileName: ' + ShortFileName + ENDL +
+    Indent + 'BaseFileName: ' + BaseFileName + ENDL +
+    Indent + 'Directory: ' + Directory + ENDL +
+    Indent + 'Path: ' + Path + ENDL +
+    Indent + 'ExtensionWithDot: ' + ExtensionWithDot + ENDL +
+    Indent + 'ExtensionWithoutDot: ' + ExtensionWithoutDot;
+end;
+{$endregion TFileNameRec}
+
+
+
+{$region '                   TFileInfoRec                    '}
+
+procedure TFileInfoRec.Clear;
+begin
+  FileNameRec.Clear;
+
+  {$IFDEF LINUX}
+  StatOK := False;
+  DeviceNo := 0;
+  InodeNo := 0;
+  FileMode := 0;
+  HardLinks := 0;
+  OwnerUserID := 0;
+  OwnerGroupID := 0;
+  BlockSize := 0;
+  Blocks := 0;
+  {$ENDIF}
+
+  Size := 0;
+  CreationTime := EMPTY_DATE;
+  LastWriteTime := EMPTY_DATE;
+  LastAccessTime := EMPTY_DATE;
+  ReadOnly := False;
+
+  {$IFDEF MSWINDOWS}
+  Attributes.ValidAttributes := False;
+  {$ENDIF}
+end;
+
+function TFileInfoRec.ReadFileInfo(const FileName: string): Boolean;
 var
 {$IFDEF LINUX}
   st: BaseUnix.stat;
@@ -281,52 +456,84 @@ var
 {$IFDEF MSWINDOWS}
   tc, ta, tw: TDateTime;
 {$ENDIF}
+  FullName: string;
 begin
   Result := False;
+  Clear;
+  {$IFDEF MSWINDOWS}
+  Attributes.ValidAttributes := False;
+  {$ENDIF}
+  FileNameRec.Clear;
+
   if not FileExists(FileName) then Exit;
-  ClearFileInfoRec(fir{%H-});
-  fir.FullFileName := ExpandFileName(FileName);
-  fir.Directory := ExtractFileDir(fir.FullFileName);
-  fir.Path := ExtractFilePath(fir.FullFileName);
-  fir.ShortFileName := ExtractFileName(FileName);
-  fir.BaseFileName := ChangeFileExt(fir.ShortFileName, '');
-  fir.Extension := GetFileExt(FileName, True);
-  if bOnlyNames then Exit(True);
-  fir.ReadOnly := FileIsReadOnly(fir.FullFileName);
+
+  FileNameRec.AssignFileName(FileName);
+  FullName := FileNameRec.FullFileName;
+
+  ReadOnly := FileIsReadOnly(FullName);
 
   {$IFDEF MSWINDOWS}
-  fir.Size := FileSizeInt(FileName);
-  if FileGetTimes(FileName, tc, ta, tw) then
+  Size := FileSizeInt(FullName);
+  if FileGetTimes(FullName, tc, ta, tw) then
   begin
-    fir.CreationTime := tc;
-    fir.LastAccessTime := ta;
-    fir.LastWriteTime := tw;
+    CreationTime := tc;
+    LastAccessTime := ta;
+    LastWriteTime := tw;
   end;
+  Attributes.ReadFileAttributes(FullName);
   {$ENDIF}
 
+
   {$IFDEF LINUX}
-  if FpStat(FileName, st{%H-}) = 0 then
+  if FpStat(FullName, st{%H-}) = 0 then
   begin
-    fir.StatOK := True;
-    fir.DeviceNo := st.st_dev;
-    fir.InodeNo := st.st_ino;
-    fir.FileMode := st.st_mode;
-    fir.HardLinks := st.st_nlink;
-    fir.OwnerUserID := st.st_uid;
-    fir.OwnerGroupID := st.st_gid;
-    fir.Size := st.st_size;
-    fir.BlockSize := st.st_blksize;
-    fir.Blocks := st.st_blocks;
-    fir.CreationTime := FileDateToDateTime(st.st_ctime);
-    fir.LastAccessTime := FileDateToDateTime(st.st_atime);
-    fir.LastWriteTime := FileDateToDateTime(st.st_mtime);
+    StatOK := True;
+    DeviceNo := st.st_dev;
+    InodeNo := st.st_ino;
+    FileMode := st.st_mode;
+    HardLinks := st.st_nlink;
+    OwnerUserID := st.st_uid;
+    OwnerGroupID := st.st_gid;
+    Size := st.st_size;
+    BlockSize := st.st_blksize;
+    Blocks := st.st_blocks;
+    CreationTime := FileDateToDateTime(st.st_ctime);
+    LastAccessTime := FileDateToDateTime(st.st_atime);
+    LastWriteTime := FileDateToDateTime(st.st_mtime);
   end
-  else fir.StatOK := False;
+  else StatOK := False;
   {$ENDIF}
 
   Result := True;
 end;
 
+function TFileInfoRec.AsString: string;
+begin
+  Result := 'FileNameRec' + ENDL + FileNameRec.AsString('  ');
+  {$IFDEF MSWINDOWS}
+  Result := Result + ENDL + 'File Attributes: ' + Attributes.AsString(', ');
+  {$ENDIF}
+  Result := Result + ENDL +
+    'Size: ' + itos(Size) + ' bytes' + ENDL +
+    'CreationTime: ' + DateTimeToStr(CreationTime) + ENDL +
+    'LastWriteTime: ' + DateTimeToStr(LastWriteTime) + ENDL +
+    'LastAccessTime: ' + DateTimeToStr(LastAccessTime);
+  {$IFDEF LINUX}
+  Result := Result + ENDL + 'StatOK: ' + BoolToStr(StatOK);
+  if StatOK then
+    Result := Result + ENDL +
+      'DeviceNo: ' + itos(DeviceNo) + ENDL +
+      'InodeNo: ' + itos(InodeNo) + ENDL +
+      'FileMode: ' + itos(FileMode) + ENDL +
+      'HardLinks: ' + itos(HardLinks) + ENDL +
+      'OwnerUserID: ' + itos(OwnerUserID) + ENDL +
+      'OwnerGroupID: ' + itos(OwnerGroupID) + ENDL +
+      'BlockSize: ' + itos(BlockSize) + ENDL +
+      'Blocks: ' + itos(Blocks);
+  {$ENDIF}
+  Result := Result + ENDL + 'ReadOnly: ' + BoolToStr(ReadOnly);
+end;
 
+{$endregion TFileInfoRec}
 
 end.
