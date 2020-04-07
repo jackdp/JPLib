@@ -259,7 +259,7 @@ begin
     PeFile := TPeFile.Create;
     try
       PeFile.FileName := fName;
-      PeFile.GetFileInfo;
+      PeFile.ReadFileInfo;
 
       case PeFile.Bits of
         16: BinType := BIN_WIN16;
