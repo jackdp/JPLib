@@ -1,17 +1,28 @@
 ﻿unit JPL.MemIniFile;
 
-{$IFDEF FPC} {$mode objfpc}{$H+} {$I JppFPC.inc} {$ENDIF}
+{
+  Jacek Pazera
+  http://www.pazera-software.com
+  https://github.com/jackdp
+
+  Last mod: 2020.03.14
+ }
+
+{$IFDEF FPC}
+  {$mode objfpc}{$H+}
+  {$I JppFPC.inc}
+{$ENDIF}
 
 interface
 
 uses 
   {$IFDEF DCC}
   Winapi.Windows,
-  System.SysUtils, System.Classes, System.IniFiles, System.ZLib, Vcl.Graphics, Vcl.Dialogs,
+  System.SysUtils, System.Classes, System.IniFiles, System.ZLib, Vcl.Graphics, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Forms,
   {$ELSE}
-  SysUtils, Classes, IniFiles, Graphics,
+  SysUtils, Classes, IniFiles, Graphics, StdCtrls, Forms,
   {$ENDIF}
-  JPL.Strings, JPL.Conversion, JPL.Colors;
+  JPL.Strings, JPL.Conversion, JPL.Math, JPL.Colors;
 
 
 type
@@ -81,10 +92,19 @@ type
     function ReadBinaryStream(const Section, Ident: string; Value: TStream): integer;
     procedure WriteBinaryStream(const Section, Ident: string; Value: TStream);
 
+    procedure WriteFormPos(const Section: string; Form: TForm); overload;
+    procedure WriteFormPos(Form: TForm); overload;
+    procedure ReadFormPos(const Section: string; Form: TForm); overload;
+    procedure ReadFormPos(Form: TForm); overload;
+
     procedure WriteString(const Section, Ident, Value: string); overload;
+    procedure WriteString(Section: string; Cmp: TComponent; const Value: string); overload;
     procedure WriteString(const Ident, Value: string); overload;
+    procedure WriteString(Cmp: TComponent; const Value: string); overload;
     function ReadString(const Section, Ident, Default: string): string; overload;
+    function ReadString(const Section: string; Cmp: TComponent; const Default: string): string; overload;
     function ReadString(const Ident, Default: string): string; overload;
+    function ReadString(Cmp: TComponent; const Default: string): string; overload;
 
     procedure WriteBool(const Section, Ident: string; const Value: Boolean); overload;
     procedure WriteBool(const Ident: string; const Value: Boolean); overload;
@@ -92,9 +112,13 @@ type
     function ReadBool(const Ident: string; const Default: Boolean): Boolean; overload;
 
     procedure WriteInteger(const Section, Ident: string; const Value: integer); overload;
+    procedure WriteInteger(const Section: string; Cmp: TComponent; const Value: integer); overload;
     procedure WriteInteger(const Ident: string; const Value: integer); overload;
+    procedure WriteInteger(Cmp: TComponent; const Value: integer); overload;
     function ReadInteger(const Section, Ident: string; const Default: integer): integer; overload;
+    function ReadInteger(const Section: string; Cmp: TComponent; const Default: integer): integer; overload;
     function ReadInteger(const Ident: string; const Default: integer): integer; overload;
+    function ReadInteger(Cmp: TComponent; const Default: integer): integer; overload;
 
     function ReadDate(const Section, Ident: string; Default: TDateTime): TDateTime; overload;
     function ReadDate(const Ident: string; Default: TDateTime): TDateTime; overload;
@@ -135,13 +159,17 @@ type
     function ReadFontStyles(const Ident: string; const Default: TFontStyles): TFontStyles; overload;
 
     // Warning! WriteStrings cleans the entire section and then saves the data.
-    procedure WriteStrings(const Section: string; Items: TStrings {$IFDEF DCC}; Compress: Boolean = False{$ENDIF});
+    procedure WriteStrings(const Section: string; Items: TStrings; MaxItemsCount: integer = -1 {$IFDEF DCC}; Compress: Boolean = False{$ENDIF});
     procedure ReadStrings(const Section: string; Items: TStrings {$IFDEF DCC}; ItemsCompressed: Boolean = False{$ENDIF});
 
     procedure WriteBoundString(const Section, Ident, Value: string); overload;
+    procedure WriteBoundString(const Section: string; Cmp: TComponent; const Value: string); overload;
     procedure WriteBoundString(const Ident, Value: string); overload;
+    procedure WriteBoundString(Cmp: TComponent; const Value: string); overload;
     function ReadBoundString(const Section, Ident, Default: string): string; overload;
+    function ReadBoundString(const Section: string; Cmp: TComponent; const Default: string): string; overload;
     function ReadBoundString(const Ident, Default: string): string; overload;
+    function ReadBoundString(Cmp: TComponent; const Default: string): string; overload;
 
     {$IFDEF DCC}
     procedure WriteInt64(const Section, Ident: string; const Value: Int64); overload;
@@ -155,6 +183,16 @@ type
     function ReadDotFloat(const Section, Ident: string; const Default: Double): Double; overload;
     function ReadDotFloat(const Ident: string; const Default: Double): Double; overload;
 
+    procedure WriteCheckBox(const Section: string; CheckBox: TCheckBox); overload;
+    procedure WriteCheckBox(CheckBox: TCheckBox); overload;
+    procedure ReadCheckBox(const Section: string; CheckBox: TCheckBox); overload;
+    procedure ReadCheckBox(CheckBox: TCheckBox); overload;
+
+    procedure WriteRadioButton(const Section: string; RadioButton: TRadioButton); overload;
+    procedure WriteRadioButton(RadioButton: TRadioButton); overload;
+    procedure ReadRadioButton(const Section: string; RadioButton: TRadioButton); overload;
+    procedure ReadRadioButton(RadioButton: TRadioButton); overload;
+
 
     // ------------------------------ Properties ------------------------------
 
@@ -162,7 +200,10 @@ type
     property UpdateOnExit: Boolean read FUpdateOnExit write SetUpdateOnExit;
     property LeftStringBound: string read FLeftStringBound write SetLeftStringBound;
     property RightStringBound: string read FRightStringBound write SetRightStringBound;
+
+    // Warning! If you want to use Write/Read routines without the Section param, you must set the CurrentSection property first!
     property CurrentSection: string read GetCurrentSection write SetCurrentSection;
+
     property Ini: TMemIniFile read FIni;
     property CaseSensitive: Boolean read GetCaseSensitive write SetCaseSensitive;
     {$IFDEF DCC}property Encoding: TEncoding read GetEncoding write SetEncoding;{$ENDIF}
@@ -409,10 +450,61 @@ begin
 end;
 
 
+  {$region '   Form   '}
+procedure TJppMemIniFile.WriteFormPos(const Section: string; Form: TForm);
+begin
+  WriteBool(Section, Form.Name + '.Maximized', Form.WindowState = wsMaximized);
+  if Form.WindowState <> wsMaximized then
+  begin
+    WriteInteger(Section, Form.Name + '.Left', Form.Left);
+    WriteInteger(Section, Form.Name + '.Top', Form.Top);
+    WriteInteger(Section, Form.Name + '.Width', Form.Width);
+    WriteInteger(Section, Form.Name + '.Height', Form.Height);
+  end;
+end;
+
+procedure TJppMemIniFile.WriteFormPos(Form: TForm);
+begin
+  WriteFormPos(CurrentSection, Form);
+end;
+
+procedure TJppMemIniFile.ReadFormPos(const Section: string; Form: TForm);
+var
+  x: integer;
+begin
+  x := ReadInteger(Section, Form.Name + '.Left', Form.Left);
+  x := GetIntInRange(x, 0, Screen.Width - 50);
+  Form.Left := x;
+
+  x := ReadInteger(Section, Form.Name + '.Top', Form.Top);
+  x := GetIntInRange(x, 0, Screen.Height - 50);
+  Form.Top := x;
+
+  x := ReadInteger(Section, Form.Name + '.Width', Form.Width);
+  x := GetIntInRange(x, 50, Screen.Width);
+  Form.Width := x;
+
+  x := ReadInteger(Section, Form.Name + '.Height', Form.Height);
+  x := GetIntInRange(x, 50, Screen.Height);
+  Form.Height := x;
+end;
+
+procedure TJppMemIniFile.ReadFormPos(Form: TForm);
+begin
+  ReadFormPos(CurrentSection, Form);
+end;
+  {$endregion Form}
+
+
   {$region '   String   '}
 procedure TJppMemIniFile.WriteString(const Section, Ident, Value: string);
 begin
   FIni.WriteString(Section, Ident, Value);
+end;
+
+procedure TJppMemIniFile.WriteString(Section: string; Cmp: TComponent; const Value: string);
+begin
+  WriteString(Section, Cmp.Name, Value);
 end;
 
 procedure TJppMemIniFile.WriteString(const Ident, Value: string);
@@ -420,15 +512,31 @@ begin
   WriteString(CurrentSection, Ident, Value);
 end;
 
+procedure TJppMemIniFile.WriteString(Cmp: TComponent; const Value: string);
+begin
+  WriteString(CurrentSection, Cmp, Value);
+end;
+
 function TJppMemIniFile.ReadString(const Section, Ident, Default: string): string;
 begin
   Result := FIni.ReadString(Section, Ident, Default);
+end;
+
+function TJppMemIniFile.ReadString(const Section: string; Cmp: TComponent; const Default: string): string;
+begin
+  Result := ReadString(Section, Cmp.Name, Default);
 end;
 
 function TJppMemIniFile.ReadString(const Ident, Default: string): string;
 begin
   Result := ReadString(CurrentSection, Ident, Default);
 end;
+
+function TJppMemIniFile.ReadString(Cmp: TComponent; const Default: string): string;
+begin
+  Result := ReadString(CurrentSection, Cmp.Name, Default);
+end;
+
   {$endregion String}
 
 
@@ -461,9 +569,19 @@ begin
   FIni.WriteInteger(Section, Ident, Value);
 end;
 
+procedure TJppMemIniFile.WriteInteger(const Section: string; Cmp: TComponent; const Value: integer);
+begin
+  WriteInteger(Section, Cmp.Name, Value);
+end;
+
 procedure TJppMemIniFile.WriteInteger(const Ident: string; const Value: integer);
 begin
   WriteInteger(CurrentSection, Ident, Value);
+end;
+
+procedure TJppMemIniFile.WriteInteger(Cmp: TComponent; const Value: integer);
+begin
+  WriteInteger(CurrentSection, Cmp.Name, Value);
 end;
 
 function TJppMemIniFile.ReadInteger(const Section, Ident: string; const Default: integer): integer;
@@ -471,9 +589,19 @@ begin
   Result := FIni.ReadInteger(Section, Ident, Default);
 end;
 
+function TJppMemIniFile.ReadInteger(const Section: string; Cmp: TComponent; const Default: integer): integer;
+begin
+  Result := ReadInteger(Section, Cmp.Name, Default);
+end;
+
 function TJppMemIniFile.ReadInteger(const Ident: string; const Default: integer): integer;
 begin
   Result := ReadInteger(CurrentSection, Ident, Default);
+end;
+
+function TJppMemIniFile.ReadInteger(Cmp: TComponent; const Default: integer): integer;
+begin
+  Result := ReadInteger(CurrentSection, Cmp.Name, Default);
 end;
   {$endregion Integer}
 
@@ -644,7 +772,8 @@ function TJppMemIniFile.ReadIntegerInRange(const Ident: string; const Default, M
 begin
   Result := ReadIntegerInRange(CurrentSection, Ident, Default, Min, Max);
 end;
-  {$endregion ReadIntegerInRange}
+
+{$endregion ReadIntegerInRange}
 
 
   {$region '   FontStyles   '}
@@ -675,7 +804,8 @@ end;
 
 
   {$region '   Read / Write Strings   '}
-procedure TJppMemIniFile.WriteStrings(const Section: string; Items: TStrings {$IFDEF DCC}; Compress: Boolean{$ENDIF});
+
+procedure TJppMemIniFile.WriteStrings(const Section: string; Items: TStrings; MaxItemsCount: integer = -1 {$IFDEF DCC}; Compress: Boolean = False{$ENDIF});
 var
   i: integer;
   {$IFDEF DCC}
@@ -691,8 +821,11 @@ begin
   {$IFDEF DCC}if not Compress then {$ENDIF}
   begin
     for i := 0 to Items.Count - 1 do
+    begin
       WriteBoundString(Section, 'Line_' + PadLeft(IntToStr(i + 1), 3, '0'), Items[i]);
+      if (i + 1) >= MaxItemsCount then Break;
       //FIni.WriteString(Section, 'Line_' + PadLeft(IntToStr(i + 1), 3, '0'), Items[i]);
+    end;
   end
 
   {$IFDEF DCC}
@@ -843,9 +976,19 @@ begin
   FIni.WriteString(Section, Ident, FLeftStringBound + Value + FRightStringBound);
 end;
 
+procedure TJppMemIniFile.WriteBoundString(const Section: string; Cmp: TComponent; const Value: string);
+begin
+  WriteBoundString(Section, Cmp.Name, Value);
+end;
+
 procedure TJppMemIniFile.WriteBoundString(const Ident, Value: string);
 begin
   WriteBoundString(CurrentSection, Ident, Value);
+end;
+
+procedure TJppMemIniFile.WriteBoundString(Cmp: TComponent; const Value: string);
+begin
+  WriteBoundString(CurrentSection, Cmp.Name, Value);
 end;
 
 function TJppMemIniFile.ReadBoundString(const Section, Ident, Default: string): string;
@@ -853,9 +996,19 @@ begin
   Result := TrimBounds(FIni.ReadString(Section, Ident, Default), FLeftStringBound, FRightStringBound);
 end;
 
+function TJppMemIniFile.ReadBoundString(const Section: string; Cmp: TComponent; const Default: string): string;
+begin
+  Result := ReadBoundString(Section, Cmp.Name, Default);
+end;
+
 function TJppMemIniFile.ReadBoundString(const Ident, Default: string): string;
 begin
   Result := ReadBoundString(CurrentSection, Ident, Default);
+end;
+
+function TJppMemIniFile.ReadBoundString(Cmp: TComponent; const Default: string): string;
+begin
+  Result := ReadBoundString(CurrentSection, Cmp.Name, Default);
 end;
   {$endregion BoundString}
 
@@ -931,6 +1084,53 @@ begin
   WriteDotFloat(CurrentSection, Ident, Value);
 end;
   {$endregion DotFloat}
+
+
+  {$region '   CheckBox   '}
+procedure TJppMemIniFile.WriteCheckBox(const Section: string; CheckBox: TCheckBox);
+begin
+  WriteBool(Section, CheckBox.Name, CheckBox.Checked);
+end;
+
+procedure TJppMemIniFile.WriteCheckBox(CheckBox: TCheckBox);
+begin
+  WriteCheckBox(CurrentSection, CheckBox);
+end;
+
+procedure TJppMemIniFile.ReadCheckBox(const Section: string; CheckBox: TCheckBox);
+begin
+  CheckBox.Checked := ReadBool(Section, CheckBox.Name, CheckBox.Checked);
+end;
+
+procedure TJppMemIniFile.ReadCheckBox(CheckBox: TCheckBox);
+begin
+  ReadCheckBox(CurrentSection, CheckBox);
+end;
+  {$endregion CheckBox}
+
+
+  {$region '   RadioButton   '}
+procedure TJppMemIniFile.WriteRadioButton(const Section: string; RadioButton: TRadioButton);
+begin
+  WriteBool(Section, RadioButton.Name, RadioButton.Checked);
+end;
+
+procedure TJppMemIniFile.WriteRadioButton(RadioButton: TRadioButton);
+begin
+  WriteRadioButton(CurrentSection, RadioButton);
+end;
+
+procedure TJppMemIniFile.ReadRadioButton(const Section: string; RadioButton: TRadioButton);
+begin
+  RadioButton.Checked := ReadBool(Section, RadioButton.Name, RadioButton.Checked);
+end;
+
+procedure TJppMemIniFile.ReadRadioButton(RadioButton: TRadioButton);
+begin
+  ReadRadioButton(CurrentSection, RadioButton);
+end;
+  {$endregion RadioButton}
+
 
 
 
