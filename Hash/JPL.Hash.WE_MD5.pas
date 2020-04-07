@@ -7,7 +7,7 @@ uses
   JPL.Math, JPL.TimeLogger,
   JPL.Hash.Common,
 
-  //WE
+  //WE: https://github.com/jackdp/www.wolfgang-ehrhardt.de
   Hash, Mem_util, MD5
   ;
 
@@ -29,7 +29,6 @@ end;
 
 function WeGetStreamHash_Md5(AStream: TStream; var HashResult: THashResultRec; StartPos: Int64 = 0; HashEnumProc: THashEnumProc = nil): Boolean;
 var
-  //Crc: integer;
   Context: THashContext;
   Digest: TMD5Digest;
   xRead, xPercent: integer;
@@ -43,6 +42,7 @@ begin
   try
     Logger.StartLog;
     ClearHashResultRec(HashResult);
+    HashResult.HashType := htMd5;
     MD5Init(Context);
 
     xTotalRead := StartPos;
@@ -70,14 +70,12 @@ begin
 
     MD5Final(Context, Digest);
 
-    //HashResult.StrValueUpper := IntToHex(Crc, HASH_LEN_CRC24);
     HashResult.StrValueUpper := UpperCase(string(HexString(Digest)));
     HashResult.StrValueLower := LowerCase(HashResult.StrValueUpper);
-//    HashResult.IntValue := Crc;
-//    HashResult.Int64Value := Crc;
     Logger.EndLog;
     HashResult.ElapsedTimeMs := Logger.ElapsedTimeMs;
     HashResult.SpeedMBperSec := GetSpeedValue_MB_per_sec(HashResult.StreamSize, HashResult.ElapsedTimeMs);
+    HashResult.ValidHash := True;
 
     Result := True;
   finally

@@ -7,7 +7,7 @@ uses
   JPL.Math, JPL.TimeLogger,
   JPL.Hash.Common,
 
-  //WE
+  //WE: https://github.com/jackdp/www.wolfgang-ehrhardt.de
   Hash, Mem_util, Adler32
   ;
 
@@ -36,6 +36,7 @@ begin
   try
     Logger.StartLog;
     ClearHashResultRec(HashResult);
+    HashResult.HashType := htAdler32;
     Adler32Init(Crc);
 
     xTotalRead := StartPos;
@@ -63,6 +64,7 @@ begin
     Logger.EndLog;
     HashResult.ElapsedTimeMs := Logger.ElapsedTimeMs;
     HashResult.SpeedMBperSec := GetSpeedValue_MB_per_sec(HashResult.StreamSize, HashResult.ElapsedTimeMs);
+    HashResult.ValidHash := True;
 
     Result := True;
   finally

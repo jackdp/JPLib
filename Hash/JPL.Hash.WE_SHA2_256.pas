@@ -7,7 +7,7 @@ uses
   JPL.Math, JPL.TimeLogger,
   JPL.Hash.Common,
 
-  //WE
+  //WE: https://github.com/jackdp/www.wolfgang-ehrhardt.de
   Hash, Mem_util, sha256
   ;
 
@@ -29,7 +29,6 @@ end;
 
 function WeGetStreamHash_SHA2_256(AStream: TStream; var HashResult: THashResultRec; StartPos: Int64 = 0; HashEnumProc: THashEnumProc = nil): Boolean;
 var
-  //Crc: integer;
   Context: THashContext;
   Digest: TSHA256Digest;
   xRead, xPercent: integer;
@@ -43,6 +42,7 @@ begin
   try
     Logger.StartLog;
     ClearHashResultRec(HashResult);
+    HashResult.HashType := htSha2_256;
     SHA256Init(Context);
 
     xTotalRead := StartPos;
@@ -75,6 +75,7 @@ begin
     Logger.EndLog;
     HashResult.ElapsedTimeMs := Logger.ElapsedTimeMs;
     HashResult.SpeedMBperSec := GetSpeedValue_MB_per_sec(HashResult.StreamSize, HashResult.ElapsedTimeMs);
+    HashResult.ValidHash := True;
 
     Result := True;
   finally
