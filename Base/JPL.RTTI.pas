@@ -54,8 +54,15 @@ begin
       begin
         if not RProperty.IsWritable then Exit;
         Kind := RProperty.GetValue(Obj).Kind;
-        if Kind <> tkUString then Exit;
-        RProperty.SetValue(Obj, Text);
+
+//        if (Kind <> tkUString) and (Kind <> tkWString) then Exit;
+//        RProperty.SetValue(Obj, Text);
+
+        // http://docwiki.embarcadero.com/Libraries/Rio/en/System.TypInfo.TTypeKinds
+        if (Kind = tkUString) or (Kind = tkString) or (Kind = tkLString) then RProperty.SetValue(Obj, Text)
+        else if Kind = tkWString then RProperty.SetValue(Obj, WideString(Text))
+        else Exit;
+
         Result := True;
       end;
     end;
