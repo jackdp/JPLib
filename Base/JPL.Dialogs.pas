@@ -51,6 +51,8 @@ procedure MsgBoolTF(const b: Boolean);
 
 
 implementation
+uses
+  JPL.Strings;
 
 
 procedure MsgBool(const b: Boolean; TrueStr: string = 'True'; FalseStr: string = 'False');
@@ -126,7 +128,24 @@ function ShowWinStr(const MemoText: string; Caption: string = ''; Width: integer
 var
   Form: TForm;
   Memo: TMemo;
+  Arr: {$IFDEF FPC}specialize{$ENDIF} TArray<string>;
+  s: string;
+  i: integer;
 begin
+  if Pos('|', MemoFontName) > 0 then
+  begin
+    SplitStrToArray(MemoFontName, Arr, '|');
+    for i := 0 to High(Arr) do
+    begin
+      s := Arr[i];
+      if Screen.Fonts.IndexOf(s) > 0 then
+      begin
+        MemoFontName := s;
+        Break;
+      end;
+    end;
+  end;
+
   Form := TForm.Create(nil);
   Memo := TMemo.Create(Form);
   Memo.ScrollBars := ssBoth;
