@@ -99,6 +99,7 @@ type
     function ac(Component: TComponent): TLangComponentItem; // As above, but shorter name
 
     function AddLabel(const ALabel: TCustomLabel; bCaption: Boolean = True; bHint: Boolean = False): TLangComponentItem;
+    function AddStaticText(const StaticText: TStaticText; bCaption: Boolean = True; bHint: Boolean = False): TLangComponentItem;
     function AddAction(const Action: TCustomAction; bCaption: Boolean = True; bHint: Boolean = True): TLangComponentItem;
     function AddCheckBox(const CheckBox: TCheckBox; bCaption: Boolean = True; bHint: Boolean = True): TLangComponentItem;
     function AddRadioButton(const RadioButton: TRadioButton; bCaption: Boolean = True; bHint: Boolean = True): TLangComponentItem;
@@ -369,6 +370,13 @@ begin
   if bHint then Result.AddProperty('Hint', ALabel.Hint);
 end;
 
+function TLangSection.AddStaticText(const StaticText: TStaticText; bCaption: Boolean = True; bHint: Boolean = False): TLangComponentItem;
+begin
+  Result := AddComponent(StaticText);
+  if bCaption then Result.AddProperty('Caption', StaticText.Caption);
+  if bHint then Result.AddProperty('Hint', StaticText.Hint);
+end;
+
 function TLangSection.AddLabeledEdit(const LabeledEdit: TCustomLabeledEdit; bLabelCaption, bEditText: Boolean): TLangComponentItem;
 begin
   Result := AddComponent(LabeledEdit);
@@ -404,6 +412,8 @@ begin
   FLangComponentItems.AddOrSetValue(ComponentName, Item);
   Result := Item;
 end;
+
+
 
 procedure TLangSection.AddString(const KeyName, StrValue: string);
 begin
