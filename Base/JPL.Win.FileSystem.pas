@@ -192,8 +192,8 @@ function CreateEmptyFile(const fName: string): Boolean;
 //function FileSizeInt2(const FileName: string): int64;
 //function FileSizeInt3(const FileName: string): int64;
 //function FileSizeStr(FileName: string): string;
-function GetFileSizeString(FileSize: Int64): string;
-function GetFileSizeString64(FileSize: Int64): string;
+//function GetFileSizeString(FileSize: Int64): string;
+//function GetFileSizeString64(FileSize: Int64): string;
 //function DelFile(const FileName: string): Boolean;
 function GetFileVersionString(FileName, VerStr: string): string;
 function CopyFile(const SrcFile, DestFile: string): Boolean;
@@ -496,6 +496,7 @@ end;
 
 {$region ' --------------- File SIZE procs ----------------- '}
 
+
 //function GetFilesSize(Dir: string; xSubdirs: integer = 50; StatusProc: TFillFileListStatusProc = nil): int64;
 //var
 //  sl: TStringList;
@@ -520,6 +521,8 @@ end;
 //  Result := xSize;
 //
 //end;
+
+// FileSize routines moved to JPL.Files
 
 //function DSiFileSize(const fileName: string): int64;
 //var
@@ -633,47 +636,51 @@ end; }
 //  Result := GetFileSizeString(FileSizeInt(FileName));
 //end;
 
-function GetFileSizeString(FileSize: Int64): string;
-var
-  fs: extended;
-  s: ShortString;
-  bNegative: Boolean;
-begin
-  bNegative := FileSize < 0;
-  if bNegative then FileSize := -FileSize;
-  Result := IntToStr(FileSize);
-  fs := FileSize;
-  if fs < 1024 then
-  begin
-    str(
-    fs: 2: 0, s);
-    Result := string(s) + ' bytes';
-  end
-  else if (fs >= 1024) and (fs < (1024 * 1024)) then
-  begin
-    fs := fs / 1024;
-    str(fs: 2: 2, s);
-    Result := string(s) + ' KB';
-  end
-  else if (fs >= 1024 * 1024) and (fs < (1024 * 1024 * 1024)) then
-  begin
-    fs := (fs / 1024) / 1024;
-    str(fs: 2: 2, s);
-    Result := string(s) + ' MB';
-  end
-  else
-  begin
-    fs := (fs / 1024) / 1024 / 1024;
-    str(fs: 2: 2, s);
-    Result := string(s) + ' GB';
-  end;
-  if bNegative then Result := '-' + Result;
-end;
 
-function GetFileSizeString64(FileSize: Int64): string;
-begin
-  Result := GetFileSizeString(FileSize);
-end;
+
+// MOVED to JPL.Strings
+
+//function GetFileSizeString(FileSize: Int64): string;
+//var
+//  fs: extended;
+//  s: ShortString;
+//  bNegative: Boolean;
+//begin
+//  bNegative := FileSize < 0;
+//  if bNegative then FileSize := -FileSize;
+//  Result := IntToStr(FileSize);
+//  fs := FileSize;
+//  if fs < 1024 then
+//  begin
+//    str(
+//    fs: 2: 0, s);
+//    Result := string(s) + ' bytes';
+//  end
+//  else if (fs >= 1024) and (fs < (1024 * 1024)) then
+//  begin
+//    fs := fs / 1024;
+//    str(fs: 2: 2, s);
+//    Result := string(s) + ' KB';
+//  end
+//  else if (fs >= 1024 * 1024) and (fs < (1024 * 1024 * 1024)) then
+//  begin
+//    fs := (fs / 1024) / 1024;
+//    str(fs: 2: 2, s);
+//    Result := string(s) + ' MB';
+//  end
+//  else
+//  begin
+//    fs := (fs / 1024) / 1024 / 1024;
+//    str(fs: 2: 2, s);
+//    Result := string(s) + ' GB';
+//  end;
+//  if bNegative then Result := '-' + Result;
+//end;
+//
+//function GetFileSizeString64(FileSize: Int64): string;
+//begin
+//  Result := GetFileSizeString(FileSize);
+//end;
 {$endregion File SIZE procs}
 
 function DirectoryExists(const Name: string): Boolean;
