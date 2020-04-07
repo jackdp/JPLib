@@ -3,10 +3,8 @@ unit JPL.Hash.Common;
 interface
 
 uses
-  {$IFDEF DCC}Windows,{$ENDIF}
+  {$IFDEF MSWINDOWS}Windows,{$ENDIF}
   SysUtils, Classes, JPL.Conversion
-  //JP_Math, JP.Hash.CRC32,
-  //DCPbase64, DCPmd4, DCPmd5, DCPcrypt2, DCPsha1, DCPtiger, DCPhaval, DCPripemd160, DCPripemd128, DCPsha512, DCPsha256
   ;
 
 
@@ -31,6 +29,7 @@ const
   DIGEST_LEN_CRC64 = 8;      //  32 bits / 8 bytes
   DIGEST_LEN_ADLER32 = 4;    //  16 bits / 4 bytes
 
+  DIGEST_LEN_MD2 = DIGEST_LEN_BITS_128;
   DIGEST_LEN_MD4 = DIGEST_LEN_BITS_128;
   DIGEST_LEN_MD5 = DIGEST_LEN_BITS_128;
   DIGEST_LEN_RIPEMD = DIGEST_LEN_BITS_128;
@@ -85,6 +84,7 @@ const
   HASH_LEN_CRC64 = DIGEST_LEN_CRC64 * 2;
   HASH_LEN_ADLER32 = DIGEST_LEN_ADLER32 * 2;
 
+  HASH_LEN_MD2 = DIGEST_LEN_MD2 * 2;
   HASH_LEN_MD4 = DIGEST_LEN_MD4 * 2;
   HASH_LEN_MD5 = DIGEST_LEN_MD5 * 2;
   HASH_LEN_RIPEMD = DIGEST_LEN_RIPEMD * 2;
@@ -141,12 +141,11 @@ const
 type
 
   THashEnumProc = function(PercentComplete: integer; BufNo: integer): Boolean;
-  //TReadFileEnumProc = function(PercentComplete: Single; Buffer: array of Byte; ReadBytes: integer; BufNo: integer): Boolean;
 
   TJPHashType = (
     htNone,
     htCrc16, htCrc24, htCrc32, htCrc64, htAdler32,
-    htMd4, htMd5, htRipeMD, htRipeMD128, htRipeMD160, htRipeMD256, htRipeMD320,
+    htMd2, htMd4, htMd5, htRipeMD, htRipeMD128, htRipeMD160, htRipeMD256, htRipeMD320,
     htSha0, htSha1,
     htSha2_224, htSha2_256, htSha2_384, htSha2_512, htSha2_512_224, htSha2_512_256,
     htSha3_224, htSha3_256, htSha3_384, htSha3_512,
@@ -165,6 +164,8 @@ type
   );
 
   THashResultRec = record
+    ValidHash: Boolean;
+    HashType: TJPHashType;
     StrValueUpper: string;
     StrValueLower: string;
     IntValue: integer;
@@ -172,6 +173,7 @@ type
     StreamSize: Int64;
     ElapsedTimeMs: DWORD;
     SpeedMBperSec: Single;
+    procedure Clear;
   end;
 
   THashCheckRec = record
@@ -194,7 +196,7 @@ function GetHashLen(HashType: TJPHashType; ErrorResult: integer = -1): integer;
 
 // jeœli wszystko OK, CheckHash zwraca True, w przeciwnym razie zwraca False i dodatkowe informacje w HashCheckRec
 function CheckHash(Hash: string; HashType: TJPHashType; var HashCheckRec: THashCheckRec): Boolean;
-function HashTypeToStr(const HashType: TJPHashType): string;
+function HashTypeToStr(const HashType: TJPHashType; StrUnknownHash: string = ''): string;
 procedure ClearHashResultRec(var hrr: THashResultRec);
 
 function IsChecksum(const HashType: TJPHashType): Boolean;
@@ -203,17 +205,16 @@ function IsSha2Hash(const HashType: TJPHashType): Boolean;
 function IsSha3Hash(const HashType: TJPHashType): Boolean;
 
 {$IFDEF DCC} function JPFormat(const Msg: string; const Args: array of const): string;  {$ENDIF}
-function HashReverseBytes(A: longint): longint; {-rotate byte of longint}
+function HashReverseBytes(A: LongInt): LongInt; {-rotate byte of LongInt}
 function GetSpeedValue_MB_per_sec(const FileSize: Int64; const ElapsedTimeMs: DWORD; ErrorValue: Double = 0): Double;
 
-//function ProcessStream(Stream: TStream; EnumProc: TReadFileEnumProc; BufferSize: integer = HASH_DEF_BUF_SIZE; StartPos: Int64 = 0; EndPos: integer = -1): Boolean;
 
 
 implementation
 
 
 
-function HashReverseBytes(A: longint): longint; {-rotate byte of longint}
+function HashReverseBytes(A: LongInt): LongInt; {-rotate byte of LongInt}
 begin
   Result := (A shr 24) or ((A shr 8) and $FF00) or ((A shl 8) and $FF0000) or (A shl 24);
 end;
@@ -270,13 +271,7 @@ end;
 
 procedure ClearHashResultRec(var hrr: THashResultRec);
 begin
-  hrr.StrValueUpper := '';
-  hrr.StrValueLower := '';
-  hrr.IntValue := 0;
-  hrr.Int64Value := 0;
-  hrr.StreamSize := 0;
-  hrr.ElapsedTimeMs := 0;
-  hrr.SpeedMBperSec := 0;
+  hrr.Clear;
 end;
 
 function IsChecksum(const HashType: TJPHashType): Boolean;
@@ -291,7 +286,7 @@ end;
 function IsMDHash(const HashType: TJPHashType): Boolean;
 begin
   case HashType of
-    htMd4, htMd5, htRipeMD, htRipeMD128, htRipeMD160, htRipeMD256, htRipeMD320: Result := True;
+    htMd2, htMd4, htMd5, htRipeMD, htRipeMD128, htRipeMD160, htRipeMD256, htRipeMD320: Result := True;
   else
     Result := False;
   end;
@@ -315,7 +310,7 @@ begin
   end;
 end;
 
-function HashTypeToStr(const HashType: TJPHashType): string;
+function HashTypeToStr(const HashType: TJPHashType; StrUnknownHash: string = ''): string;
 begin
   case HashType of
     htCrc16: Result := 'CRC16';
@@ -324,6 +319,7 @@ begin
     htCrc64: Result := 'CRC64';
     htAdler32: Result := 'Adler32';
 
+    htMd2: Result := 'MD2';
     htMd4: Result := 'MD4';
     htMd5: Result := 'MD5';
     htRipeMD: Result := 'RipeMD';
@@ -370,7 +366,7 @@ begin
     htHaval: Result := 'HAVAL';
 
   else
-    Result := 'unknown';
+    Result := StrUnknownHash;
   end;
 end;
 
@@ -383,6 +379,7 @@ begin
     htCrc64: Result := HASH_LEN_CRC64;
     htAdler32: Result := HASH_LEN_ADLER32;
 
+    htMd2: Result := HASH_LEN_MD2;
     htMd4: Result := HASH_LEN_MD4;
     htMd5: Result := HASH_LEN_MD5;
     htRipeMD: Result := HASH_LEN_RIPEMD;
@@ -478,5 +475,20 @@ begin
   Result := s;
 end;
 
+
+{ THashResultRec }
+
+procedure THashResultRec.Clear;
+begin
+  ValidHash := False;
+  HashType := htNone;
+  StrValueUpper := '';
+  StrValueLower := '';
+  IntValue := 0;
+  Int64Value := 0;
+  StreamSize := 0;
+  ElapsedTimeMs := 0;
+  SpeedMBperSec := 0;
+end;
 
 end.
