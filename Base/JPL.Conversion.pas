@@ -1,23 +1,24 @@
-unit JPL.Conversion;
+Ôªøunit JPL.Conversion;
 
 {
   Jacek Pazera
   http://www.pazera-software.com
 
-  To jest mÛj stary modu≥ z roku 2000 dla Borland Pascala 7.0
+  To jest m√≥j stary modu≈Ç z roku 2000 dla Borland Pascala 7.0
   W kolejnych latach rozbudowywany i dostosowywany do nowszych wersji Delphi i FPC.
  }
 
 
-{$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
+{$IFDEF FPC}
+  {$I JppFPC.Inc}
+  {$mode objfpc}{$H+}
+{$ENDIF}
 
 interface
 
 uses
   {$IFDEF DCC} Windows, {$ENDIF}
   SysUtils,
-  //Classes,
-  //Graphics,
   JPL.Strings;
 
 
@@ -32,12 +33,6 @@ function StrToBool(s: string): Boolean;
 function BoolToInt(const B: Boolean): integer;
 function BoolToByte(const B: Boolean): Byte;
 
-function IsoToWin(const Text: string): string;
-function IsoToWin2(const Text: string): string;
-function WinToIso(const Text: string): string;
-function WinToIso1(s: string): string;
-//function ConvertFileIsoToWin(const FileName: string): Boolean;
-
 function IntToHexEx(const Value: integer; HexDigits: integer = 2; HexPrefix: string = '$'; bLowerCase: Boolean = True; BytesSeparator: string = '';
   TrimLeadingZeros: Boolean = False): string;
 function Int64ToHexEx(const Value: Int64; HexDigits: integer = 2; HexPrefix: string = '$'; bLowerCase: Boolean = True; BytesSeparator: string = '';
@@ -47,17 +42,31 @@ function UInt64ToHexEx(const Value: UInt64; HexDigits: integer = 2; HexPrefix: s
 
 function HexToInt(Hex: string; ErrorVal: integer = -1): integer;
 function HexToInt64(Hex: string; ErrorVal: integer = -1): int64;
+function HexToUInt(Hex: string): UInt32;
+function HexToUInt64(Hex: string): UInt64;
+function HexToBin(Hex: string): string;
+
 function PowerInt(Base, Exponent: integer): integer;
 function PowerInt64(Base, Exponent: Int64): Int64;
+function PowerUInt(const Base, Exponent: UInt32): UInt32;
+function PowerUInt64(const Base, Exponent: UInt32): UInt64;
+
 function BinToInt(Bin: string): integer;
 function TryBinToInt(BinStr: string; var xInt: Int64): Boolean;
 function BinToInt64(Bin: string): int64;
+function BinToUInt(Bin: string): UInt32;
+function BinToUInt64(Bin: string): UInt64;
+function BinToHex(Bin: string): string;
+
 function IntToBin(Int: int64): string;
 function IntToBinEx(Int: int64; Digits: byte): string;
-function HexToBin(Hex: string): string;
-function BinToHex(Bin: string): string;
+
 function StrToDec(const s: string): integer;
-function StrToDec64(const s: string): int64;
+function StrToDec64(const s: string): Int64;
+function StrToUInt(const NumStr: string): UInt32;
+function TryStrToUInt(const NumStr: string; out xResult: UInt32): Boolean;
+function StrToUInt64(const NumStr: string): UInt64;
+function TryStrToUInt64(const NumStr: string; out xResult: UInt64): Boolean;
 
 function ByteToHex(B: byte): string;
 
@@ -66,19 +75,28 @@ function ftosEx(xr: Extended; Format: string = '0.00'; DecSeparator: string = '.
 function stof(s: string; ErrorValue: Real = -1): Real;
 function TryStoF(s: string; var x: Single): Boolean; overload;
 function TryStoF(s: string; var x: Double): Boolean; overload;
-//function TryStoF(s: string; var x: Extended): Boolean; overload;
 
-function itos(x: integer): string;
-function i64tos(x: int64): string;
-function stoi(s: string): integer;
-function stoi64(s: string): int64;
+{$IFDEF FPC}
+
+{$IFNDEF HAS_UINTTOSTR}
+function UIntToStr(Value: QWord): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+function UIntToStr(Value: Cardinal): string; {$ifdef SYSUTILSINLINE}inline;{$ENDIF}
+{$ENDIF}
+
+{$ENDIF}
+
+function itos(const x: integer): string; overload;
+function itos(const x: Int64): string; overload;
+function itos(const x: Cardinal): string; overload;
+function itos(const x: UInt64): string; overload;
+
+function i64tos(const x: int64): string;
+function stoi(const s: string): integer;
+function stoi64(const s: string): int64;
 
 function IsValidInteger(const s: string): Boolean;
 function IsValidInteger64(const s: string): Boolean;
 function IsValidFloat(const s: string): Boolean;
-
-//function StringToColorEx(s: string; DefaultColor: TColor = clBlack): TColor;
-
 
 function MSecToTimeStr(xmsec: int64; bShowMSec: Boolean = True): string;
 
@@ -153,7 +171,6 @@ begin
   bt := Byte(x);
   Result := True;
 end;
-
 
 function GetFloatInRange(const Value, Min, Max: Double): Double;
 begin
@@ -230,15 +247,11 @@ begin
   Result := True;
 
   for i := 1 to Length(FloatStr) do
-    if not (
-      CharInSet(FloatStr[i], ['0'..'9']) or (FloatStr[i] = '-') or (FloatStr[i] = 'E') or (FloatStr[i] = '.') or (FloatStr[i] = ',')
-    ) then
+    if not (CharInSet(FloatStr[i], ['0'..'9']) or (FloatStr[i] = '-') or (FloatStr[i] = 'E') or (FloatStr[i] = '.') or (FloatStr[i] = ',')) then
     begin
       Result := False;
       Break;
     end;
-
-
 end;
 
 function IsValidIntStr(IntStr: string; IgnoreSpaces: Boolean = False): Boolean;
@@ -266,7 +279,6 @@ begin
     end;
 
 end;
-
 
 function IsValidHexStr(HexStr: string; IgnoreSpaces: Boolean = False): Boolean;
 var
@@ -299,22 +311,51 @@ begin
     end;
 end;
 
-function itos(x: integer): string;
+{$IFDEF FPC}
+{$IFNDEF HAS_UINTTOSTR}
+function UIntToStr(Value: QWord): string;
+begin
+  Result := IntTostr(Value);
+end;
+
+function UIntToStr(Value: Cardinal): string;
+begin
+  System.Str(Value, Result);
+end;
+{$ENDIF}
+{$ENDIF}
+
+function itos(const x: integer): string;
 begin
   Result := IntToStr(x);
 end;
 
-function i64tos(x: int64): string;
+function itos(const x: Int64): string;
 begin
   Result := IntToStr(x);
 end;
 
-function stoi(s: string): integer;
+function itos(const x: Cardinal): string;
+begin
+  Result := UIntToStr(x);
+end;
+
+function itos(const x: UInt64): string;
+begin
+  Result := UIntToStr(x);
+end;
+
+function i64tos(const x: int64): string;
+begin
+  Result := IntToStr(x);
+end;
+
+function stoi(const s: string): integer;
 begin
   Result := StrToInt(s);
 end;
 
-function stoi64(s: string): int64;
+function stoi64(const s: string): int64;
 begin
   Result := StrToInt64(s);
 end;
@@ -347,57 +388,6 @@ begin
   Result := sr;
 end;
 
-
-//function StringToColorEx(s: string; DefaultColor: TColor = clBlack): TColor;
-//var
-//  xp: integer;
-//  R, G, B: Byte;
-//  sc: string;
-//begin
-//  Result := DefaultColor;
-//
-//  s := Trim(s);
-//  s := StringReplace(s, ' ', '', [rfReplaceAll]);
-//  s := LowerCase(s);
-//
-//  if Copy(s, 1, 4) = 'rgb(' then
-//  begin
-//    s := StringReplace(s, ')', '', [rfReplaceAll]);
-//    s := Copy(s, 5, Length(s));
-//    xp := Pos(',', s);
-//    if xp <= 0 then Exit;
-//    sc := Copy(s, 1, xp - 1);
-//    if not IsValidInteger(sc) then Exit;
-//    R := StrToInt(sc);
-//    s := Copy(s, xp + 1, Length(s));
-//    xp := Pos(',', s);
-//    if xp <= 0 then Exit;
-//    sc := Copy(s, 1, xp - 1);
-//    if not IsValidInteger(sc) then Exit;
-//    G := StrToInt(sc);
-//    s := Copy(s, xp + 1, Length(s));
-//    if not IsValidInteger(s) then Exit;
-//    B := StrToInt(s);
-//    Result := RGB(R, G, B);
-//
-//    Exit;
-//  end;
-//
-//  if IsValidInteger(s) then
-//  begin
-//    Result := StringToColor(s);
-//    Exit;
-//  end;
-//
-//  if LowerCase(Copy(s, 1, 2)) <> 'cl' then s := 'cl' + s;
-//  try
-//    Result := StringToColor(s);
-//  except
-//  end;
-//end;
-
-
-
 function IsValidInteger(const s: string): Boolean;
 begin
   try
@@ -407,7 +397,6 @@ begin
     on EConvertError do Result := False;
   end;
 end;
-
 
 function IsValidInteger64(const s: string): Boolean;
 begin
@@ -419,34 +408,15 @@ begin
   end;
 end;
 
-
-
 function IsValidFloat(const s: string): Boolean;
-{var
-  e: extended;
-  code: integer;  }
 begin
   try
     StrToFloat(s);
     Result := True;
   except
-    on EConvertError do
-      Result := False;
+    on EConvertError do Result := False;
   end;
- { Val(s, e, code);
-  if code = 0 then
-    Result := True
-  else
-    Result := False;   }
 end;
-
-
-//function TryStoF(s: string; var x: Extended): Boolean; overload;
-//begin
-//  s := StringReplace(s, ',', FormatSettings.DecimalSeparator, [rfReplaceAll]);
-//  s := StringReplace(s, '.', FormatSettings.DecimalSeparator, [rfReplaceAll]);
-//  Result := TryStrToFloat(s, x);
-//end;
 
 function TryStoF(s: string; var x: Double): Boolean; overload;
 begin
@@ -498,7 +468,6 @@ begin
   Result := s;
 end;
 
-
 function ftosEx(xr: Extended; Format: string = '0.00'; DecSeparator: string = '.'; ThousandSeparator: string = ''): string;
 var
   xp, i, Len, k: integer;
@@ -524,8 +493,6 @@ begin
   Result := hex[B shr 4] + hex[B and 15];
 end;
 
-
-
 function BinToHex(Bin: string): string;
 var
   int: integer;
@@ -541,7 +508,6 @@ begin
   int := HexToInt(Hex);
   Result := IntToBin(int);
 end;
-
 
 function IntToBin(Int: int64): string;
 var
@@ -653,6 +619,54 @@ begin
   end;
 end;
 
+function BinToUInt(Bin: string): UInt32;
+var
+  LengthBin, deleted, i, x: integer;
+  arr: array of integer;
+begin
+  SetLength(arr, 0);
+  Result := 0;
+  if pos('1', Bin) > 0 then
+  begin
+    deleted := 0;
+    LengthBin := length(Bin);
+    repeat
+      x := pos('1', Bin);
+      deleted := deleted + x;
+      SetLength(arr, length(arr) + 1);
+      arr[length(arr) - 1] := LengthBin - deleted;
+      Bin := copy(Bin, x + 1, length(Bin));
+    until (pos('1', Bin) = 0);
+
+    for i := 0 to length(arr) - 1 do
+      Result := Result + PowerUInt(2, arr[i]);
+  end;
+end;
+
+function BinToUInt64(Bin: string): UInt64;
+var
+  LengthBin, deleted, i, x: integer;
+  arr: array of integer;
+begin
+  SetLength(arr, 0);
+  Result := 0;
+  if pos('1', Bin) > 0 then
+  begin
+    deleted := 0;
+    LengthBin := length(Bin);
+    repeat
+      x := pos('1', Bin);
+      deleted := deleted + x;
+      SetLength(arr, length(arr) + 1);
+      arr[length(arr) - 1] := LengthBin - deleted;
+      Bin := copy(Bin, x + 1, length(Bin));
+    until (pos('1', Bin) = 0);
+
+    for i := 0 to length(arr) - 1 do
+      Result := Result + PowerUInt64(2, arr[i]);
+  end;
+end;
+
 function PowerInt(Base, Exponent: integer): integer;
 var
   x, i: integer;
@@ -681,6 +695,38 @@ begin
   end;
 end;
 
+function PowerUInt(const Base, Exponent: UInt32): UInt32;
+var
+  i: integer;
+  x, xb: UInt32;
+begin
+  if Exponent = 0 then Result := 1
+  else if Exponent = 1 then Result := Base
+  else
+  begin
+    x := Base;
+    xb := Base;
+    for i := 1 to Exponent - 1 do xb := xb * x;
+    Result := xb;
+  end;
+end;
+
+function PowerUInt64(const Base, Exponent: UInt32): UInt64;
+var
+  i: integer;
+  x, xb: UInt64;
+begin
+  if Exponent = 0 then Result := 1
+  else if Exponent = 1 then Result := Base
+  else
+  begin
+    x := Base;
+    xb := Base;
+    for i := 1 to Exponent - 1 do xb := xb * x;
+    Result := xb;
+  end;
+end;
+
 
 function IntToHexEx(const Value: integer; HexDigits: integer = 2; HexPrefix: string = '$'; bLowerCase: Boolean = True; BytesSeparator: string = '';
   TrimLeadingZeros: Boolean = False): string;
@@ -700,7 +746,8 @@ begin
     end;
     if Odd(Length(s)) then s := '0' + s;
     if s = '' then s := '00';
-  end;
+  end
+  else if Odd(Length(s)) then s := '0' + s;
 
   if BytesSeparator <> '' then s := InsertNumSep(s, BytesSeparator, 2);
   s := HexPrefix + s;
@@ -725,7 +772,8 @@ begin
     end;
     if Odd(Length(s)) then s := '0' + s;
     if s = '' then s := '00';
-  end;
+  end
+  else if Odd(Length(s)) then s := '0' + s;
 
   if BytesSeparator <> '' then s := InsertNumSep(s, BytesSeparator, 2);
   s := HexPrefix + s;
@@ -762,15 +810,11 @@ function HexToInt(Hex: string; ErrorVal: integer): integer;
 var
   code, int: integer;
 begin
-  Hex := StringReplace(Hex, '0x', '$', []);
+  Hex := StringReplace(Hex, '0x', '$', [rfIgnoreCase]);
   if Hex[1] <> '$' then Hex := '$' + Hex;
-  val(Hex, int, code);
+  Val(Hex, int, code);
   if code = 0 then Result := int
   else Result := ErrorVal;
-{  else
-    raise Exception.Create('Internal Error.' + #10#13 +
-      'HexToInt(' + Hex + ')' + #10#13 +
-      'position: ' + IntToStr(code));    }
 end;
 {$hints on}
 
@@ -780,162 +824,107 @@ var
   code: integer;
   i64: int64;
 begin
+  Hex := StringReplace(Hex, '0x', '$', [rfIgnoreCase]);
   if Hex[1] <> '$' then Hex := '$' + Hex;
-  val(Hex, i64, code);
+  Val(Hex, i64, code);
   if code = 0 then Result := i64
   else Result := ErrorVal;
-{  else
-    raise Exception.Create('Internal Error.' + #10#13 +
-      'HexToInt64(' + Hex + ')' + #10#13 +
-      'position: ' + IntToStr(code));   }
 end;
 {$hints on}
 
+function HexToUInt(Hex: string): UInt32;
+var
+  code: integer;
+begin
+  Hex := StringReplace(Hex, '0x', '$', [rfIgnoreCase]);
+  if Hex[1] <> '$' then Hex := '$' + Hex;
+  Val(Hex, Result, code);
+  if code <> 0 then raise EConvertError.Create('HexToUInt: Cannot convert "' + Hex + '" to UInt32');
+end;
+
+function HexToUInt64(Hex: string): UInt64;
+var
+  code: integer;
+begin
+  Hex := StringReplace(Hex, '0x', '$', [rfIgnoreCase]);
+  if Hex[1] <> '$' then Hex := '$' + Hex;
+  Val(Hex, Result, code);
+  if code <> 0 then raise EConvertError.Create('HexToUInt64: Cannot convert "' + Hex + '" to UInt64');
+end;
 
 function StrToDec(const s: string): integer;
 var
   s2: string;
 begin
-  s2 := Trim(s);
-  if Copy(s2, 1, 1) = '$' then
-    Result := HexToInt(s2)
-  else if Copy(s2, 1, 1) = '%' then
-    Result := BinToInt(s2)
-  else if UpperCase(Copy(s, 1, 2)) = '0X' then
-    Result := HexToInt(Copy(s, 3, Length(s)))
-  else
-    Result := StrToInt(s2);
+  s2 := RemoveSpaces(s);
+  if Copy(s2, 1, 1) = '$' then Result := HexToInt(s2)
+  else if Copy(s2, 1, 1) = '%' then Result := BinToInt(s2)
+  else if UpperCase(Copy(s, 1, 2)) = '0X' then Result := HexToInt(Copy(s, 3, Length(s)))
+  else Result := StrToInt(s2);
 end;
 
-
-function StrToDec64(const s: string): int64;
+function StrToDec64(const s: string): Int64;
 var
   s2: string;
 begin
-  s2 := Trim(s);
-  if Copy(s2, 1, 1) = '$' then
-    Result := HexToInt(s2)
-  else if Copy(s2, 1, 1) = '%' then
-    Result := BinToInt64(s2)
-  else if UpperCase(Copy(s, 1, 2)) = '0X' then
-    Result := HexToInt64(Copy(s, 3, Length(s)))
-  else
-    Result := StrToInt64(s2);
+  s2 := RemoveSpaces(s);
+  if Copy(s2, 1, 1) = '$' then Result := HexToInt(s2)
+  else if Copy(s2, 1, 1) = '%' then Result := BinToInt64(s2)
+  else if UpperCase(Copy(s, 1, 2)) = '0X' then Result := HexToInt64(Copy(s, 3, Length(s)))
+  else Result := StrToInt64(s2);
 end;
 
-//
-//function ConvertFileIsoToWin(const FileName: string): Boolean;
-//var
-//  sl: TStringList;
-//begin
-//  if not FileExists(FileName) then
-//  begin
-//    Result := False;
-//    Exit;
-//  end;
-//
-//  Result := True;
-//  sl := TStringList.Create;
-//  try
-//    sl.LoadFromFile(FileName);
-//    sl.Text := IsoToWin(sl.Text);
-//    sl.SaveToFile(FileName);
-//  finally
-//    sl.Free;
-//  end;
-//end;
-
-
-
-function IsoToWin(const Text: string): string;
-{var
-  i: integer;
-  znak: Char;  }
-begin
-  Result := IsoToWin2(Text);
-{
-  for i := 1 to Length(Text) do
-  begin
-    case Text[i] of
-      '°': znak := '•';
-      '¶': znak := 'å';
-      '¨': znak := 'è';
-      '±': znak := 'π';
-      '∂': znak := 'ú';
-      'º': znak := 'ü';
-    else
-      znak := Text[i];
-    end;
-
-    Result := Result + znak;
-  end;
-}
-end;
-
-
-function IsoToWin2(const Text: string): string;
-begin
-  Result := Text;
-  Result := StringReplace(Result, '°', '•', [rfReplaceAll]);
-  Result := StringReplace(Result, '¶', 'å', [rfReplaceAll]);
-  Result := StringReplace(Result, '¨', 'è', [rfReplaceAll]);
-  Result := StringReplace(Result, '±', 'π', [rfReplaceAll]);
-  Result := StringReplace(Result, '∂', 'ú', [rfReplaceAll]);
-  Result := StringReplace(Result, 'º', 'ü', [rfReplaceAll]);
-end;
-
-
-function WinToIso(const Text: string): string;
+function StrToUInt(const NumStr: string): UInt32;
 var
-  i: integer;
-  znak: Char;
+  s2: string;
+  code: integer;
 begin
-  Result := '';
-  for i := 1 to Length(Text) do
+  s2 := RemoveSpaces(NumStr);
+  if Copy(s2, 1, 1) = '$' then Result := HexToUInt(s2)
+  else if Copy(s2, 1, 1) = '%' then Result := BinToUInt(s2)
+  else if UpperCase(Copy(s2, 1, 2)) = '0X' then Result := HexToUInt(s2)
+  else
   begin
-    case Text[i] of
-      '•': znak := '°';
-      'å': znak := '¶';
-      'è': znak := '¨';
-      'π': znak := '±';
-      'ú': znak := '∂';
-      'ü': znak := 'º';
-    else
-      znak := Text[i];
-    end;
-
-    Result := Result + znak;
+    Val(s2, Result, code);
+    if code <> 0 then raise EConvertError.Create('StrToUInt: Cannot convert "' + NumStr + '" to UInt');
   end;
 end;
 
-{$hints off}
-function WinToIso1(s: string): string;
+function TryStrToUInt(const NumStr: string; out xResult: UInt32): Boolean;
 begin
-  s := StringReplace(s, 'π', 'a', [rfReplaceAll]);
-  s := StringReplace(s, 'Ê', 'c', [rfReplaceAll]);
-  s := StringReplace(s, 'Í', 'e', [rfReplaceAll]);
-  s := StringReplace(s, '≥', 'l', [rfReplaceAll]);
-  s := StringReplace(s, 'Ò', 'n', [rfReplaceAll]);
-  s := StringReplace(s, 'ú', 's', [rfReplaceAll]);
-  s := StringReplace(s, 'ø', 'z', [rfReplaceAll]);
-  s := StringReplace(s, 'ü', 'z', [rfReplaceAll]);
-
-  s := StringReplace(s, '•', 'A', [rfReplaceAll]);
-  s := StringReplace(s, '∆', 'C', [rfReplaceAll]);
-  s := StringReplace(s, ' ', 'E', [rfReplaceAll]);
-  s := StringReplace(s, '£', 'L', [rfReplaceAll]);
-  s := StringReplace(s, '—', 'N', [rfReplaceAll]);
-  s := StringReplace(s, 'å', 'S', [rfReplaceAll]);
-  s := StringReplace(s, 'Ø', 'Z', [rfReplaceAll]);
-  s := StringReplace(s, 'è', 'Z', [rfReplaceAll]);
-
-  Result := s;
+  try
+    xResult := StrToUInt(NumStr);
+    Result := True;
+  except
+    Result := False;
+  end;
 end;
-{$hints on}
 
+function StrToUInt64(const NumStr: string): UInt64;
+var
+  s2: string;
+  code: integer;
+begin
+  s2 := RemoveSpaces(NumStr);
+  if Copy(s2, 1, 1) = '$' then Result := HexToUInt64(s2)
+  else if Copy(s2, 1, 1) = '%' then Result := BinToUInt64(s2)
+  else if UpperCase(Copy(s2, 1, 2)) = '0X' then Result := HexToUInt64(s2)
+  else
+  begin
+    Val(s2, Result, code);
+    if code <> 0 then raise EConvertError.Create('StrToUInt64: Cannot convert "' + NumStr + '" to UInt64');
+  end;
+end;
 
-
-
+function TryStrToUInt64(const NumStr: string; out xResult: UInt64): Boolean;
+begin
+  try
+    xResult := StrToUInt64(NumStr);
+    Result := True;
+  except
+    Result := False;
+  end;
+end;
 
 function BoolToStr(b: Boolean; TrueStr: string = 'True'; FalseStr: string = 'False'): string;
 begin
@@ -947,7 +936,6 @@ function BoolToStr10(const Value: Boolean): string;
 begin
   Result := BoolToStr(Value, '1', '0');
 end;
-
 
 function BoolToStrYesNo(const Value: Boolean): string;
 begin
@@ -978,8 +966,6 @@ begin
     (s = '1') or (s = 'TRUE') or (s = 'YES') or (s = 'TAK') or (s = 'PRAWDA') or
     (s = 'ON') or (s = 'ENABLED') or (s = 'T');
 end;
-
-
 {$hints on}
 
 function BoolToInt(const B: Boolean): integer;
