@@ -333,8 +333,8 @@ begin
           oi.ExtInfoOK := False;
           if FFileInfoMode = fimFull then
           begin
-            //oi.FileSize := FileSizeInt(sl[y]);
-            GetFileInfoRec(sl[y], fir, False);
+            //GetFileInfoRec(sl[y], fir);
+            fir.ReadFileInfo(sl[y]);
             oi.FileSize := fir.Size;
             oi.Dates.LastWrite := fir.LastWriteTime;
             oi.Dates.LastAccess := fir.LastAccessTime;
