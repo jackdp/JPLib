@@ -1,20 +1,21 @@
 ﻿unit JPL.RTTI;
 
-{$IFDEF FPC} {$mode delphi} {$I JppFPC.inc} {$ENDIF}
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
-{$IFDEF DCC}{$DEFINE HAS_RTTI}{$ENDIF}
+{$IFDEF DCC}
+  {$IFDEF DELPHI2009_OR_BELOW}
+  Unit for Delphi 2010 or newer!
+  {$ENDIF}
+  {$DEFINE HAS_RTTI}
+{$ENDIF}
 
 interface
 
 uses
-  {$IFDEF MSWINDOWS} Windows, {$ENDIF}
-  {$IFDEF DCC}
-  System.SysUtils, System.Classes,
-  System.Rtti, System.TypInfo;
-  {$ELSE}
-  SysUtils, Classes {$IFDEF HAS_RTTI}, Rtti, TypInfo{$ENDIF};
-  {$ENDIF}
-
+  SysUtils, Classes
+  {$IFDEF HAS_RTTI}, {%H-}Rtti, TypInfo{$ENDIF}
+  ;
 
 
 {$IFDEF HAS_RTTI}
@@ -60,7 +61,7 @@ begin
 
         // http://docwiki.embarcadero.com/Libraries/Rio/en/System.TypInfo.TTypeKinds
         if (Kind = tkUString) or (Kind = tkString) or (Kind = tkLString) then RProperty.SetValue(Obj, Text)
-        else if Kind = tkWString then RProperty.SetValue(Obj, WideString(Text))
+        else if Kind = tkWString then RProperty.SetValue(Obj, WideString(Text){%H-})
         else Exit;
 
         Result := True;

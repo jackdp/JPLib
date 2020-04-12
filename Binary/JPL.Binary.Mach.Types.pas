@@ -25,11 +25,12 @@
 // https://www.mikeash.com/pyblog/friday-qa-2012-11-30-lets-build-a-mach-o-executable.html
 
 
+{$I .\..\jp.inc}
+
 interface
 
 uses
-  Windows, Sysutils, Classes, 
-  JPL.Binary.Types, JPL.UPX, JPL.Binary.Misc;
+  Sysutils, Classes;
 
 
 

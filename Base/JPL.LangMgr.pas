@@ -2,10 +2,26 @@ unit JPL.LangMgr;
 
 interface
 
+{$I .\..\jp.inc}
+
+{$IFDEF FPC}
+  {$MODE DELPHI}
+  {$IFNDEF HAS_RTTI}
+  This unit is only for FPC 3.2 or above
+  {$ENDIF}
+  {$WARN 5079 off : Unit "$1" is experimental}
+{$ENDIF}
+
+{$IFDEF DCC}
+  {$IFDEF DELPHI2009_OR_BELOW}
+  Unit for Delphi 2010 or newer!
+  {$ENDIF}
+{$ENDIF}
+
+
 uses
-  Winapi.Windows,
-  System.SysUtils, System.Classes, System.Generics.Collections, System.IniFiles, System.Rtti, System.TypInfo,
-  Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ActnList,
+  SysUtils, Classes, Generics.Collections, IniFiles, Rtti, TypInfo,
+  StdCtrls, ExtCtrls, ActnList,
   Dialogs,
   JPL.Strings, JPL.Conversion, JPL.IniFile, JPL.FileSearch, JPL.RTTI;
 
@@ -327,9 +343,11 @@ begin
       PropValue := lci.Properties[PropName];
       PropValue := fixs(PropValue);
 
-      if PropName.Contains('.') then
+      //if PropName.Contains('.') then
+      x := Pos('.', PropName);
+      if x > 0 then
       begin
-        x := Pos('.', PropName);
+        //x := Pos('.', PropName);
         ObjName := Copy(PropName, 1, x - 1);
         PropName2 := Copy(PropName, x + 1, Length(PropName));
         if TryGetPropertyAsObject(lci.Component, ObjName, Obj) then SetPropertyText(Obj, PropName2, PropValue);

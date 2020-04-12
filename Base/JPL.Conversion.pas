@@ -9,8 +9,9 @@
  }
 
 
+{$I .\..\jp.inc}
+
 {$IFDEF FPC}
-  {$I JppFPC.Inc}
   {$mode objfpc}{$H+}
 {$ENDIF}
 
@@ -420,22 +421,22 @@ end;
 
 function TryStoF(s: string; var x: Double): Boolean; overload;
 begin
-  s := StringReplace(s, ',', FormatSettings.DecimalSeparator{%H-}, [rfReplaceAll]);
-  s := StringReplace(s, '.', FormatSettings.DecimalSeparator{%H-}, [rfReplaceAll]);
+  s := StringReplace(s, ',', GetDecimalSeparator{%H-}, [rfReplaceAll]);
+  s := StringReplace(s, '.', GetDecimalSeparator{%H-}, [rfReplaceAll]);
   Result := TryStrToFloat(s, x);
 end;
 
 function TryStoF(s: string; var x: Single): Boolean; overload;
 begin
-  s := StringReplace(s, ',', FormatSettings.DecimalSeparator{%H-}, [rfReplaceAll]);
-  s := StringReplace(s, '.', FormatSettings.DecimalSeparator{%H-}, [rfReplaceAll]);
+  s := StringReplace(s, ',', GetDecimalSeparator{%H-}, [rfReplaceAll]);
+  s := StringReplace(s, '.', GetDecimalSeparator{%H-}, [rfReplaceAll]);
   Result := TryStrToFloat(s, x);
 end;
 
 function stof(s: string; ErrorValue: Real): Real;
 begin
-  s := StringReplace(s, ',', FormatSettings.DecimalSeparator, [rfReplaceAll]);
-  s := StringReplace(s, '.', FormatSettings.DecimalSeparator, [rfReplaceAll]);
+  s := StringReplace(s, ',', GetDecimalSeparator, [rfReplaceAll]);
+  s := StringReplace(s, '.', GetDecimalSeparator, [rfReplaceAll]);
   try
     Result := StrToFloat(s);
   except
@@ -463,8 +464,8 @@ begin
       Delete(s, i, 1);
     end;
   end;
-  if s[Length(s)] = FormatSettings.DecimalSeparator then Delete(s, Length(s), 1);
-  if DSep <> '' then s := StringReplace(s, FormatSettings.DecimalSeparator, DSep, []);
+  if s[Length(s)] = GetDecimalSeparator then Delete(s, Length(s), 1);
+  if DSep <> '' then s := StringReplace(s, GetDecimalSeparator, DSep, []);
   Result := s;
 end;
 
@@ -473,7 +474,7 @@ var
   xp, i, Len, k: integer;
 begin
   Result := FormatFloat(Format, xr);
-  Result := StringReplace(Result, FormatSettings.DecimalSeparator, DecSeparator, []);
+  Result := StringReplace(Result, GetDecimalSeparator, DecSeparator, []);
 
   xp := Pos(DecSeparator, Result);
   if xp = 0 then xp := Length(Result);
@@ -581,7 +582,7 @@ begin
         x := Pos('1', BinStr);
         Deleted := Deleted + x;
         SetLength(arr, Length(arr) + 1);
-        arr[Length(arr) - 1] := LengthBin - Deleted;
+        arr[Length(arr) - 1] := Int64(LengthBin) - Int64(Deleted);
         BinStr := Copy(BinStr, x + 1, Length(BinStr));
       until (Pos('1', BinStr) = 0);
 

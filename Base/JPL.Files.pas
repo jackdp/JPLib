@@ -5,9 +5,12 @@
   http://www.pazera-software.com
 }
 
+{$I .\..\jp.inc}
+
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
   {$WARN 5057 off : Local variable "$1" does not seem to be initialized}
+  {$WARN 5044 off : Symbol "$1" is not portable}
   {$modeswitch ADVANCEDRECORDS}
 {$ENDIF}
 
@@ -24,6 +27,12 @@ const
   EMPTY_DATE = -127552;
   {$IFDEF FPC}
   INVALID_FILE_ATTRIBUTES  = DWORD(-1);
+  {$ENDIF}
+
+  {$IFDEF DELPHI2010_OR_BELOW}
+  faCompressed  = $00000800;
+  faEncrypted   = $00004000;
+  faVirtual     = $00010000;
   {$ENDIF}
 
 type
@@ -318,6 +327,7 @@ begin
   ValidAttributes := True;
   Result := True;
 
+  {$IFDEF FPC}{$WARN 5044 off : Symbol "$1" is not portable}{$ENDIF}
   ReadOnly := x and faReadOnly <> 0;
   Hidden := x and faHidden <> 0;
   SysFile := x and faSysFile <> 0;
@@ -333,6 +343,7 @@ begin
   Encrypted := x and faEncrypted <> 0;
   Virtual := x and faVirtual <> 0;
   AnyFile := x and faAnyFile <> 0;
+  {$IFDEF FPC}{$WARN 5044 on : Symbol "$1" is not portable}{$ENDIF}
 end;
 {$WARN SYMBOL_PLATFORM ON}
 

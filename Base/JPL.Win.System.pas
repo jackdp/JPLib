@@ -1,11 +1,13 @@
 unit JPL.Win.System;
 
-{$IFDEF FPC} {$mode delphi} {$ENDIF}
-
-
 interface
 
 {$IFDEF MSWINDOWS}
+
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
+
+
 uses
   Windows, SysUtils, Classes, Messages,
   JPL.Strings;
@@ -34,7 +36,8 @@ const
   PBM_SETBKCOLOR = $2000 + 1;
   PBM_SETBARCOLOR = WM_USER + 9;
 
-{$ENDIF}
+{$ENDIF} // MSWINDOWS
+
 
 implementation
 
@@ -70,7 +73,7 @@ begin
     PChar(@lpBuffer), 0, nil
   );
   MessageBox(dwHandle, PChar(MsgPrefix + string(lpBuffer)), PChar(MsgTitle), MB_OK or MB_ICONEXCLAMATION);
-  LocalFree(Cardinal(lpBuffer));
+  LocalFree({%H-}Cardinal(lpBuffer));
 end;
 
 
@@ -83,23 +86,18 @@ var
 begin
   Result := False;
 
-  FillChar(tp, SizeOf(tp), 0);
+  FillChar(tp{%H-}, SizeOf(tp), 0);
   vi.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
   GetVersionEx(vi);
 
-  if vi.dwPlatformId <> VER_PLATFORM_WIN32_NT then
-    Result := ExitWindowsEx(EWX_REBOOT or EWX_FORCE, 0)
+  if vi.dwPlatformId <> VER_PLATFORM_WIN32_NT then Result := ExitWindowsEx(EWX_REBOOT or EWX_FORCE, 0)
   else
-    if OpenProcessToken(GetCurrentProcess,
-      TOKEN_ADJUST_PRIVILEGES or TOKEN_QUERY,
-      hToken) then
-      if LookupPrivilegeValue(nil, 'SeShutdownPrivilege',
-        tp.Privileges[0].Luid) then
+    if OpenProcessToken(GetCurrentProcess, TOKEN_ADJUST_PRIVILEGES or TOKEN_QUERY, hToken{%H-}) then
+      if LookupPrivilegeValue(nil, 'SeShutdownPrivilege', tp.Privileges[0].Luid) then
       begin
         tp.PrivilegeCount := 1;
         tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
-        if AdjustTokenPrivileges(hToken, False, tp, SizeOf(tp),
-          tp, ReturnLength) then
+        if AdjustTokenPrivileges(hToken, False, tp, SizeOf(tp), tp, ReturnLength{%H-}) then
           Result := ExitWindowsEx(EWX_REBOOT or EWX_FORCE, 0);
       end;
 end;
@@ -117,16 +115,16 @@ begin
   vi.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
   if not GetVersionEx(vi) then Exit;
 
-  FillChar(tp, SizeOf(tp), 0);
+  FillChar(tp{%H-}, SizeOf(tp), 0);
 
   if vi.dwPlatformId <> VER_PLATFORM_WIN32_NT then Result := ExitWindowsEx(EWX_POWEROFF or EWX_FORCE, 0)
   else
-    if OpenProcessToken(GetCurrentProcess, TOKEN_ADJUST_PRIVILEGES or TOKEN_QUERY, hToken) then
+    if OpenProcessToken(GetCurrentProcess, TOKEN_ADJUST_PRIVILEGES or TOKEN_QUERY, hToken{%H-}) then
       if LookupPrivilegeValue(nil, 'SeShutdownPrivilege', tp.Privileges[0].Luid) then
       begin
         tp.PrivilegeCount := 1;
         tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
-        if AdjustTokenPrivileges(hToken, False, tp, SizeOf(tp), tp, ReturnLength) then
+        if AdjustTokenPrivileges(hToken, False, tp, SizeOf(tp), tp, ReturnLength{%H-}) then
           Result := ExitWindowsEx(EWX_POWEROFF or EWX_FORCE, 0);
       end;
 end;
@@ -138,8 +136,8 @@ var
   dwX: DWORD;
 begin
   Result := DefResult;
-  FillChar(Buffer, SizeOf(Buffer), 0);
-  dwX := SearchPath(nil, PChar(ShortFileName), nil, Length(Buffer), Buffer, lpFilePart);
+  FillChar(Buffer{%H-}, SizeOf(Buffer), 0);
+  dwX := SearchPath(PChar(PathToSearch), PChar(ShortFileName), nil, Length(Buffer), Buffer, lpFilePart{%H-});
   if dwX = 0 then Exit;
   Result := Buffer;
 end;
@@ -169,7 +167,7 @@ var
   BufSize: DWORD;
 begin
   BufSize := SizeOf(buffer);
-  FillChar(buffer, BufSize, 0);
+  FillChar(buffer{%H-}, BufSize, 0);
   GetComputerName(buffer, BufSize);
   Result := buffer;
 end;
@@ -180,7 +178,7 @@ var
   BufSize: DWORD;
 begin
   BufSize := SizeOf(Buffer);
-  FillChar(Buffer, BufSize, 0);
+  FillChar(Buffer{%H-}, BufSize, 0);
   GetUserName(Buffer, BufSize);
   Result := Buffer;
 end;
@@ -189,18 +187,17 @@ function TempDir(ErrorResult: string = ''): string;
 var
   Buffer: array[0..MAX_PATH - 1] of Char;
 begin
-  FillChar(Buffer, SizeOf(Buffer), 0);
+  FillChar(Buffer{%H-}, SizeOf(Buffer), 0);
   Windows.GetTempPath(Length(Buffer), Buffer);
   if Buffer <> '' then Result := Buffer
   else Result := ErrorResult;
-  //Result := ExtractFileDir(ParamStr(0));
 end;
 
 function WinDir: string;
 var
   Buffer: array[0..MAX_PATH - 1] of Char;
 begin
-  FillChar(Buffer, SizeOf(Buffer), 0);
+  FillChar(Buffer{%H-}, SizeOf(Buffer), 0);
   GetWindowsDirectory(Buffer, SizeOf(Buffer));
   Result := Buffer;
 end;
@@ -209,7 +206,7 @@ function SysDir: string;
 var
   Buffer: array[0..MAX_PATH - 1] of Char;
 begin
-  FillChar(Buffer, SizeOf(Buffer), 0);
+  FillChar(Buffer{%H-}, SizeOf(Buffer), 0);
   GetSystemDirectory(Buffer, SizeOf(Buffer));
   Result := Buffer;
 end;
@@ -218,7 +215,7 @@ procedure GetEnvironmentList(sl: TStringList);
 var
   Base, P: PChar;
   EnvStr: string;
-begin          
+begin
   Base := GetEnvironmentStrings;
   if Base = nil then Exit;
   P := Base;
@@ -235,7 +232,7 @@ function GetEnvironmentString(EnvVar: string; AddPercents: Boolean = True): stri
 var
   Buffer: array[0..2047] of Char;
 begin
-  FillChar(Buffer, SizeOf(Buffer), 0);
+  FillChar(Buffer{%H-}, SizeOf(Buffer), 0);
   if AddPercents then EnvVar := '%' + EnvVar + '%';
   ExpandEnvironmentStrings(PChar(EnvVar), Buffer, SizeOf(Buffer));
   Result := Buffer;
@@ -246,10 +243,7 @@ begin
   Result := GetEnvironmentString(EnvVar, AddPercents);
 end;
 
-
 {$ENDIF} // MSWINDOWS
-
-
 
 end.
 

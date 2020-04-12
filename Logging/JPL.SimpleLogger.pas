@@ -8,14 +8,19 @@ unit JPL.SimpleLogger;
 
 }
 
-{ TODO : LogEvent }
-
-interface
+{$I .\..\jp.inc}
 
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
   {$MODESWITCH ADVANCEDRECORDS}
 {$ENDIF}
+
+
+{ TODO : LogEvent }
+
+
+interface
+
 
 uses
   SysUtils, JPL.Conversion;

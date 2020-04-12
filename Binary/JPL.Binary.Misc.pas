@@ -1,5 +1,14 @@
 unit JPL.Binary.Misc;
 
+{$I .\..\jp.inc}
+
+{$IFDEF FPC}
+  {$MODE DELPHI}
+  {$WARN 4055 off : Conversion between ordinals and pointers is not portable}
+  {$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
+{$ENDIF}
+
+
 interface
 
 uses

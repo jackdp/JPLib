@@ -1,10 +1,5 @@
 unit JPL.Colors;
 
-{$IFDEF FPC}
-  {$mode objfpc}{$H+}
-  {$MODESWITCH ADVANCEDRECORDS}
-{$ENDIF}
-
 {
   I created this unit to have all the routines that convert colors in one place.
   The most of the code is mine, but some routines are copied from other free units.
@@ -25,13 +20,22 @@ unit JPL.Colors;
   A short explanation of the HSB, HSV, HSL, CMYK color models.
 }
 
+
+{$I .\..\jp.inc}
+
+{$IFDEF FPC}
+  {$mode objfpc}{$H+}
+  {$MODESWITCH ADVANCEDRECORDS}
+{$ENDIF}
+
+
 interface
+
 
 uses
   {$IFDEF MSWINDOWS} Windows,{$ENDIF}
   {$IFDEF FPC} LCLType, {$ENDIF} // < TRGBTriple, TRBGQuad, MulDiv ...
-  //Dialogs, Done : POTEM WYKOMENTOWAC
-  Classes, SysUtils, Graphics, Math, JPL.Math, JPL.Strings, JPL.Conversion;
+  Classes, SysUtils, Graphics, Math, Types, JPL.Math, JPL.Strings, JPL.Conversion;
 
 const
   HSL_MAX_CSS_HUE = 360;
@@ -814,7 +818,11 @@ end;
 function TryCmykStrToColor(s: string; var Color: TColor; Separator: string = ','): Boolean;
 var
   ck: TCMYKColor;
+  {$IFDEF DELPHI2009_OR_BELOW}
+  Arr: TStringDynArray;
+  {$ELSE}
   Arr: {$IFDEF FPC}specialize{$ENDIF} TArray<string>;
+  {$ENDIF}
   sC, sM, sY, sK: string;
 begin
   Result := False;
@@ -1608,17 +1616,21 @@ end;
 
 function TryHslCssStrToColor(HslCssStr: string; out cl: TColor): Boolean;
 begin
-  Result := TryHslRangeToColor(HslCssStr, cl, ',', HSL_MAX_CSS_HUE, HSL_MAX_CSS_SAT, HSL_MAX_CSS_LUM);
+  Result := TryHslRangeToColor(HslCssStr, cl{%H-}, ',', HSL_MAX_CSS_HUE, HSL_MAX_CSS_SAT, HSL_MAX_CSS_LUM);
 end;
 
 function TryHslWinStrToColor(HslWinStr: string; out cl: TColor): Boolean;
 begin
-  Result := TryHslRangeToColor(HslWinStr, cl, ',', HSL_MAX_WIN_HUE, HSL_MAX_WIN_SAT, HSL_MAX_WIN_LUM);
+  Result := TryHslRangeToColor(HslWinStr, cl{%H-}, ',', HSL_MAX_WIN_HUE, HSL_MAX_WIN_SAT, HSL_MAX_WIN_LUM);
 end;
 
 function TryHslRangeToColor(s: string; var Color: TColor; Separator: string = ','; AMaxHue: integer = 360; AMaxSat: integer = 100; AMaxLum: integer = 100): Boolean;
 var
+  {$IFDEF DELPHI2009_OR_BELOW}
+  Arr: TStringDynArray;
+  {$ELSE}
   Arr: {$IFDEF FPC}specialize{$ENDIF} TArray<string>;
+  {$ENDIF}
   sH, sS, sL: string;
   xH, xS, xL: integer;
 begin
@@ -1635,7 +1647,7 @@ begin
   s := RemoveAll(s, '(');
   s := RemoveAll(s, ')');
   s := RemoveAll(s, '%');
-  s := RemoveAll(s, DEG);
+  s := RemoveAll(s, DEG{%H-});
   SplitStrToArray(s, Arr{%H-}, Separator);
   sH := '';
   sS := '';
@@ -1709,7 +1721,7 @@ begin
   ColortoHSLRange(Color, H1, S1, L1);
 
   sH := Pad(IntToStr(H1), Padding, PaddingChar);
-  if bShowDeg then sH := sH + DEG;
+  if bShowDeg then sH := sH + string({%H-}DEG);
 
   sS := Pad(IntToStr(S1), Padding, PaddingChar);
   if bShowPercent then sS := sS + '%';

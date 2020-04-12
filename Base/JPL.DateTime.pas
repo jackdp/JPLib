@@ -5,6 +5,7 @@ unit JPL.DateTime;
   http://www.pazera-software.com
 }
 
+{$I .\..\jp.inc}
 {$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
 
 interface
@@ -116,7 +117,7 @@ var
 begin
   sec := ms div 1000;
   msec := ms mod 1000;
-  Result := Pad(IntToStr(sec), PaddingS, '0') + '.' + Pad(IntToStr(msec), 3, '0');
+  Result := Pad(IntToStr(sec), PaddingS, '0') + '.' + Pad(IntToStr(msec), PaddingMs, '0');
 end;
 
 function GetDateTimeStr(dt: TDateTime; Format: string = '$Y.$M.$D-$H;$MIN;$S,$MS'): string;
@@ -328,19 +329,19 @@ begin
 
   if DateFormat = dfLongNames then
     s :=
-      FormatSettings.LongDayNames[dnum] + ', ' +
+      {$IFDEF HAS_FORMATSETTINGS}FormatSettings.LongDayNames[dnum] + ', ' + {$ELSE}LongDayNames[dnum] + ', ' + {$ENDIF}
       Pad(IntToStr(Day), 2, '0') + ' ' +
-      FormatSettings.LongMonthNames[Month] + ' ' +
+      {$IFDEF HAS_FORMATSETTINGS}FormatSettings.LongMonthNames[Month] + ' ' + {$ELSE}LongMonthNames[Month] + ' ' + {$ENDIF}
       IntToStr(Year)
   else if DateFormat = dfShortNames then
     s :=
-      FormatSettings.ShortDayNames[dnum] + ', ' +
+      {$IFDEF HAS_FORMATSETTINGS}FormatSettings.ShortDayNames[dnum] + ', ' + {$ELSE}ShortDayNames[dnum] + ', ' + {$ENDIF}
       Pad(IntToStr(Day), 2, '0') + ' ' +
-      FormatSettings.ShortMonthNames[Month] + ' ' +
+      {$IFDEF HAS_FORMATSETTINGS}FormatSettings.ShortMonthNames[Month] + ' ' + {$ELSE}ShortMonthNames[Month] + ' ' + {$ENDIF}
       IntToStr(Year)
   else if DateFormat = dfShortDay then
     s :=
-      FormatSettings.ShortDayNames[dnum] + ', ' +
+      {$IFDEF HAS_FORMATSETTINGS}FormatSettings.ShortDayNames[dnum] + ', ' + {$ELSE}ShortDayNames[dnum] + ', ' + {$ENDIF}
       Pad(IntToStr(Day), 2, '0') + '.' +
       Pad(IntToStr(Month), 2, '0') + '.' +
       IntToStr(Year)
@@ -356,7 +357,7 @@ begin
       Pad(IntToStr(Day), 2, '0')
   else
     s :=
-      FormatSettings.LongDayNames[dnum] + ', ' +
+      {$IFDEF HAS_FORMATSETTINGS}FormatSettings.LongDayNames[dnum] + ', ' + {$ELSE}LongDayNames[dnum] + ', ' + {$ENDIF}
       Pad(IntToStr(Day), 2, '0') + '.' +
       Pad(IntToStr(Month), 2, '0') + '.' +
       IntToStr(Year);
@@ -415,11 +416,11 @@ var
   h, m, s, msec {, msecv}: DWORD;
 begin
   h := ms div MsHour;
-  ms := ms - h * MsHour;
+  ms := ms {%H-}- h * MsHour;
   m := ms div MsMin;
-  ms := ms - DWORD(m * MsMin);
+  ms := ms {%H-}- DWORD(m * MsMin);
   s := ms div MsSec;
-  ms := ms - s * MsSec;
+  ms := ms {%H-}- s * MsSec;
   //msecv := ms;
   msec := ms div 100;
 

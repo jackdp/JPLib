@@ -16,7 +16,8 @@
 
 }
 
-{$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
 
 {:<@include(..\doc\unit_JP.CmdLineParser.txt)}
 
@@ -55,8 +56,9 @@ var
 
 type
 
-
-  //TArray<T> = array of T; // Delphi 2009
+  {$IFDEF DELPHI2009_OR_BELOW}
+  TArray<T> = array of T;
+  {$ENDIF}
 
   TClpParsingMode = (cpmCustom, cpmDelphi); { TODO: Zablokować cpmCustom dla Linuksa. Na razie działa prawidłowo tylko na Windowsie. }
                                             { Does the CommandLineToArgvW equivalent for Linux exists? }
@@ -357,7 +359,8 @@ begin
   while x > 0 do
   begin
     SetLength(Arr, Length(Arr) + 1);
-    Arr[High(Arr)] := Copy(s, 1, x - 1);
+//    Arr[High(Arr)] := Copy(s, 1, x - 1);
+    Arr[Length(Arr) - 1] := Copy(s, 1, x - 1);
     s := Copy(s, x + Length(EndLineStr), Length(s));
     x := Pos(EndLineStr, s);
   end;
@@ -365,7 +368,8 @@ begin
   if s <> '' then
   begin
     SetLength(Arr, Length(Arr) + 1);
-    Arr[High(Arr)] := s;
+//    Arr[High(Arr)] := s;
+    Arr[Length(Arr) - 1] := s;
   end;
 end;
 {$endregion copied from JPL units}
@@ -1923,7 +1927,7 @@ begin
     cptStopMarker: Result := 'StopParsingSwitch';
     cptString: Result := 'String';
   else
-    Result := '?';
+    Result := '?'{%H-};
   end;
 end;
   {$endregion ParamTypeToStr}

@@ -192,9 +192,13 @@
 { TODO: dodać pełną obsługę Name / Value. Na razie dodałem tylko proc. GetNameValue. }
 
 
+{$I .\..\jp.inc}
+
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
+  {$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
 {$ENDIF}
+
 
 interface
 
@@ -223,6 +227,10 @@ type
   {$ifdef CPUX86}
   PtrUInt = DWord;
   {$endif}
+
+  {$IFDEF DCC}{$IFNDEF DELPHIXE2_OR_ABOVE}
+  PtrUInt = DWord;
+  {$ENDIF}{$ENDIF}
 
 {$ENDIF DCC}
 

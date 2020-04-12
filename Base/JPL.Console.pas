@@ -80,6 +80,8 @@
 
 }
 
+{$I .\..\jp.inc}
+
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
   {$MODESWITCH ADVANCEDRECORDS}
@@ -234,8 +236,10 @@ type
     class procedure SetOutputCodePage(AValue: UINT); static;
     {$ENDIF}
 
+    {$IF Defined(FPC) or Defined(DELPHIXE2_OR_ABOVE)}
     class function GetTextCodePage: Cardinal; static;
     class procedure SetTextCodePage(AValue: Cardinal); static;
+    {$IFEND}
   public
 
     {$region '     colors       '}
@@ -369,7 +373,9 @@ type
     class property OriginalOutputCodePage: UINT read FOriginalOutputCodePage;
     class property OutputCodePage: UINT read GetOutputCodePage write SetOutputCodePage;
     {$ENDIF}
+    {$IF Defined(FPC) or Defined(DELPHIXE2_OR_ABOVE)}
     class property TextCodePage: Cardinal read GetTextCodePage write SetTextCodePage;
+    {$IFEND}
   end;
 
 
@@ -1169,6 +1175,7 @@ begin
 end;
 {$ENDIF}
 
+{$IF Defined(FPC) or Defined(DELPHIXE2_OR_ABOVE)}
 class procedure TConsole.SetTextCodePage(AValue: Cardinal); {$IFDEF FPC}static;{$ENDIF}
 begin
   System.SetTextCodePage(Output, AValue);
@@ -1178,7 +1185,7 @@ class function TConsole.GetTextCodePage: Cardinal;
 begin
   Result := System.GetTextCodePage(Output);
 end;
-
+{$IFEND}
 
 class procedure TConsole.ResetColors;
 begin

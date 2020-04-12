@@ -1,19 +1,30 @@
 ﻿unit JPL.Binary.Pe;
 
+{$I .\..\jp.inc}
+
+{$IFDEF FPC}
+  {$MODE DELPHI}
+  {$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
+{$ENDIF}
+
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes,
+  {$IFDEF MSWINDOWS}Windows,{$ENDIF}
+  SysUtils, Classes,
+  {$IFDEF FPC}JwaWinNT,{$ENDIF}
   JPL.Strings, JPL.Files,
-  JPL.Binary.Types, JPL.UPX, JPL.Conversion, JPL.Binary.Misc
+  JPL.Binary.Types, JPL.UPX, JPL.Conversion
   ;
 
 {
-  Usefule links:
+  Useful links:
 
   https://docs.microsoft.com/en-us/windows/win32/debug/pe-format
   https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#coff-file-header-object-and-image
 }
+
 
 const
   {$region '   CONST   '}
@@ -90,8 +101,8 @@ type
 
 
 const
-
-   IMAGE_FILE_AGGRESSIVE_WS_TRIM = IMAGE_FILE_AGGRESIVE_WS_TRIM; // $0010
+   {$IFDEF FPC}IMAGE_FILE_AGGRESIVE_WS_TRIM = $0010;{$ENDIF}
+   IMAGE_FILE_AGGRESSIVE_WS_TRIM = IMAGE_FILE_AGGRESIVE_WS_TRIM;
 
 
     {$region '   CONST - DOS Header   '}
@@ -1152,7 +1163,7 @@ begin
 
 
     // ------------------------------ PE Signature ---------------------------------------
-    FOffset_PeSignature := FDosHeader._lfanew;
+    FOffset_PeSignature := FDosHeader.{$IFDEF FPC}e_lfanew{$ELSE}_lfanew{$ENDIF};
     if Stream.Size < FOffset_PeSignature + SizeOf(FPeSignature) then Exit;
 
     Stream.Position := FOffset_PeSignature;

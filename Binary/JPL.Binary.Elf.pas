@@ -1,21 +1,31 @@
 ﻿unit JPL.Binary.Elf;
 
-// Jacek Pazera
-// http://www.pazera-software.com
-// 03.2016
-// Delphi XE7
+{
+  Jacek Pazera
+  http://www.pazera-software.com
+  https://github.com/jackdp
 
-// Based on:
-// https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
-// http://www.sco.com/developers/gabi/latest/contents.html
+  Links:
+    https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+    http://www.sco.com/developers/gabi/latest/contents.html
+}
+
+
+{$I .\..\jp.inc}
+
+{$IFDEF FPC}
+  {$IFNDEF HAS_SPARTA_GENERICS}For FPC 3.0.4 or newer only!{$ENDIF}
+  {$MODE DELPHI}
+{$ENDIF}
 
 
 interface
 
 uses
-  Windows, Sysutils, Classes,
-  System.Generics.Collections,
-  JPL.Strings, JPL.Conversion, JPL.Binary.Types, JPL.UPX, JPL.Binary.Procs;
+  {$IFDEF MSWINDOWS}Windows,{$ENDIF}
+  Sysutils, Classes,
+  Generics.Collections,
+  JPL.Strings, JPL.Conversion, JPL.UPX, JPL.Binary.Procs;
 
 
 

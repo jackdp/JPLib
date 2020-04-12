@@ -1,10 +1,12 @@
 unit JPL.Win.Dialogs;
 
-{$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
-
 interface
 
 {$IFDEF MSWINDOWS}
+
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
+
 uses
   Windows;
 
@@ -21,7 +23,9 @@ procedure WinMsgInfo(Text: string; Caption: string = 'Information'; Handle: HWND
 procedure WinMsgWarning(Text: string; Caption: string = 'Warning'; Handle: HWND = 0);
 procedure WinMsgError(Text: string; Caption: string = 'Error'; Handle: HWND = 0);
 
-{$ENDIF}
+
+{$ENDIF} // MSWINDOWS
+
 
 implementation
 
@@ -52,8 +56,8 @@ procedure WinMsgError(Text: string; Caption: string = 'Error'; Handle: HWND = 0)
 begin
   WinMsg(Text, Caption, Handle, MB_OK or MB_ICONERROR);
 end;
-{$ENDIF}
 
+{$ENDIF} // MSWINDOWS
 
 end.
 

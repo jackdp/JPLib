@@ -1,17 +1,14 @@
 ﻿unit JPL.Colors.List;
 
-{$IFDEF FPC}
-  //{$mode objfpc}{$H+}
-  //{$MODESWITCH ADVANCEDRECORDS}
-  {$mode delphi}
-{$ENDIF}
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
 interface
 
 uses
-  {$IFDEF MSWINDOWS} Windows,{$ENDIF}
+  {$IFDEF DELPHI2009_OR_BELOW}Windows,{$ENDIF}
   {$IFDEF FPC} LCLType, {$ENDIF}
-  Classes, SysUtils, Graphics, Math, JPL.Math, JPL.Strings, JPL.Conversion, JPL.Colors;
+  Classes, SysUtils, Graphics, JPL.Strings, JPL.Conversion, JPL.Colors;
   
 
 type
@@ -161,7 +158,7 @@ begin
     clsmHslSat: Result := 'HSL - Sat';
     clsmHslLum: Result := 'HSL - Lum';
   else
-    Result := '';
+    Result := ''{%H-};
   end;
 
 end;

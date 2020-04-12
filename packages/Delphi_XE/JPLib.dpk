@@ -1,0 +1,96 @@
+package JPLib;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE RELEASE}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'JPLib Runtime Package'}
+{$LIBSUFFIX 'XE'}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+{$WARN SYMBOL_PLATFORM OFF}
+
+requires
+  rtl,
+  vcl;
+
+contains
+
+  // BASE
+  JPL.CmdLineParser in '..\..\Base\JPL.CmdLineParser.pas',
+  JPL.Console.ColorParser in '..\..\Base\JPL.Console.ColorParser.pas',
+  JPL.Console in '..\..\Base\JPL.Console.pas',
+  JPL.ConsoleApp in '..\..\Base\JPL.ConsoleApp.pas',
+  JPL.Conversion in '..\..\Base\JPL.Conversion.pas',
+  JPL.DateTime in '..\..\Base\JPL.DateTime.pas',
+  JPL.Dialogs in '..\..\Base\JPL.Dialogs.pas',
+  JPL.Files in '..\..\Base\JPL.Files.pas',
+  JPL.FileSearch in '..\..\Base\JPL.FileSearch.pas',
+  JPL.IniFile in '..\..\Base\JPL.IniFile.pas',
+  JPL.LangMgr in '..\..\Base\JPL.LangMgr.pas',
+  JPL.Language in '..\..\Base\JPL.Language.pas',
+  JPL.Math in '..\..\Base\JPL.Math.pas',
+  JPL.MemIniFile in '..\..\Base\JPL.MemIniFile.pas',
+  JPL.RTTI in '..\..\Base\JPL.RTTI.pas',
+  JPL.StrHash in '..\..\Base\JPL.StrHash.pas',
+  JPL.Strings in '..\..\Base\JPL.Strings.pas',
+  JPL.Strings.Ext in '..\..\Base\JPL.Strings.Ext.pas',
+  JPL.Units in '..\..\Base\JPL.Units.pas',
+  JPL.Utils in '..\..\Base\JPL.Utils.pas',
+  JPL.Win.Dialogs in '..\..\Base\JPL.Win.Dialogs.pas',
+  JPL.Win.FileSystem in '..\..\Base\JPL.Win.FileSystem.pas',
+  JPL.Win.Processes in '..\..\Base\JPL.Win.Processes.pas',
+  JPL.Win.Shortcuts in '..\..\Base\JPL.Win.Shortcuts.pas',
+  JPL.Win.System in '..\..\Base\JPL.Win.System.pas',
+  JPL.Win.VersionInfo in '..\..\Base\JPL.Win.VersionInfo.pas',
+
+  // Binary
+  JPL.Binary.Elf in '..\..\Binary\JPL.Binary.Elf.pas',
+  JPL.Binary.Mach.Types in '..\..\Binary\JPL.Binary.Mach.Types.pas',
+  JPL.Binary.MachFat in '..\..\Binary\JPL.Binary.MachFat.pas',
+  JPL.Binary.MachO in '..\..\Binary\JPL.Binary.MachO.pas',
+  JPL.Binary.Misc in '..\..\Binary\JPL.Binary.Misc.pas',
+  JPL.Binary.Pe in '..\..\Binary\JPL.Binary.Pe.pas',
+  JPL.Binary.Procs in '..\..\Binary\JPL.Binary.Procs.pas',
+  JPL.Binary.Types in '..\..\Binary\JPL.Binary.Types.pas',
+  JPL.UPX in '..\..\Binary\JPL.UPX.pas',
+
+  // Containers
+  JPL.Win.FileIcons in '..\..\Containers\JPL.Win.FileIcons.pas',
+  JPL.StrList in '..\..\Containers\JPL.StrList.pas',
+
+  // Graphics
+  JPL.ColorArrays in '..\..\Graphics\JPL.ColorArrays.pas',
+  JPL.Colors.ColorClass in '..\..\Graphics\JPL.Colors.ColorClass.pas',
+  JPL.Colors.List in '..\..\Graphics\JPL.Colors.List.pas',
+  JPL.Colors in '..\..\Graphics\JPL.Colors.pas',
+
+
+  // Logging
+  JPL.SimpleLogger in '..\..\Logging\JPL.SimpleLogger.pas',
+  JPL.TimeLogger in '..\..\Logging\JPL.TimeLogger.pas';
+
+
+end.

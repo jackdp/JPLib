@@ -1,13 +1,25 @@
 ﻿unit JPL.Binary.MachO;
 
-// Jacek Pazera
-// 03.2016
-// https://en.wikipedia.org/wiki/Mach-O
+{
+  Jacek Pazera
+
+  https://en.wikipedia.org/wiki/Mach-O
+}
+
+
+{$I .\..\jp.inc}
+
+{$IFDEF FPC}
+  {$IFNDEF HAS_SPARTA_GENERICS}For FPC 3.0.4 or newer only!{$ENDIF}
+  {$MODE DELPHI}
+{$ENDIF}
+
 
 interface
 
+
 uses
-  Winapi.Windows, System.Sysutils, System.Classes, System.Generics.Collections,
+  Windows, Sysutils, Classes, Generics.Collections,
   JPL.Strings, JPL.Conversion, JPL.Binary.Types, JPL.Binary.Mach.Types, JPL.UPX, JPL.Binary.Misc, JPL.Binary.Procs;
 
 

@@ -1,12 +1,12 @@
 unit JPL.Dialogs;
 
-{$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
 
 interface
 
 uses
-  {$IFDEF MSWINDOWS}Windows,{$ENDIF}
-  SysUtils, Graphics, {$IFDEF DCC}System.UITypes, {$ENDIF}
+  SysUtils, Types, Graphics, {$IFDEF DELPHIXE2_OR_ABOVE}System.UITypes,{$ENDIF}
   Forms, Dialogs, Controls, StdCtrls;
 
 
@@ -128,7 +128,11 @@ function ShowWinStr(const MemoText: string; Caption: string = ''; Width: integer
 var
   Form: TForm;
   Memo: TMemo;
+  {$IFDEF DELPHI2009_OR_BELOW}
+  Arr: TStringDynArray;
+  {$ELSE}
   Arr: {$IFDEF FPC}specialize{$ENDIF} TArray<string>;
+  {$ENDIF}
   s: string;
   i: integer;
 begin

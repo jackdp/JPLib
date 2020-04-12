@@ -1,10 +1,14 @@
 ﻿unit JPL.Binary.Types;
 
+{$I .\..\jp.inc}
+
 interface
 
 uses
   SysUtils
-  //, Dialogs
+  {$IFDEF DCC}{$IFNDEF DELPHIXE2_OR_ABOVE}
+  , Windows
+  {$ENDIF}{$ENDIF}
   ;
 
 
@@ -48,6 +52,85 @@ const
 
   BIN_INVALID_OFFSET = -1;
 
+{$IFDEF DCC}
+{$IFNDEF DELPHIXE2_OR_ABOVE}
+type
+  PImageOptionalHeader32 = ^TImageOptionalHeader32;
+  _IMAGE_OPTIONAL_HEADER32 = record
+    { Standard fields. }
+    Magic: Word;
+    MajorLinkerVersion: Byte;
+    MinorLinkerVersion: Byte;
+    SizeOfCode: DWORD;
+    SizeOfInitializedData: DWORD;
+    SizeOfUninitializedData: DWORD;
+    AddressOfEntryPoint: DWORD;
+    BaseOfCode: DWORD;
+    BaseOfData: DWORD;
+    { NT additional fields. }
+    ImageBase: DWORD;
+    SectionAlignment: DWORD;
+    FileAlignment: DWORD;
+    MajorOperatingSystemVersion: Word;
+    MinorOperatingSystemVersion: Word;
+    MajorImageVersion: Word;
+    MinorImageVersion: Word;
+    MajorSubsystemVersion: Word;
+    MinorSubsystemVersion: Word;
+    Win32VersionValue: DWORD;
+    SizeOfImage: DWORD;
+    SizeOfHeaders: DWORD;
+    CheckSum: DWORD;
+    Subsystem: Word;
+    DllCharacteristics: Word;
+    SizeOfStackReserve: DWORD;
+    SizeOfStackCommit: DWORD;
+    SizeOfHeapReserve: DWORD;
+    SizeOfHeapCommit: DWORD;
+    LoaderFlags: DWORD;
+    NumberOfRvaAndSizes: DWORD;
+    DataDirectory: packed array[0..IMAGE_NUMBEROF_DIRECTORY_ENTRIES-1] of TImageDataDirectory;
+  end;
+  TImageOptionalHeader32 = _IMAGE_OPTIONAL_HEADER32;
+
+  PImageOptionalHeader64 = ^TImageOptionalHeader64;
+  _IMAGE_OPTIONAL_HEADER64 = record
+    { Standard fields. }
+    Magic: Word;
+    MajorLinkerVersion: Byte;
+    MinorLinkerVersion: Byte;
+    SizeOfCode: DWORD;
+    SizeOfInitializedData: DWORD;
+    SizeOfUninitializedData: DWORD;
+    AddressOfEntryPoint: DWORD;
+    BaseOfCode: DWORD;
+    { NT additional fields. }
+    ImageBase: ULONGLONG;
+    SectionAlignment: DWORD;
+    FileAlignment: DWORD;
+    MajorOperatingSystemVersion: Word;
+    MinorOperatingSystemVersion: Word;
+    MajorImageVersion: Word;
+    MinorImageVersion: Word;
+    MajorSubsystemVersion: Word;
+    MinorSubsystemVersion: Word;
+    Win32VersionValue: DWORD;
+    SizeOfImage: DWORD;
+    SizeOfHeaders: DWORD;
+    CheckSum: DWORD;
+    Subsystem: Word;
+    DllCharacteristics: Word;
+    SizeOfStackReserve: ULONGLONG;
+    SizeOfStackCommit: ULONGLONG;
+    SizeOfHeapReserve: ULONGLONG;
+    SizeOfHeapCommit: ULONGLONG;
+    LoaderFlags: DWORD;
+    NumberOfRvaAndSizes: DWORD;
+    DataDirectory: packed array[0..IMAGE_NUMBEROF_DIRECTORY_ENTRIES-1] of TImageDataDirectory;
+  end;
+  TImageOptionalHeader64 = _IMAGE_OPTIONAL_HEADER64;
+{$ENDIF}
+{$ENDIF}
 
 
 

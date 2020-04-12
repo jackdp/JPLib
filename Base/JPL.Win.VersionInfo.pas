@@ -32,12 +32,15 @@
 
 { TODO: Pobrać dodatkowe informacje o FixedFileInfo. (zob. opis struktury VS_FIXEDFILEINFO w MSDN }
 
-{$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
 
 interface
 
 {$IFDEF MSWINDOWS}
-uses 
+
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
+
+uses
   Windows, SysUtils,
   JPL.Strings, JPL.Language, JPL.Conversion;
 
@@ -132,16 +135,18 @@ type
 
 
 procedure VIClearStringInfoItem(var sii: TVIStringInfoItem);
-function VIStringInfoItemToStr(const sii: TVIStringInfoItem; bIncludeTranslationRec: Boolean = False;
-  bIncludeLangInfo: Boolean = False; PadStr: string = ''): string;
+function VIStringInfoItemToStr(const sii: TVIStringInfoItem; bIncludeTranslationRec: Boolean = False; bIncludeLangInfo: Boolean = False; PadStr: string = ''): string;
 function VIFileVersionToStr(const fv: TVIFileVersion): string;
 
-{$ENDIF}
+
+{$ENDIF} // MSWINDOWS
 
 
 implementation
 
+
 {$IFDEF MSWINDOWS}
+
 
 function VIFixedFileInfoToStr(const ffi: TVSFIXEDFILEINFO): string;
 begin
@@ -160,7 +165,6 @@ begin
     'FileDateMS: ' + IntToStr(ffi.dwFileDateMS) + ENDL +
     'FileDateLS: ' + IntToStr(ffi.dwFileDateLS);
 end;
-
 
 
 constructor TJPVersionInfo.Create(const FileName: string);
@@ -187,7 +191,8 @@ begin
   FValidVersionInfo := False;
   FFixedFileInfoExists := False;
   FEnglishStringItemIndex := -1;
-  for i := 0 to High(FStringItems) do VIClearStringInfoItem(FStringItems[i]);
+//  for i := 0 to High(FStringItems) do VIClearStringInfoItem(FStringItems[i]);
+  for i := 0 to Length(FStringItems) - 1 do VIClearStringInfoItem(FStringItems[i]);
   SetLength(FStringItems, 0);
 end;
 
@@ -337,8 +342,10 @@ begin
 
 
         SetLength(FStringItems, Length(FStringItems) + 1);
-        FStringItems[High(FStringItems)] := sii;
-        if sii.TranslateRec.wLanguage = VI_LANGID_ENGLISH then FEnglishStringItemIndex := High(FStringItems);
+//        FStringItems[High(FStringItems)] := sii;
+        FStringItems[Length(FStringItems) - 1] := sii;
+//        if sii.TranslateRec.wLanguage = VI_LANGID_ENGLISH then FEnglishStringItemIndex := High(FStringItems);
+        if sii.TranslateRec.wLanguage = VI_LANGID_ENGLISH then FEnglishStringItemIndex := Length(FStringItems) - 1;
 
       finally
         FreeMem(PTranslate);
@@ -356,12 +363,6 @@ begin
   FValidVersionInfo := True;
 
 end;
-
-
-
-
-
-
 
 
 procedure VIClearStringInfoItem(var sii: TVIStringInfoItem);
@@ -441,7 +442,7 @@ begin
     itos(fv.Build);
 end;
 
-{$ENDIF} // MSWINDOWS
 
+{$ENDIF} // MSWINDOWS
 
 end.

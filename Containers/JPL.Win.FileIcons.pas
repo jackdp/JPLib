@@ -1,4 +1,4 @@
-﻿unit JPL.FileIcons;
+﻿unit JPL.Win.FileIcons;
 
 interface
 
@@ -10,9 +10,19 @@ interface
   w komponentach obsługujących TImageList.
 }
 
+{$IFDEF MSWINDOWS}
+
+{$I .\..\jp.inc}
+
+{$IFDEF FPC}
+  {$IFNDEF HAS_SPARTA_GENERICS}For FPC 3.0.4 or newer only!{$ENDIF}
+  {$MODE DELPHI}
+{$ENDIF}
+
+
 uses
   // Win API
-  Windows, Messages, ShellAPI,
+  ShellAPI,
 
   // System
   SysUtils, Classes, Generics.Collections,
@@ -21,7 +31,7 @@ uses
   Graphics, Controls, ComCtrls, StdCtrls, ExtCtrls,
 
   // JPLib
-  JPL.Strings, JPL.Conversion;
+  JPL.Strings;
 
 
 type
@@ -47,9 +57,15 @@ type
   end;
 
 
+{$ENDIF} // MSWINDOWS
+
+
+
 implementation
 
 
+
+{$IFDEF MSWINDOWS}
 
 constructor TFileIcons.Create(ImageList: TImageList; xMaxIconCount: integer = -1);
 begin
@@ -149,6 +165,9 @@ procedure TFileIcons.SetMaxIconCount(const Value: integer);
 begin
   FMaxIconCount := Value;
 end;
+
+
+{$ENDIF} // MSWINDOWS
 
 end.
 

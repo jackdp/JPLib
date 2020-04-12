@@ -1,20 +1,15 @@
 unit JPL.ColorArrays;
 
-{$IFDEF FPC}
-  {$mode objfpc}{$H+}
-{$ENDIF}
-
 {
   https://en.wikipedia.org/wiki/Web_colors
 }
 
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
+
 interface
 
 uses
-
-  //JP.Colors,
-  //Classes,
-  //SysUtils,
   Graphics;
 
 type

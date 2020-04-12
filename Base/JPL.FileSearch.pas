@@ -36,9 +36,9 @@ unit JPL.FileSearch;
 }
 
 
-//{$WARN SYMBOL_PLATFORM OFF}
 
-{$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$mode objfpc}{$H+}{$ENDIF}
 
 interface
 

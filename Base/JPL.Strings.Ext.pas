@@ -5,8 +5,8 @@ unit JPL.Strings.Ext;
   http://www.pazera-software.com
  }
 
-
-{$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
 interface
 

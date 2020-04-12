@@ -3,22 +3,23 @@
 {
   Jacek Pazera
   http://www.pazera-software.com
-  06.2015
+  First version: 06.2015
 
   TJPIniFile - INI file with comments support
 
   // Co mnie napadło, żeby to zrobić na Kolekcjach?!
 }
 
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
+
 interface
 
+
 uses
-  //Winapi.Windows,
-  System.SysUtils, System.Classes, System.Generics.Collections,
-  Vcl.Graphics,
+  SysUtils, Classes, {Generics.Collections,} Graphics, StrUtils,
   JPL.Strings, JPL.Conversion, JPL.Colors;
 
-  //System.ZLib, JP.Common.Procs;
 
 type
 
@@ -39,7 +40,7 @@ type
     procedure SetKey(const Value: string);
     procedure SetValue(const Value: string);
   public
-    constructor Create(Collection: TCollection); override;
+    constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     function AsString: string;
@@ -57,7 +58,7 @@ type
   protected
     function GetKeyIndex(Key: string): integer;
   public
-    constructor Create(ItemClass: TCollectionItemClass);
+    constructor Create({%H-}AItemClass: TCollectionItemClass);
     function GetItem(Index: Integer): TJPIniItem; overload;
     function GetItem(Key: string; CreateIfNotExists: Boolean = True): TJPIniItem; overload;
     function Add: TJPIniItem;
@@ -110,7 +111,7 @@ type
     procedure SetName(const Value: string);
     procedure SetSectionItems(const Value: TJPIniSectionItems);
   public
-    constructor Create(Collection: TCollection); override;
+    constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
     function AsString: string;
 
@@ -160,7 +161,7 @@ type
     procedure SetItem(Index: Integer; const Value: TJPIniSection);
     procedure SetSectionsSeparator(const Value: string);
   public
-    constructor Create(ItemClass: TCollectionItemClass);
+    constructor Create({%H-}AItemClass: TCollectionItemClass);
     function Add: TJPIniSection;
     procedure Delete(Index: Integer);
     function Insert(Index: Integer): TJPIniSection;
@@ -428,7 +429,10 @@ begin
 
   sl := TStringList.Create;
   try
-    sl.LoadFromFile(FFileName, FEncoding);
+    {$IFDEF DCC}sl.LoadFromFile(FFileName, FEncoding);{$ENDIF}
+    {$IFDEF FPC}
+      {$IFDEF HAS_INIFILE_WITH_ENCODING}sl.LoadFromFile(FFileName, FEncoding);{$ELSE}sl.LoadFromFile(FFileName); {$ENDIF}
+    {$ENDIF}
     ParseText(sl.Text);
   finally
     sl.Free;
@@ -460,31 +464,39 @@ begin
       if Line = '' then Continue;
 
       // ------------ section -----------------
-      if (Line.Chars[0] = '[') and (Line.Chars[Line.Length - 1] = ']') then
+      //if (Line.Chars[0] = '[') and (Line.Chars[Line.Length - 1] = ']') then
+      if IsBoundedWith(Line, '[', ']') then
       begin
         Section := Sections.Add;
-        Section.Name := Line.Substring(1, Line.Length - 2).Trim;
+        //Section.Name := Line.Substring(1, Line.Length - 2).Trim;
+        Section.Name := Trim(TrimBounds(Line, '[', ']'));
       end
 
       // ---------- comment --------------
-      else if Line.Chars[0] = ';' then
+      //else if Line.Chars[0] = ';' then
+      else if Line[1] = ';' then
       begin
         IniItem := Section.SectionItems.Add;
         IniItem.ItemType := iitComment;
-        IniItem.Value := Line.Substring(1, Line.Length - 1);
+        //IniItem.Value := Line.Substring(1, Line.Length - 1);
+        IniItem.Value := Copy(Line, 2, Length(Line) - 1);
       end
 
       else
 
       begin
         IniItem := Section.SectionItems.Add;
-        x := Line.IndexOf('=');
+        //x := Line.IndexOf('=');
+        x := Pos('=', Line);
         // -------------- key=value ---------------
-        if x >= 0 then
+        //if x >= 0 then
+        if x > 0 then
         begin
           IniItem.ItemType := iitNormal;
-          IniItem.Key := Line.Substring(0, x).Trim;
-          IniItem.Value := Line.Substring(x + 1).Trim;
+          //IniItem.Key := Line.Substring(0, x).Trim;
+          IniItem.Key := Copy(Line, 1, x - 1);
+          //IniItem.Value := Line.Substring(x + 1).Trim;
+          IniItem.Value := Copy(Line, x + 1, Length(Line));
         end
         else
         // ------------- text line --------------
@@ -550,7 +562,8 @@ var
   i: integer;
 begin
   Result := 0;
-  if SectionName.Trim = '' then Exit;
+  //if SectionName.Trim = '' then Exit;
+  if Trim(SectionName) = '' then Exit;
   Items := GetSectionItems(SectionName);
   if Items = nil then Exit;
   for i := 0 to Items.Count - 1 do
@@ -588,7 +601,8 @@ var
   i: integer;
 begin
   Result := False;
-  if SectionName.Trim = '' then Exit;
+  //if SectionName.Trim = '' then Exit;
+  if Trim(SectionName) = '' then Exit;
   Items := GetSectionItems(SectionName);
   if Items = nil then Exit;
   for i := 0 to Items.Count - 1 do
@@ -630,7 +644,8 @@ var
   i: integer;
 begin
   Result := False;
-  if SectionName.Trim = '' then Exit;
+  //if SectionName.Trim = '' then Exit;
+  if Trim(SectionName) = '' then Exit;
   Items := GetSectionItems(SectionName);
   if Items = nil then Exit;
   for i := 0 to Items.Count - 1 do
@@ -647,7 +662,8 @@ var
   i: integer;
 begin
   Result := False;
-  if SectionName.Trim = '' then Exit;
+  //if SectionName.Trim = '' then Exit;
+  if Trim(SectionName) = '' then Exit;
   Items := GetSectionItems(SectionName);
   if Items = nil then Exit;
   for i := 0 to Items.Count - 1 do
@@ -668,7 +684,8 @@ var
   Section: TJPIniSection;
 begin
   Result := 0;
-  if SectionName.Trim = '' then Exit;
+  //if SectionName.Trim = '' then Exit;
+  if Trim(SectionName) = '' then Exit;
   Section := GetSection(SectionName, False);
   if Section <> nil then Result := Section.SectionItems.Count;
 end;
@@ -685,13 +702,15 @@ var
 begin
   Result := False;
 
-  if (OldName.Trim = '') or (NewName.Trim = '') then Exit;
+  //if (OldName.Trim = '') or (NewName.Trim = '') then Exit;
+  if (Trim(OldName) = '') or (Trim(NewName) = '') then Exit;
   if SectionExists(NewName) then Exit;
 
   Section := GetSection(OldName, False);
   if Section = nil then Exit;
 
-  Section.Name := NewName.Trim;
+  //Section.Name := NewName.Trim;
+  Section.Name := Trim(NewName);
   Result := True;
 
 end;
@@ -720,7 +739,8 @@ var
   i: integer;
 begin
   Result := 0;
-  if SectionName.Trim = '' then Exit;
+  //if SectionName.Trim = '' then Exit;
+  if Trim(SectionName) = '' then Exit;
   Items := GetSectionItems(SectionName);
   if Items = nil then Exit;
   for i := 0 to Items.Count - 1 do
@@ -729,7 +749,8 @@ end;
 
 function TJPIniFile.AddSection(const SectionName: string): Boolean;
 begin
-  if (SectionExists(SectionName)) or (SectionName.Trim = '') then Result := False
+  //if (SectionExists(SectionName)) or (SectionName.Trim = '') then Result := False
+  if (SectionExists(SectionName)) or (Trim(SectionName) = '') then Result := False
   else Result := GetSection(SectionName, True) <> nil;
 end;
 
@@ -779,7 +800,8 @@ var
   i: integer;
 begin
   Result := 0;
-  if SectionName.Trim = '' then Exit;
+  //if SectionName.Trim = '' then Exit;
+  if Trim(SectionName) = '' then Exit;
   Items := GetSectionItems(SectionName);
   if Items = nil then Exit;
   for i := 0 to Items.Count - 1 do
@@ -790,10 +812,12 @@ procedure TJPIniFile.SaveToFile(const FileName: string);
 var
   sl: TStringList;
 begin
-  if FileName.Trim = '' then Exit; //raise Exception.Create('File name can not be blank!');
+  //if FileName.Trim = '' then Exit; //raise Exception.Create('File name can not be blank!');
+  if Trim(FileName) = '' then Exit;
   sl := TStringList.Create;
   try
-  
+
+    {$IFDEF DCC}
     sl.Text := Text;
     if FIgnoreExceptionsOnSave then
       try
@@ -801,6 +825,15 @@ begin
       except
       end
     else sl.SaveToFile(FileName, FEncoding);
+    {$ELSE}
+    sl.Text := Text;
+    if FIgnoreExceptionsOnSave then
+      try
+        {$IFDEF HAS_INIFILE_WITH_ENCODING}sl.SaveToFile(FileName, FEncoding);{$ELSE}sl.SaveToFile(FileName);{$ENDIF}
+      except
+      end
+    else {$IFDEF HAS_INIFILE_WITH_ENCODING}sl.SaveToFile(FileName, FEncoding);{$ELSE}sl.SaveToFile(FileName);{$ENDIF}
+    {$ENDIF}
     
   finally
     sl.Free;
@@ -1152,9 +1185,9 @@ end;
 
 {$region ' ------------------------------ TJPIniItem - collection item ---------------------------------- '}
 
-constructor TJPIniItem.Create(Collection: TCollection);
+constructor TJPIniItem.Create(ACollection: TCollection);
 begin
-  inherited Create(Collection);
+  inherited Create(ACollection);
   FKey := '';
   FValue := '';
   FItemType := iitNormal;
@@ -1227,7 +1260,7 @@ begin
     Result := Result + Items[i].AsString + #13#10;
 end;
 
-constructor TJPIniSectionItems.Create(ItemClass: TCollectionItemClass);
+constructor TJPIniSectionItems.Create(AItemClass: TCollectionItemClass);
 begin
   inherited Create(TJPIniItem);
 end;
@@ -1285,7 +1318,8 @@ begin
   inherited SetItem(Index, Value);
 end;
 
-
+{$IFDEF DCC}
+{$IFDEF DELPHIXE3_OR_ABOVE}
 function TJPIniSectionItems.ReadBinaryStream(const Key: string; Value: TStream): integer;
 var
   Text: string;
@@ -1304,7 +1338,6 @@ begin
       dataLen := Length(Text) div 2;
       SetLength(DataBytes, dataLen);
       Pos := Stream.Position;
-
       System.Classes.HexToBin(BytesOf(Text), 0, DataBytes, 0, dataLen);
       Stream.Write(DataBytes[0], dataLen);
       Stream.Position := Pos;
@@ -1314,15 +1347,82 @@ begin
       if Value <> Stream then Stream.Free;
     end;
   end
-  else Result := 0;
+  else
+    Result := 0;
 end;
+{$ELSE}
+function TJPIniSectionItems.ReadBinaryStream(const Key: string; Value: TStream): integer;
+var
+  Text: string;
+  Stream: TMemoryStream;
+  Pos: Integer;
+begin
+  Text := ReadString(Key, '');
+  if Text <> '' then
+  begin
+    if Value is TMemoryStream then Stream := TMemoryStream(Value)
+    else Stream := TMemoryStream.Create;
+
+    try
+      Pos := Stream.Position;
+      Stream.SetSize(Stream.Size + Length(Text) div 2);
+      Classes.HexToBin(PChar(Text), Pointer(Integer(Stream.Memory) + Stream.Position)^, Length(Text) div 2);
+      Stream.Position := Pos;
+      if Value <> Stream then Value.CopyFrom(Stream, Length(Text) div 2);
+      Result := Stream.Size - Pos;
+    finally
+      if Value <> Stream then Stream.Free;
+    end;
+  end
+  else
+    Result := 0;
+end;
+{$ENDIF}
+
+{$ENDIF} // DCC
+
+{$IFDEF FPC}
+function TJPIniSectionItems.ReadBinaryStream(const Key: string; Value: TStream): integer;
+var
+  //M: TMemoryStream;
+  S: String;
+  PB, PR: PByte;
+  PC: PChar;
+  H : String[3];
+  i, {l2,} code : Integer;
+begin
+  S := ReadString(Key, '');
+  Setlength(H, 3);
+  H[1] := '$';
+  Result := Length(S) div 2;
+  if Result > 0 then
+  begin
+    GetMem(PR, Result);
+    try
+      PC := PChar(S);
+      PB := PR;
+      for I := 1 to Result do
+      begin
+        H[2] := PC[0];
+        H[3] := PC[1];
+        Val(H, PB^, code);
+        Inc(PC, 2);
+        Inc(PB);
+      end;
+      Value.WriteBuffer(PR^, Result);
+    finally
+      FreeMem(PR);
+    end;
+  end;
+end;
+{$ENDIF} // FPC
 
 function TJPIniSectionItems.ReadBool(const Key: string; Default: Boolean): Boolean;
 var
   s, sDefault: string;
 begin
   if Default then sDefault := '1' else sDefault := '0';
-  s := ReadString(Key, sDefault).Trim;
+  s := Trim(ReadString(Key, sDefault));
   Result := s = '1';
 end;
 
@@ -1356,7 +1456,7 @@ var
   s: string;
 begin
   Result := Default;
-  s := ReadString(Key, '').Trim;
+  s := Trim(ReadString(Key, ''));
   if s = '' then Exit;
   try
     Result := StrToDate(s);
@@ -1369,7 +1469,7 @@ var
   s: string;
 begin
   Result := Default;
-  s := ReadString(Key, '').Trim;
+  s := Trim(ReadString(Key, ''));
   if s = '' then Exit;
   try
     Result := StrToDateTime(s);
@@ -1383,10 +1483,10 @@ var
 begin
   Result := Default;
   sDefault := FloatToStr(Default);
-  sDefault := StringReplace(sDefault, FormatSettings.DecimalSeparator, '.', []);
-  s := ReadString(Key, sDefault).Trim;
+  sDefault := StringReplace(sDefault, GetDecimalSeparator, '.', []);
+  s := Trim(ReadString(Key, sDefault));
   if s = '' then Exit;
-  s := StringReplace(s, '.', FormatSettings.DecimalSeparator, []);
+  s := StringReplace(s, '.', GetDecimalSeparator, []);
   try
     Result := StrToFloat(s);
   except
@@ -1407,7 +1507,8 @@ var
   s: string;
 begin
   s := ReadString(Key, '');
-  if (s.Length > 2) and (s.StartsWith('0x', True)) then s := '$' + s.Substring(2);
+  s := ReplaceFirst(s, '0x', '$', True);
+  //if (s.Length > 2) and (s.StartsWith('0x', True)) then s := '$' + s.Substring(2);
   Result := StrToIntDef(s, Default);
 end;
 
@@ -1434,7 +1535,7 @@ var
   s: string;
 begin
   Result := Default;
-  s := ReadString(Key, '').Trim;
+  s := Trim(ReadString(Key, ''));
   if s = '' then Exit;
   try
     Result := StrToTime(s);
@@ -1443,6 +1544,9 @@ begin
 end;
 
   {$region ' ------ Write XXX ------- '}
+
+{$IFDEF DCC}
+{$IFDEF DELPHIXE3_OR_ABOVE}
 procedure TJPIniSectionItems.WriteBinaryStream(const Key: string; Value: TStream);
 var
   Text: string;
@@ -1465,12 +1569,77 @@ begin
       SetLength(Buffer, Stream.Size * 2);
       System.Classes.BinToHex(TBytes(Stream.Memory), Stream.Position, Buffer, 0, Stream.Size - Stream.Position);
       Text := StringOf(Buffer);
+
     finally
       if Value <> Stream then Stream.Free;
     end;
   end;
   WriteString(Key, Text);
 end;
+{$ELSE}
+procedure TJPIniSectionItems.WriteBinaryStream(const Key: string; Value: TStream);
+var
+  Text: string;
+  Stream: TMemoryStream;
+begin
+  SetLength(Text, (Value.Size - Value.Position) * 2);
+  if Length(Text) > 0 then
+  begin
+    if Value is TMemoryStream then Stream := TMemoryStream(Value)
+    else Stream := TMemoryStream.Create;
+
+    try
+      if Stream <> Value then
+      begin
+        Stream.CopyFrom(Value, Value.Size - Value.Position);
+        Stream.Position := 0;
+      end;
+      Classes.BinToHex(Pointer(Integer(Stream.Memory) + Stream.Position)^, PChar(Text),
+      Stream.Size - Stream.Position);
+
+    finally
+      if Value <> Stream then Stream.Free;
+    end;
+  end;
+  WriteString(Key, Text);
+end;
+{$ENDIF}
+{$ENDIF} // DCC
+
+{$IFDEF FPC}
+procedure TJPIniSectionItems.WriteBinaryStream(const Key: string; Value: TStream);
+var
+  M: TMemoryStream;
+  S: String;
+  PB: PByte;
+  PC: PChar;
+  H: String[2];
+  i: Integer;
+
+begin
+  M := TMemoryStream.Create;
+  try
+    M.CopyFrom(Value, 0);
+    SetLength(S, M.Size * 2);
+    if (length(S) > 0) then
+    begin
+      PB := M.Memory;
+      PC := PChar(S);
+      for I := 1 to Length(S) div 2 do
+        begin
+          H := HexStr(PB^, 2);
+          PC[0] := H[1];
+          PC[1] := H[2];
+          Inc(PC, 2);
+          Inc(PB);
+        end;
+    end;
+    WriteString(Key, S);
+  finally
+    M.Free;
+  end;
+end;
+{$ENDIF} // FPC
 
 procedure TJPIniSectionItems.WriteBool(const Key: string; const Value: Boolean);
 begin
@@ -1513,7 +1682,7 @@ var
   s: string;
 begin
   s := FloatToStr(Value);
-  s := StringReplace(s, FormatSettings.DecimalSeparator, '.', []);
+  s := StringReplace(s, GetDecimalSeparator, '.', []);
   WriteString(Key, s);
 end;
 
@@ -1529,7 +1698,7 @@ end;
 
 procedure TJPIniSectionItems.WriteInteger(const Key: string; const Value: Integer);
 begin
-  WriteString(Key, Value.ToString);
+  WriteString(Key, itos(Value));
 end;
 
 procedure TJPIniSectionItems.WriteString(const Key, Value: string);
@@ -1562,9 +1731,9 @@ end;
 
 {$region ' ----------------------------------- TJPIniSection - collection item ------------------------------- '}
 
-constructor TJPIniSection.Create(Collection: TCollection);
+constructor TJPIniSection.Create(ACollection: TCollection);
 begin
-  inherited Create(Collection);
+  inherited Create(ACollection);
   FName := '';
   FSectionItems := TJPIniSectionItems.Create(TJPIniItem);
 end;
@@ -1767,7 +1936,7 @@ begin
     Result := Result + Items[i].AsString + SectionsSeparator;
 end;
 
-constructor TJPIniSections.Create(ItemClass: TCollectionItemClass);
+constructor TJPIniSections.Create(AItemClass: TCollectionItemClass);
 begin
   inherited Create(TJPIniSection);
 end;

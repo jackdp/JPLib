@@ -64,10 +64,9 @@
 
  }
 
-{$IFDEF FPC}
-  {$mode objfpc}{$H+}
-{$ENDIF}
-//{$MODESWITCH ADVANCEDRECORDS}
+
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
 
 interface
 

@@ -270,12 +270,12 @@ begin
 end;
 
 
-function EnumDirsProc(CurrentDirNo: integer; CurrentDir: string): Boolean;
+function EnumDirsProc({%H-}CurrentDirNo: integer; {%H-}CurrentDir: string): Boolean;
 begin
   Result := True;
 end;
 
-function EnumFilesProc(Dirs, CurrentFileNo, CurrentDirNo: integer; CurrentFile: string): Boolean;
+function EnumFilesProc({%H-}Dirs, {%H-}CurrentFileNo, {%H-}CurrentDirNo: integer; {%H-}CurrentFile: string): Boolean;
 begin
   Result := True;
 end;
@@ -292,7 +292,7 @@ var
 
   function CanContinue: Boolean;
   begin
-    Result := not ( (FFileCountLimit > 0) and (xFiles >= FFileCountLimit) );
+    Result := not ( (FFileCountLimit > 0) and (xFiles {%H-}>= FFileCountLimit) );
   end;
 
 begin
@@ -369,7 +369,7 @@ begin
   ii.Directory := Dir;
   ii.RecurseDepth := RecurseDepth;
   ii.Tag := Tag;
-  ii.TagStr := '';
+  ii.TagStr := TagStr;
 
   ii.FilesToSearch := TFSFilesToSerach.Create;
   for i := 0 to High(FileMasks) do ii.FilesToSearch.Add(FileMasks[i]);

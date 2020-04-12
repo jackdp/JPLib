@@ -8,7 +8,7 @@ uses
   JPL.Hash.Common,
 
   // HashLib4Pascal - https://github.com/Xor-el/HashLib4Pascal
-  HlpHash, HlpHashResult, HlpIHashResult, HlpSHA0;
+  HlpHash, HlpIHashResult, HlpSHA0;
 
 
 const

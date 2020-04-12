@@ -10,12 +10,14 @@
  }
 
 
-{$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
+
 
 interface
 
 uses
-  SysUtils;
+  SysUtils, Types;
 
 const
   CR = #13;
@@ -28,6 +30,10 @@ const
   DEG = '°';
 
 
+{$IFDEF DELPHI2009_OR_BELOW}
+type
+  TArray<T> = array of T;
+{$ENDIF}
 
 function Rbs(Dir: string): string; // removes path delimiter from end
 function Qs(const s: string): string;
@@ -44,6 +50,7 @@ function PadRight(Text: string; i: integer; znak: Char = ' '): string;
 function UnquoteStr(s: string; bDoubleQuote: Boolean = True): string;
 function IntToStrEx(const x: int64; c: Char = ' '): string; overload;
 function IntToStrEx(const x: integer; c: Char = ' '): string; overload;
+function IntToStrEx(const x: UInt64; c: Char = ' '): string; overload;
 
 function GetLastCharIndex(const s: string; c: Char): integer;
 function GetLastBIndex(const s: string): integer; deprecated {$IFDEF DCC}{$IF CompilerVersion > 19}'Use GetLastBackslashIndex instead'{$IFEND}{$ENDIF};
@@ -110,11 +117,16 @@ function InsertNumSep(NumStr: string; Separator: string = ' '; NumBlockSize: int
 function CopyString(const s: string; Copies: integer = 2): string;
 
 //procedure StrToList(LineToParse: string; var List: TStringList; Separator: string = ',');
-procedure SplitStrToArray(s: string; var Arr: {$IFDEF FPC}specialize{$ENDIF} TArray<string>; const EndLineStr: string = sLineBreak);
+{$IFDEF DELPHI2009_OR_BELOW}
+procedure SplitStrToArray(s: string; var Arr: TStringDynArray; const EndLineStr: string = sLineBreak);
+{$ELSE}
+procedure SplitStrToArray(s: string; var Arr: TArray<string>; const EndLineStr: string = sLineBreak);
+{$ENDIF}
 function SplitStr(const InStr: string; out LeftStr, RightStr: string; const Separator: string): Boolean; overload;
 function SplitStr(const InStr: string; out LeftInt, RightInt: integer; const Separator: string): Boolean; overload;
 
 function TrimBounds(s: string; LeftBound, RightBound: string): string;
+function IsBoundedWith(const s: string; LeftBound, RightBound: string; IgnoreCase: Boolean = False): Boolean;
 function AddBounds(const s: string; LeftBound, RightBound: Char): string; overload;
 function AddBounds(const s: string; LeftBound, RightBound: string): string; overload;
 function AddBounds(const s: string; StringToBoundSeparator: string = ' '; BoundChar: Char = '-'; BoundLen: Integer = 16): string; overload;
@@ -133,10 +145,23 @@ function AddFileNameSuffix(const FileName, Suffix: string): string;
 function AddFileNamePrefix(const FileName, Prefix: string): string;
 procedure SplitFileName(fName: string; out Dir, BaseFileName, Ext: string; bIncludePathDelimiter: Boolean = True; bRemoveDotFromExt: Boolean = False);
 
+function GetDecimalSeparator: Char;
 
 
 implementation
 
+
+function GetDecimalSeparator: Char;
+begin
+  {$IFDEF FPC}Result := FormatSettings.DecimalSeparator;{$ENDIF}
+  {$IFDEF DCC}
+    {$IFDEF DELPHIXE_OR_ABOVE}
+    Result := FormatSettings.DecimalSeparator;
+    {$ELSE}
+    Result := DecimalSeparator;
+    {$ENDIF}
+  {$ENDIF}
+end;
 
 
 function SplitStr(const InStr: string; out LeftStr, RightStr: string; const Separator: string): Boolean;
@@ -291,6 +316,19 @@ begin
   Result := sb + StringToBoundSeparator + s + StringToBoundSeparator + sb;
 end;
 
+function IsBoundedWith(const s: string; LeftBound, RightBound: string; IgnoreCase: Boolean = False): Boolean;
+var
+  sLeft, sRight: string;
+begin
+  sLeft := Copy(s, 1, Length(LeftBound));
+  sRight := Copy(s, Length(s) - Length(RightBound) + 1, Length(RightBound));
+
+  if IgnoreCase then
+    Result := ( UpperCase(sLeft) = UpperCase(LeftBound) ) and ( UpperCase(sRight) = UpperCase(RightBound) )
+  else
+    Result := ( sLeft = LeftBound ) and (sRight = RightBound);
+end;
+
 function TrimBounds(s: string; LeftBound, RightBound: string): string;
 begin
   if Copy(s, 1, Length(LeftBound)) = LeftBound then s := Copy(s, 1 + Length(LeftBound), Length(s));
@@ -298,7 +336,11 @@ begin
   Result := s;
 end;
 
-procedure SplitStrToArray(s: string; var Arr: {$IFDEF FPC}specialize{$ENDIF} TArray<string>; const EndLineStr: string = sLineBreak);
+{$IFDEF DELPHI2009_OR_BELOW}
+procedure SplitStrToArray(s: string; var Arr: TStringDynArray; const EndLineStr: string = sLineBreak);
+{$ELSE}
+procedure SplitStrToArray(s: string; var Arr: TArray<string>; const EndLineStr: string = sLineBreak);
+{$ENDIF}
 var
   x: integer;
 begin
@@ -309,7 +351,7 @@ begin
   while x > 0 do
   begin
     SetLength(Arr, Length(Arr) + 1);
-    Arr[High(Arr)] := Copy(s, 1, x - 1);
+    Arr[Length(Arr) - 1] := Copy(s, 1, x - 1);
     s := Copy(s, x + Length(EndLineStr), Length(s));
     x := Pos(EndLineStr, s);
   end;
@@ -317,7 +359,7 @@ begin
   if s <> '' then
   begin
     SetLength(Arr, Length(Arr) + 1);
-    Arr[High(Arr)] := s;
+    Arr[Length(Arr) - 1] := s;
   end;
 end;
 
@@ -339,7 +381,7 @@ begin
   xp := Pos('.', s);
   if xp > 0 then LastDigitPos := xp - 1;
 
-  xp := Pos(FormatSettings.DecimalSeparator, s);
+  xp := Pos(GetDecimalSeparator, s);
   if xp > 0 then LastDigitPos := xp - 1;
 
   Len := LastDigitPos;
@@ -799,7 +841,7 @@ end;
 
 function ReplaceDecimalSeparator(const FloatStr: string; NewSeparator: string = '.'): string;
 begin
-  Result := StringReplace(FloatStr, FormatSettings.DecimalSeparator, NewSeparator, [rfReplaceAll, rfIgnoreCase]);
+  Result := StringReplace(FloatStr, GetDecimalSeparator, NewSeparator, [rfReplaceAll, rfIgnoreCase]);
 end;
 
 {$hints off}
@@ -1103,6 +1145,20 @@ begin
 end;
 
 function IntToStrEx(const x: integer; c: Char = ' '): string;
+var
+  s: string;
+  i, k, Len: integer;
+begin
+  s := IntToStr(x);
+
+  k := Length(s) div 3;
+  Len := Length(s);
+  for i := 1 to k do Insert(c, s, Len - (i * 3) + 1);
+
+  Result := Trim(s);
+end;
+
+function IntToStrEx(const x: UInt64; c: Char = ' '): string;
 var
   s: string;
   i, k, Len: integer;

@@ -1,12 +1,14 @@
 unit JPL.Win.Shortcuts;
 
-{$IFDEF FPC} {$mode delphi} {$ENDIF}
-
 interface
 
 {$IFDEF MSWINDOWS}
+
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
+
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Registry,
+  Windows, SysUtils, Variants, Classes, Registry,
   ShlObj, ActiveX, ComObj;
   //JPL.Strings;
 
@@ -14,12 +16,13 @@ uses
 
 procedure DeleteShortcut(const Folder, LnkShortName: string);
 function ShortcutExists(const Folder, LnkShortName: string): Boolean;
-procedure CreateShortcut(const Name, FileName, Folder, LnkShortName: string; Description: string = '');
+procedure CreateShortcut(const {%H-}Name, FileName, Folder, LnkShortName: string; Description: string = '');
 
-{$ENDIF}
+{$ENDIF} // MSWINDOWS
 
 
 implementation
+
 
 {$IFDEF MSWINDOWS}
 
@@ -112,14 +115,14 @@ begin
     end;
 
     //fName := dir + '\' + Name + '.lnk';
-    fName := dir + '\' + LnkShortName;
+    fName := WideString(dir) + '\' + WideString(LnkShortName);
 
     pf.Save(PWChar(fName), false);
   except
   end;
 end;
 
-
 {$ENDIF} // MSWINDOWS
+
 
 end.

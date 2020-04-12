@@ -1,11 +1,14 @@
 unit JPL.Win.Processes;
 
-{$IFDEF FPC} {$mode delphi} {$ENDIF}
-
 interface
 
+{$IFDEF MSWINDOWS}
+
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
+
 uses
-  Windows, SysUtils, Classes, TlHelp32, PsAPI, ShellAPI;
+  Windows, SysUtils, Classes, {$IFDEF FPC}JwaTlHelp32, JwaPsApi{$ELSE}TlHelp32, PsAPI{$ENDIF}, ShellAPI;
 
 
 function GetProcessFileName(const pID: DWORD): string;
@@ -14,15 +17,23 @@ function GetThreadFileName(const tID: DWORD): string;
 procedure RunAsAdmin(hWnd: HWND; FileName, Parameters: string);
 
 
+{$ENDIF} // MSWINDOWS
+
 
 implementation
 
 
+{$IFDEF MSWINDOWS}
+
 procedure RunAsAdmin(hWnd: HWND; FileName, Parameters: string);
 var
-  sei: TShellExecuteInfo;
+  {$IFDEF UNICODE}
+  sei: TShellExecuteInfoW;
+  {$ELSE}
+  sei: TShellExecuteInfoA;
+  {$ENDIF}
 begin
-  FillChar(sei, SizeOf(sei), 0);
+  FillChar(sei{%H-}, SizeOf(sei), 0);
   sei.cbSize := sizeof(sei);
   sei.Wnd := hWnd;
   sei.fMask := SEE_MASK_FLAG_DDEWAIT or SEE_MASK_FLAG_NO_UI;
@@ -30,7 +41,11 @@ begin
   sei.lpFile := PChar(FileName);
   sei.lpParameters := PChar(Parameters);
   sei.nShow := SW_SHOWNORMAL;
-  if not ShellExecuteEx(@sei) then RaiseLastOSError;
+  {$IFDEF UNICODE}
+  if not ShellExecuteExW(@sei) then RaiseLastOSError;
+  {$ELSE}
+  if not ShellExecuteExA(@sei) then RaiseLastOSError;
+  {$ENDIF}
 end;
 
 function GetThreadFileName(const tID: DWORD): string;
@@ -113,7 +128,7 @@ begin
     hProc := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, False, pID);
     if hProc <> 0 then
     begin
-      FillChar(buffer, SizeOf(buffer), 0);
+      FillChar(buffer{%H-}, SizeOf(buffer), 0);
       GetModuleFileNameEx(hProc, 0, buffer, SizeOf(buffer));
       Result := buffer;
     end;
@@ -135,6 +150,6 @@ begin
   end;
 end;
 
-
+{$ENDIF} // MSWINDOWS
 
 end.

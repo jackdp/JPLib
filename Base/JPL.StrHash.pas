@@ -5,12 +5,14 @@ unit JPL.StrHash;
   xxHash32, Adler32 from "SynCommons.pas" (mORMot project http://synopse.info).
 }
 
+{$I .\..\jp.inc}
 
 {$IFDEF FPC}
   {$MODE DELPHI}{$H+}
   {$MACRO ON}
   {$COPERATORS ON}
 {$ENDIF}
+
 {$POINTERMATH ON}
 
 {$OVERFLOWCHECKS OFF}

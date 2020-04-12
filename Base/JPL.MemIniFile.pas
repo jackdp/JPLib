@@ -4,25 +4,17 @@
   Jacek Pazera
   http://www.pazera-software.com
   https://github.com/jackdp
-
-  Last mod: 2020.03.14
  }
 
-{$IFDEF FPC}
-  {$mode objfpc}{$H+}
-  {$I JppFPC.inc}
-{$ENDIF}
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
 
 interface
 
-uses 
-  {$IFDEF DCC}
-  Winapi.Windows,
-  System.SysUtils, System.Classes, System.IniFiles, System.ZLib, Vcl.Graphics, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Forms,
-  {$ELSE}
-  SysUtils, Classes, IniFiles, Graphics, StdCtrls, Forms,
-  {$ENDIF}
-  JPL.Strings, JPL.Conversion, JPL.Math, JPL.Colors;
+uses
+  SysUtils, Classes, IniFiles, Graphics, Dialogs, StdCtrls, Forms,
+  {$IFDEF DCC}Zlib, JPL.Math,{$ENDIF}
+  JPL.Strings, JPL.Conversion, JPL.Colors;
 
 
 type
@@ -30,7 +22,7 @@ type
   TJppMemIniFile = class
   private const
     DEFAULT_SECTION = 'MAIN';
-    COMPRESSED_VALUE_PREFIX = 'CBUF_';
+    {$IFDEF DCC}COMPRESSED_VALUE_PREFIX = 'CBUF_';{$ENDIF}
   private
     FIni: TMemIniFile;
     FUpdateOnExit: Boolean;
@@ -51,6 +43,8 @@ type
     {$ENDIF}
     {$IFDEF FPC}{$IFDEF HAS_INIFILE_WITH_ENCODING}
     function GetEncoding: TEncoding;
+    // CodeTyphon 7.00 + FPC 3.3.1: Encoding property is read only (in Lazarus 2.0.7 + FPC 3.3.1 - Encoding is read/write)
+    //procedure SetEncoding(const Value: TEncoding);
     {$ENDIF}{$ENDIF}
   public
 
@@ -84,9 +78,9 @@ type
 
     procedure ReadSectionValues(const Section: string; Strings: TStrings); // Reads the values from all keys within the given section
 
-    {$IFDEF DCC}
+    {$IFDEF DCC}{$IFDEF DELPHI2010_OR_ABOVE}
     procedure ReadSubSections(const Section: string; Strings: TStrings; Recurse: Boolean = False);
-    {$ENDIF}
+    {$ENDIF}{$ENDIF}
 
 
     function ReadBinaryStream(const Section, Ident: string; Value: TStream): integer;
@@ -316,6 +310,11 @@ end;
 {$ENDIF}
 
 {$IFDEF FPC}{$IFDEF HAS_INIFILE_WITH_ENCODING}
+//procedure TJppMemIniFile.SetEncoding(const Value: TEncoding);
+//begin
+//  FIni.Encoding := Value;
+//end;
+
 function TJppMemIniFile.GetEncoding: TEncoding;
 begin
   Result := FIni.Encoding;
@@ -339,12 +338,20 @@ end;
 
 procedure TJppMemIniFile.SetCaseSensitive(const Value: Boolean);
 begin
+  {$IFDEF FPC}
+  if Value then FIni.Options := FIni.Options + [ifoCaseSensitive] else FIni.Options := FIni.Options - [ifoCaseSensitive];
+  {$ELSE}
   if FIni.CaseSensitive <> Value then FIni.CaseSensitive := Value;
+  {$ENDIF}
 end;
 
 function TJppMemIniFile.GetCaseSensitive: Boolean;
 begin
+  {$IFDEF FPC}
+  Result := ifoCaseSensitive in FIni.Options;
+  {$ELSE}
   Result := FIni.CaseSensitive;
+  {$ENDIF}
 end;
 
 
@@ -431,12 +438,12 @@ begin
   FIni.ReadSectionValues(Section, Strings);
 end;
 
-{$IFDEF DCC}
+{$IFDEF DCC}{$IFDEF DELPHI2010_OR_ABOVE}
 procedure TJppMemIniFile.ReadSubSections(const Section: string; Strings: TStrings; Recurse: Boolean);
 begin
   FIni.ReadSubSections(Section, Strings, Recurse);
 end;
-{$ENDIF}
+{$ENDIF}{$ENDIF}
 
 
 function TJppMemIniFile.ReadBinaryStream(const Section, Ident: string; Value: TStream): integer;
@@ -864,10 +871,11 @@ end;
 
 procedure TJppMemIniFile.ReadStrings(const Section: string; Items: TStrings {$IFDEF DCC}; ItemsCompressed: Boolean{$ENDIF});
 var
-  sl, slNames: TStringList;
+  sl: TStringList;
   i, xp: integer;
   s: string;
   {$IFDEF DCC}
+  slNames: TStringList;
   ss: TStringStream;
   ms: TMemoryStream;
   x: integer;
@@ -1051,7 +1059,7 @@ var
   FloatStr: string;
 begin
   FloatStr := FIni.ReadString(Section, Ident, '');
-  FloatStr := StringReplace(FloatStr, '.', FormatSettings.DecimalSeparator, []);
+  FloatStr := StringReplace(FloatStr, '.', GetDecimalSeparator, []);
   Result := Default;
   if FloatStr <> '' then
     if not TryStrToFloat(FloatStr, Result) then Result := Default;
@@ -1075,7 +1083,7 @@ var
   s: string;
 begin
   s := FloatToStr(Value);
-  s := StringReplace(s, FormatSettings.DecimalSeparator, '.', []);
+  s := StringReplace(s, GetDecimalSeparator, '.', []);
   FIni.WriteString(Section, Ident, s);
 end;
 

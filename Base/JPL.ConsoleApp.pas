@@ -6,6 +6,8 @@
   Last mod: 2018.03.18
 }
 
+{$I .\..\jp.inc}
+
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
 {$ENDIF}
@@ -16,7 +18,7 @@ interface
 
 uses
   {$IFDEF MSWINDOWS} Windows, ShellApi, {$ENDIF}
-  SysUtils,
+  SysUtils, Types,
   JPL.Strings,
   JPL.Console,
   JPL.SimpleLogger,
@@ -379,7 +381,11 @@ end;
 
 procedure TJPConsoleApp.DisplayTaggedText(const TaggedText: string);
 var
+  {$IFDEF DELPHI2009_OR_BELOW}
+  Arr: TStringDynArray;
+  {$ELSE}
   Arr: {$IFDEF DCC}TArray<string>; {$ELSE}TStringArray; {$ENDIF}
+  {$ENDIF}
   i: integer;
   s: string;
 begin
@@ -389,7 +395,7 @@ begin
     Exit;
   end;
 
-  SplitStrToArray(TaggedText, Arr);
+  JPL.Strings.SplitStrToArray(TaggedText, Arr{%H-});
   for i := 0 to High(Arr) do
   begin
     s := Arr[i];
@@ -435,13 +441,17 @@ end;
 
 procedure TJPConsoleApp.DisplayColoredText(const s: string; const cc: TConsoleColors);
 var
+  {$IFDEF DELPHI2009_OR_BELOW}
+  Arr: TStringDynArray;
+  {$ELSE}
   Arr: {$IFDEF FPC}array of string;{$ELSE}TArray<string>;{$ENDIF}
+  {$ENDIF}
   i: integer;
   s2: string;
 begin
   if UseColors then
   begin
-    SplitStrToArray(s, Arr);
+    JPL.Strings.SplitStrToArray(s, Arr{%H-});
     for i := 0 to High(Arr) do
     begin
       s2 := Arr[i];

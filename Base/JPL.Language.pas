@@ -11,7 +11,8 @@
 
  }
 
-{$IFDEF FPC} {$mode objfpc}{$H+} {$ENDIF}
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$mode objfpc}{$H+}{$ENDIF}
 
 interface
 
@@ -40,7 +41,7 @@ function LanguageIDToStr(const LangID: WORD): string;
 var
   Buffer: array[0..255] of Char;
 begin
-  FillChar(Buffer, SizeOf(Buffer), 0);
+  FillChar(Buffer{%H-}, SizeOf(Buffer), 0);
   if VerLanguageName(LangID, Buffer, {size in characters-->}Length(Buffer)) > 0 then Result := Buffer
   else Result := '';
 end;

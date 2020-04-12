@@ -8,11 +8,12 @@ unit JPL.TimeLogger;
 // Acquiring high-resolution time stamps:
 //   https://msdn.microsoft.com/en-us/library/windows/desktop/dn553408(v=vs.85).aspx
 
+
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
+
 interface
 
-{$IFDEF FPC}
-  {$MODESWITCH ADVANCEDRECORDS}
-{$ENDIF}
 
 uses
   {$IFDEF MSWINDOWS} Windows, {$ENDIF}

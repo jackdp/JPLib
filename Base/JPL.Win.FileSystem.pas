@@ -1,22 +1,23 @@
 unit JPL.Win.FileSystem;
 
-{$IFDEF FPC} {$mode delphi} {$ENDIF}
-
 interface
 
-
 {$IFDEF MSWINDOWS}
+
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
+
 uses
-  Windows, SysUtils, Classes, {$IFDEF DCC}IOUtils,{$ENDIF}
-  //JP_Lists,
-  JPL.Strings, JPL.Conversion,
+  Windows, SysUtils, Classes, {$IFDEF DCC}{$IFDEF DELPHI2010_OR_ABOVE}IOUtils,{$ENDIF}{$ENDIF}
+  JPL.Strings,
   Dialogs,
-  Registry, Menus,
+  Menus,
   ShellAPI, ComObj, ShlObj, ActiveX;
 
 
 const
   CSIDL_PROFILES = $003e;
+  SHGFP_TYPE_CURRENT = 0;
 
   {$region ' --- CSIDLs --- '}
   ArrCSIDL: array[0..38] of integer = (
@@ -157,44 +158,9 @@ type
     function GetInfoStr(Sep: string = '  '): string;
   end;
 
-//  {$region ' --- TFileSystem --- '}
-//  TFileSystem = class(TObject)
-//  public
-//    AppPaths: array of TAppPathRec;
-//    SpecialFolders: array of TSpecialFolderRec;
-//    FileList: TStringList;
-//    UserList: TStringList;
-//    PathList: TStringList;
-//    constructor Create;
-//    destructor Destroy; override;
-//    //procedure FillFileList(StartDir: string; FileMask: string = '*.*'; SubdirsCount: integer = 20; StatusProc: TFillFileListStatusProc = nil);
-//    function GetEnvVar(EnvVarName: string): string;
-//    procedure FillPathList;
-//    procedure FillAppPaths(FileMustExists: Boolean = True);
-//    function GetAppPathsStr: string;
-//    function GetAppPathFileName(AppName: string): string;
-//    function GetAppPathIndex(AppName: string): integer;
-//    function GetSpecialFolder(CSIDL: integer): string;
-//    procedure FillSpecialFolders;
-//    function GetSpecialFoldersStr: string;
-//    function GetFullFileName(ShortName: string): string;
-//    function GetFileIcon(fName: string; IconIndex: integer = 0): HICON;
-//  end;
-//  {$endregion TFileSystem}
 
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
 function DirectoryExists(const Name: string): Boolean;
 function CreateEmptyFile(const fName: string): Boolean;
-//function FileSizeInt(const FileName: string): int64;
-//function FileSizeInt2(const FileName: string): int64;
-//function FileSizeInt3(const FileName: string): int64;
-//function FileSizeStr(FileName: string): string;
-//function GetFileSizeString(FileSize: Int64): string;
-//function GetFileSizeString64(FileSize: Int64): string;
-//function DelFile(const FileName: string): Boolean;
 function GetFileVersionString(FileName, VerStr: string): string;
 function CopyFile(const SrcFile, DestFile: string): Boolean;
 function ShowFilePropertiesDialog(hOwner: HWND; const FileName: string): Boolean;
@@ -204,23 +170,35 @@ function SetFileAttr(fName: string; R, A, S, H: Boolean): Boolean;
 function IsFileReadOnly(fName: string): Boolean;
 function FileOnCdrom(fName: string): Boolean;
 function GetFileText(fName: string): string;
-//function GetFilesSize(Dir: string; xSubdirs: integer = 50; StatusProc: TFillFileListStatusProc = nil): int64;
 function GetFileSizeEx(hFile: THandle; lpFileSize: PLargeInteger): BOOL; stdcall; external kernel32 name 'GetFileSizeEx';
 function GetDesktopFolder: string;
 function GetSpecialFolder(const CSIDL: integer; Default: string = ''): string;
 
 function GetTmpFileName(Prefix: string = ''; Ext: string = ''; NameLen: Byte = 12): string;
 
+{$IFDEF DELPHI2009_OR_BELOW}
+function SHGetFolderPathA(hwnd: HWND; csidl: Integer; hToken: THandle; dwFlags: DWORD; pszPath: LPSTR): HResult; stdcall;
+function SHGetFolderPathW(hwnd: HWND; csidl: Integer; hToken: THandle; dwFlags: DWORD; pszPath: LPWSTR): HResult; stdcall;
+function SHGetFolderPath(hwnd: HWND; csidl: Integer; hToken: THandle; dwFlags: DWORD; pszPath: LPWSTR): HResult; stdcall;
+{$ENDIF}
+
 {$ENDIF} // MSWINDOWS
 
 
 implementation
+
 {$IFDEF MSWINDOWS}
+
 uses
   JPL.Files,
   JPL.Win.System;
 
 
+{$IFDEF DELPHI2009_OR_BELOW}
+function SHGetFolderPath; external 'shell32.dll' name 'SHGetFolderPathW';
+function SHGetFolderPathA; external 'shell32.dll' name 'SHGetFolderPathA';
+function SHGetFolderPathW; external 'shell32.dll' name 'SHGetFolderPathW';
+{$ENDIF}
 
 function GetTmpFileName(Prefix: string = ''; Ext: string = ''; NameLen: Byte = 12): string;
 var
@@ -242,33 +220,14 @@ function GetSpecialFolder(const CSIDL: integer; Default: string = ''): string;
 var
   Path: array[0..Max_Path] of Char;
 begin
-  if ShGetFolderPath(0, CSIDL, 0, SHGFP_TYPE_CURRENT, Path) = S_OK then Result := Path
+  if ShGetFolderPath(0, CSIDL, 0, SHGFP_TYPE_CURRENT, Path{%H-}) = S_OK then Result := Path
   else Result := Default;
 end;
 
 
 function GetDesktopFolder: string;
-//var
-//  pidl: PItemIDList;
-//  pMalloc: IMalloc;
-//  hr: HRESULT;
-//  Buffer: array[0..1023] of Char;
 begin
   Result := GetSpecialFolder(CSIDL_DESKTOPDIRECTORY, '');
-//  Result := '';
-//  pMalloc := nil;
-//  hr := SHGetMalloc(pMalloc);
-//  if hr <> NOERROR then Exit;
-//
-//  hr := SHGetSpecialFolderLocation(0, CSIDL_DESKTOP, pidl);
-//  if hr <> S_OK then Exit;
-//
-//  FillChar(Buffer, SizeOf(Buffer), 0);
-//  if SHGetPathFromIDList(pidl, Buffer) then Result := Buffer;
-//
-//  pMalloc.Free(pidl);
-//  pMalloc._Release;
-
 end;
 
 function GetFileText(fName: string): string;
@@ -311,6 +270,7 @@ begin
   Result := FileIsReadOnly(fName);
 end;
 
+{$WARN SYMBOL_PLATFORM OFF}
 function SetFileAttr(fName: string; R, A, S, H: Boolean): Boolean;
 var
   Attrs: integer;
@@ -329,6 +289,7 @@ begin
   end;
   Result := True;
 end;
+{$WARN SYMBOL_PLATFORM ON}
 
 function GetCdId(Letter: string): DWORD;
 var
@@ -339,18 +300,16 @@ begin
   Name := Letter + ':';
   GetVolumeInformation(
     PChar(Name),
-    VolName,
+    VolName{%H-},
     SizeOf(VolName),
     @CdId,
-    x1,
-    x2,
+    x1{%H-},
+    x2{%H-},
     nil,
     0
   );
-  if UpperCase(VolName) = 'AUDIO CD' then
-    Result := CdId
-  else
-    Result := 0;
+  if UpperCase(VolName) = 'AUDIO CD' then Result := CdId
+  else Result := 0;
 end;
 
 function GetDriveNumber(const DriveLetter: Char): integer;
@@ -365,8 +324,8 @@ begin
     nil,
     0,
     @dwSerial,
-    dwMaxComLen,
-    dwSysFlags,
+    dwMaxComLen{%H-},
+    dwSysFlags{%H-},
     nil,
     0
     ) then Result := dwSerial;
@@ -469,219 +428,6 @@ begin
 
 end;
 
-//{$hints off}
-//function DelFile(const FileName: string): Boolean;
-//var
-//  w: WORD;
-//begin
-//  Result := True;
-//  try
-//
-//    if not DeleteFile(FileName) then
-//    try
-//      w := 0 and not faReadOnly and not faSysFile and not faHidden;
-//      FileSetAttr(FileName, w);
-//      DeleteFile(FileName);
-//    except
-//      Result := not FileExists(FileName);
-//    end;
-//
-//    Result := not FileExists(FileName);
-//
-//  except
-//    Result := not FileExists(FileName);
-//  end;
-//end;
-//{$hints on}
-
-{$region ' --------------- File SIZE procs ----------------- '}
-
-
-//function GetFilesSize(Dir: string; xSubdirs: integer = 50; StatusProc: TFillFileListStatusProc = nil): int64;
-//var
-//  sl: TStringList;
-//  xSize: int64;
-//  i: integer;
-//begin
-//
-//  xSize := 0;
-//  sl := TStringList.Create;
-//  try
-//    FillFileList('*.*', Dir, sl, xSubdirs, StatusProc);
-//    for i := 0 to sl.Count - 1 do
-//    begin
-//      xSize := xSize + FileSizeInt(sl[i]);
-//      if i mod 4 = 0 then
-//        if Assigned(StatusProc) then
-//          if not StatusProc then Break;
-//    end;
-//  finally
-//    sl.Free;
-//  end;
-//  Result := xSize;
-//
-//end;
-
-// FileSize routines moved to JPL.Files
-
-//function DSiFileSize(const fileName: string): int64;
-//var
-//  fHandle: DWORD;
-//begin
-//  fHandle := CreateFile(PChar(fileName), 0, 0, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-//  if fHandle = INVALID_HANDLE_VALUE then Result := -1
-//  else
-//    try
-//      Int64Rec(Result).Lo := GetFileSize(fHandle, @Int64Rec(Result).Hi);
-//    finally
-//      CloseHandle(fHandle);
-//    end;
-//end;
-
-//function FileSizeIntEX(const aFilename: String): Int64;
-//var
-//  info: TWin32FileAttributeData;
-//begin
-//  result := 0;
-//
-//  if not GetFileAttributesEx(PWideChar(aFileName), GetFileExInfoStandard, @info) then EXIT;
-//
-//  Result := Int64(info.nFileSizeLow) or Int64(info.nFileSizeHigh shl 32);
-//end;
-
-//function FileSizeInt(const FileName: string): int64;
-//{var
-//  h: THandle;   }
-//begin
-//  Result := 0;
-//  try
-//    //Result := FileSizeIntEX(FileName);
-//    Result := FileSizeInt3(FileName);
-//  except
-//    on E: Exception do
-//    try
-//      Result := DSiFileSize(FileName);
-//    except
-//    end;
-//  end;
-//end;
-
-//function FileSizeInt2(const FileName: string): int64;
-//var
-//  h: THandle;
-//begin
-//  if FileExists(FileName) then
-//  begin
-//    h := CreateFile(PChar(FileName),
-//      GENERIC_READ,
-//      FILE_SHARE_READ,
-//      nil,
-//      OPEN_EXISTING,
-//      FILE_ATTRIBUTE_NORMAL,
-//      0);
-//    GetFileSizeEx(h, @Result);
-//    CloseHandle(h);
-//  end
-//  else
-//    Result := 0;
-//end;
-
-//function FileSizeInt3(const FileName: string): int64;
-//var
-//  fs: TFileStream;
-//begin
-//  Result := 0;
-//  if not FileExists(FileName) then Exit;
-//
-//  //try
-//    fs := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
-//    try
-//      Result := fs.Size;
-//    finally
-//      fs.Free;
-//    end;
-//
-//  //except
-//  //end;
-//end;
-
-{
-function FileSizeInt2(const FileName: string): DWORD;
-var
-  f: file;
-  i: DWORD;
-  ofm: BYTE;
-begin
-  Result := 0;
-  try
-    AssignFile(f, FileName);
-    ofm := FileMode;
-    try
-      FileMode := fmOpenRead;
-      Reset(f, 1);
-      i := DWORD(FileSize(f));
-      CloseFile(f);
-      Result := i;
-    finally
-      FileMode := ofm;
-    end;
-  except
-    //on E: Exception do ShowMessage(E.Message);
-  end;
-end; }
-
-
-//function FileSizeStr(FileName: string): string;
-//begin
-//  Result := GetFileSizeString(FileSizeInt(FileName));
-//end;
-
-
-
-// MOVED to JPL.Strings
-
-//function GetFileSizeString(FileSize: Int64): string;
-//var
-//  fs: extended;
-//  s: ShortString;
-//  bNegative: Boolean;
-//begin
-//  bNegative := FileSize < 0;
-//  if bNegative then FileSize := -FileSize;
-//  Result := IntToStr(FileSize);
-//  fs := FileSize;
-//  if fs < 1024 then
-//  begin
-//    str(
-//    fs: 2: 0, s);
-//    Result := string(s) + ' bytes';
-//  end
-//  else if (fs >= 1024) and (fs < (1024 * 1024)) then
-//  begin
-//    fs := fs / 1024;
-//    str(fs: 2: 2, s);
-//    Result := string(s) + ' KB';
-//  end
-//  else if (fs >= 1024 * 1024) and (fs < (1024 * 1024 * 1024)) then
-//  begin
-//    fs := (fs / 1024) / 1024;
-//    str(fs: 2: 2, s);
-//    Result := string(s) + ' MB';
-//  end
-//  else
-//  begin
-//    fs := (fs / 1024) / 1024 / 1024;
-//    str(fs: 2: 2, s);
-//    Result := string(s) + ' GB';
-//  end;
-//  if bNegative then Result := '-' + Result;
-//end;
-//
-//function GetFileSizeString64(FileSize: Int64): string;
-//begin
-//  Result := GetFileSizeString(FileSize);
-//end;
-{$endregion File SIZE procs}
 
 function DirectoryExists(const Name: string): Boolean;
 var
@@ -703,297 +449,6 @@ begin
     Result := False;
   end;
 end;
-
-
-{$region ' ------------------------- TFileSystem ----------------------- '}
-
-//constructor TFileSystem.Create;
-//begin
-//  inherited Create;
-//  FileList := TStringList.Create;
-//  UserList := TStringList.Create;
-//  PathList := TStringList.Create;
-//
-//  SetLength(AppPaths, 0);
-//  SetLength(SpecialFolders, 0);
-//  //FillPathList;
-//end;
-
-//destructor TFileSystem.Destroy;
-//begin
-//  FileList.Free;
-//  UserList.Free;
-//  PathList.Free;
-//  inherited Destroy;
-//end;
-
-//procedure TFileSystem.FillAppPaths(FileMustExists: Boolean);
-//var
-//  Reg: TRegistry;
-//  slKeys: TStringList;
-//  i, xInd: integer;
-//  sAppPaths, sFileName: string;
-//begin
-//  SetLength(AppPaths, 0);
-//
-//  sAppPaths := 'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\';
-//
-//  Reg := TRegistry.Create;
-//  slKeys := TStringList.Create;
-//  try
-//    with Reg do
-//    begin
-//
-//      RootKey := HKEY_LOCAL_MACHINE;
-//
-//      if not OpenKey(sAppPaths, False) then Exit;
-//      GetKeyNames(slKeys);
-//      CloseKey;
-//
-//      for i := 0 to slKeys.Count - 1 do
-//      begin
-//        if not OpenKey(sAppPaths + slKeys[i], False) then Continue;
-//        sFileName := ReadString('');
-//        sFileName := ExpandEnvironmentString(sFileName, False);
-//        if (ExtractFileDir(sFileName) = '') and Reg.ValueExists('Path') then sFileName := rbs(ReadString('Path')) + '\' + sFileName;
-//        sFileName := UnquoteStr(sFileName);
-//        if FileMustExists then
-//          if not FileExists(sFileName) then
-//          begin
-//            CloseKey;
-//            Continue;
-//          end;
-//        SetLength(AppPaths, Length(AppPaths) + 1);
-//        xInd := Length(AppPaths) - 1;
-//        AppPaths[xInd].Name := slKeys[i];
-//        AppPaths[xInd].FileName := sFileName;
-//        CloseKey;
-//      end;
-//
-//    end;
-//  finally
-//    Reg.Free;
-//    slKeys.Free;
-//  end;
-//end;
-
-//procedure TFileSystem.FillFileList(StartDir: string; FileMask: string; SubdirsCount: integer; StatusProc: TFillFileListStatusProc);
-//begin
-//  FileList.Clear;
-//  JP_Lists.FillFileList(FileMask, StartDir, FileList, SubdirsCount, StatusProc);
-//end;
-
-//procedure TFileSystem.FillPathList;
-//var
-//  Path: string;
-//  i: integer;
-//
-//  function fs(s: string): string;
-//  begin
-//    Result := rbs(s);
-//  end;
-//
-//begin
-//  Path := GetEnvVar('PATH');
-//  MakeList(Path, PathList, ';');
-//  for i := 0 to PathList.Count - 1 do PathList[i] := fs(PathList[i]);
-//end;
-
-//function TFileSystem.GetAppPathFileName(AppName: string): string;
-//var
-//  i: integer;
-//  UName: string;
-//begin
-//  Result := '';
-//  UName := AnsiUpperCase(AppName);
-//  for i := 0 to Length(AppPaths) - 1 do
-//    if AnsiUpperCase(AppPaths[i].Name) = UName then
-//    begin
-//      Result := AppPaths[i].FileName;
-//      Break;
-//    end;
-//end;
-
-//function TFileSystem.GetAppPathIndex(AppName: string): integer;
-//var
-//  i: integer;
-//  UName: string;
-//begin
-//  Result := -1;
-//  UName := AnsiUpperCase(AppName);
-//  for i := 0 to Length(AppPaths) - 1 do
-//    if AnsiUpperCase(AppPaths[i].Name) = UName then
-//    begin
-//      Result := i;
-//      Break;
-//    end;
-//end;
-
-//function TFileSystem.GetAppPathsStr: string;
-//var
-//  i: integer;
-//  s: string;
-//begin
-//  s := '';
-//  for i := 0 to Length(AppPaths) - 1 do
-//  begin
-//    s :=
-//      s + Pad(IntToStr(i + 1), 3, '0') + CRLF +
-//      '  Name: ' + AppPaths[i].Name + CRLF +
-//      '  File: ' + AppPaths[i].FileName + CRLF;
-//  end;
-//  Result := s;
-//end;
-
-//function TFileSystem.GetEnvVar(EnvVarName: string): string;
-//{var
-//  Buffer: array[0..1023] of Char;
-//  dwX: DWORD;     }
-//begin
-//  Result := GetEnvironmentString(EnvVarName);
-//{  FillChar(Buffer, SizeOf(Buffer), 0);
-//  dwX := GetEnvironmentVariable(PChar(EnvVarName), Buffer, SizeOf(Buffer));
-//  if dwX <> 0 then Result := Buffer
-//  else Result := ''; }
-//end;
-
-//function TFileSystem.GetSpecialFolder(CSIDL: integer): string;
-//var
-//  pidl: PItemIDList;
-//  pMalloc: IMalloc;
-//  hr: HRESULT;
-//  Buffer: array[0..1023] of Char;
-//begin
-//  Result := '';
-//  pMalloc := nil;
-//  hr := SHGetMalloc(pMalloc);
-//  if hr <> NOERROR then Exit;
-//
-//  hr := SHGetSpecialFolderLocation(0, CSIDL, pidl);
-//  if hr <> S_OK then Exit;
-//
-//  FillChar(Buffer, SizeOf(Buffer), 0);
-//  if SHGetPathFromIDList(pidl, Buffer) then Result := Buffer;
-//
-//  pMalloc.Free(pidl);
-//  pMalloc._Release;
-//end;
-
-//procedure TFileSystem.FillSpecialFolders;
-//var
-//  i, xInd: integer;
-//begin
-//  SetLength(SpecialFolders, 0);
-//  for i := 0 to Length(ArrCSIDL) - 1 do
-//  begin
-//    SetLength(SpecialFolders, Length(SpecialFolders) + 1);
-//    xInd := Length(SpecialFolders) - 1;
-//    SpecialFolders[xInd].CSIDL_Name := ArrCSIDLNames[i];
-//    SpecialFolders[xInd].Path := GetSpecialFolder(ArrCSIDL[i]);
-//  end;
-//end;
-
-//function TFileSystem.GetSpecialFoldersStr: string;
-//var
-//  i: integer;
-//  s: string;
-//begin
-//  s := '';
-//  for i := 0 to Length(SpecialFolders) - 1 do
-//  begin
-//    s :=
-//      s + Pad(IntToStr(i + 1), 2, '0') + '. ' +
-//      SpecialFolders[i].CSIDL_Name + ': ' +
-//      SpecialFolders[i].Path + CRLF;
-//  end;
-//  Result := s;
-//end;
-
-//function TFileSystem.GetFullFileName(ShortName: string): string;
-//var
-//  s: string;
-//  i: integer;
-//begin
-//  Result := ShortName;
-//
-//  if FileExists(ExpandFileName(ShortName)) then
-//  begin
-//    Result := ExpandFileName(ShortName);
-//    Exit;
-//  end;
-//
-//  if PathList.Count = 0 then FillPathList;
-//  for i := 0 to PathList.Count - 1 do
-//  begin
-//    s := PathList[i] + '\' + s;
-//    if FileExists(s) then
-//    begin
-//      Result := s;
-//      Exit;
-//    end;
-//  end;
-//
-//  if Length(AppPaths) = 0 then FillAppPaths;
-//  s := GetAppPathFileName(ShortName);
-//  if FileExists(s) then
-//  begin
-//    Result := s;
-//    Exit;
-//  end;
-//
-//  if Length(SpecialFolders) = 0 then FillSpecialFolders;
-//  for i := 0 to Length(SpecialFolders) - 1 do
-//  begin
-//    s := SpecialFolders[i].Path + '\' + ShortName;
-//    if FileExists(s) then
-//    begin
-//      Result := s;
-//      Exit;
-//    end;
-//  end;
-//
-//end;
-
-//function TFileSystem.GetFileIcon(fName: string; IconIndex: integer): HICON;
-//var
-//  W: WORD;
-//  hi, hIconLarge, hIconSmall: HICON;
-//  shfi: TSHFILEINFO;
-//begin
-//
-//  if ExtractFileDir(fName) = '' then fName := GetFullFileName(fName);
-//
-//
-//  ExtractIconEx(PChar(fName), IconIndex, hIconLarge, hIconSmall, 1);
-//  hi := hIconSmall;
-//
-//  if hi = 0 then
-//  begin
-//    FillChar(shfi, SizeOf(shfi), 0);
-//
-//    shfi.iIcon := IconIndex;
-//    SHGetFileInfo(
-//      PChar(fName),
-//      FILE_ATTRIBUTE_NORMAL,
-//      shfi,
-//      SizeOf(shfi),
-//      SHGFI_USEFILEATTRIBUTES or SHGFI_ICON or SHGFI_SMALLICON
-//    );
-//
-//    hi := shfi.hIcon;
-//  end;
-//
-//
-//
-//  if hi = 0 then
-//  begin
-//    if UpperCase(ExtractFileExt(fName)) <> '.EXE' then
-//    hi := ExtractAssociatedIcon(hInstance, PChar(fName), W);
-//  end;
-//
-//  Result := hi;
-//end;
-{$endregion TFileSystem}
 
 
 {$region ' ---------------- TShellLink ------------------- '}
@@ -1039,12 +494,12 @@ var
   begin
     FillChar(Buffer, SizeOf(Buffer), 0);
   end;
-  
+
 begin
   ClearShellLinkRec;
   if not FileExists(LinkFile) then Exit;
 
-  fName := LinkFile;
+  fName := WideString(LinkFile);
 
   CoInitialize(nil);
   Obj := CreateComObject(CLSID_ShellLink);
@@ -1055,8 +510,8 @@ begin
 
 
   CB;
-  StrPCopy(Buffer, fName);
-  if Link.GetPath(Buffer, SizeOf(Buffer), pwd, SLGP_RAWPATH) = S_OK then
+  StrPCopy(Buffer{%H-}, fName{%H-});
+  if Link.GetPath(Buffer, SizeOf(Buffer), pwd{%H-}, SLGP_RAWPATH) = S_OK then
     ShellLinkRec.Path := UnquoteStr(ExpandEnvironmentString(Buffer, False));
 
   CB;
@@ -1068,7 +523,7 @@ begin
     ShellLinkRec.Description := UnquoteStr(Buffer);
 
   CB;
-  if Link.GetIconLocation(Buffer, SizeOf(Buffer), x) = S_OK then
+  if Link.GetIconLocation(Buffer, SizeOf(Buffer), x{%H-}) = S_OK then
   begin
     ShellLinkRec.IconFile := UnquoteStr(ExpandEnvironmentString(Buffer, False));
     ShellLinkRec.IconIndex := x;
@@ -1081,7 +536,7 @@ begin
   if Link.GetWorkingDirectory(Buffer, SizeOf(Buffer)) = S_OK then
     ShellLinkRec.WorkingDirectory := UnquoteStr(ExpandEnvironmentString(Buffer, False));
 
-  if Link.GetHotkey(w) = S_OK then ShellLinkRec.Hotkey := w;
+  if Link.GetHotkey(w{%H-}) = S_OK then ShellLinkRec.Hotkey := w;
 end;
 
 procedure TShellLink.SaveLinkFile(LinkFile: string);
@@ -1091,7 +546,7 @@ var
   PF: IPersistFile;
   fName: WideString;
 begin
-  fName := LinkFile;
+  fName := WideString(LinkFile);
 
   CoInitialize(nil);
   Obj := CreateComObject(CLSID_ShellLink);
@@ -1224,7 +679,8 @@ begin
 end;
 {$endregion TURLFile}
 
-{$ENDIF} //MSWINDOWS
+
+{$ENDIF} // MSWINDOWS
 
 
 end.

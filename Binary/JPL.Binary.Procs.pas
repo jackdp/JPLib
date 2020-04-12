@@ -1,11 +1,14 @@
 ﻿unit JPL.Binary.Procs;
 
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes,
-  JPL.Binary.Types, JPL.Binary.Pe, JPL.Binary.Mach.Types, 
-  JPL.UPX
+  {$IFDEF MSWINDOWS}Windows,{$ENDIF}
+  SysUtils, Classes,
+  JPL.Binary.Types, JPL.Binary.Pe, JPL.Binary.Mach.Types
   ;
 
 
@@ -209,7 +212,7 @@ begin
 
   if Stream.Size < 4 then Exit;
   Stream.Position := 0;
-  Stream.ReadBuffer(Arr, Length(Arr));
+  Stream.ReadBuffer(Arr{%H-}, Length(Arr));
   Stream.Position := OldPos;
 
   BitsInfo.B1 := Arr[0];
@@ -361,7 +364,11 @@ function GetWinExeBinType(fName: string): integer;
 var
   bt: Cardinal;
 begin
+  {$IFDEF DCC}
   if GetBinaryType(PWideChar(fName), bt) then
+  {$ELSE}
+  if GetBinaryType(PChar(fName), bt{%H-}) then
+  {$ENDIF}
   begin
     case bt of
       BIN_WIN32: Result := BIN_WIN32;
@@ -393,9 +400,9 @@ begin
   OldPos := Stream.Position;
 
   Stream.Position := 0;
-  x := Stream.Read(Buffer, BufferSize);
+  x := Stream.Read(Buffer{%H-}, BufferSize);
   Stream.Position := 0;
-  Stream.Read(Magic, SizeOf(Magic));
+  Stream.Read(Magic{%H-}, SizeOf(Magic));
 
   Stream.Position := OldPos;
   if x <> BufferSize then Exit; // BufferSize = SizeOf(Magic)

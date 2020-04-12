@@ -1,17 +1,28 @@
 ﻿unit JPL.Binary.MachFat;
 
-// Jacek Pazera
-// 03.2016
-// https://en.wikipedia.org/wiki/Mach-O
+{
+  Jacek Pazera
+
+  https://en.wikipedia.org/wiki/Mach-O
+}
+
+
+{$I .\..\jp.inc}
+
+{$IFDEF FPC}
+  {$IFNDEF HAS_SPARTA_GENERICS}For FPC 3.0.4 or newer only!{$ENDIF}
+  {$MODE DELPHI}
+{$ENDIF}
+
 
 interface
 
 uses
-  Winapi.Windows,
-  System.Sysutils, System.Classes, System.Generics.Collections,
+  Windows,
+  Sysutils, Classes, Generics.Collections,
 
   JPL.Strings, JPL.Conversion,
-  JPL.Binary.Types, JPL.Binary.Mach.Types, JPL.Binary.MachO, JPL.UPX, JPL.Binary.Misc, JPL.Binary.Procs, JPL.Math;
+  JPL.Binary.Types, JPL.Binary.Mach.Types, JPL.Binary.MachO, JPL.UPX, JPL.Binary.Procs, JPL.Math;
 
 
 type
@@ -143,7 +154,7 @@ begin
     FFatHeader.magic := SwapBytes(FFatHeader.magic);
     FFatHeader.nfat_arch := SwapBytes(FFatHeader.nfat_arch);
 
-    if fs.Size < SizeOf(FFatHeader) + (FFatHeader.nfat_arch * SizeOf(fat_arch)) then Exit;
+    if fs.Size < Int64(SizeOf(FFatHeader)) + (Int64(FFatHeader.nfat_arch) * Int64(SizeOf(fat_arch)))  then Exit;
 
     for i := 1 to FFatHeader.nfat_arch do
     begin
@@ -164,7 +175,7 @@ begin
       mof := TMachOFile.Create;
       mof.FileName := FFileName;
       mof.StartOffset := fa.offset;
-      mof.EndOffset := fa.offset + fa.size;
+      mof.EndOffset := Int64(fa.offset) + Int64(fa.size);
       mof.SearchUpxInfo := FSearchUpxInfo;
       mof.ReadFileInfo;
       if not mof.IsValidMachFile then

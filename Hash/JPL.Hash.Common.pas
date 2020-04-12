@@ -1,6 +1,10 @@
 unit JPL.Hash.Common;
 
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
+
 interface
+
 
 uses
   {$IFDEF MSWINDOWS}Windows,{$ENDIF}

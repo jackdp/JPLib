@@ -1,14 +1,23 @@
 ﻿unit JPL.UPX;
 
-// Jacek Pazera
-// Free UPX - http://www.pazera-software.com/products/free-upx/
-// UPX - https://upx.github.io/
+{
+  Jacek Pazera
+  https://github.com/jackdp
+  FUPX - http://www.pazera-software.com/products/free-upx/
+
+  UPX - https://upx.github.io/
+}
+
+
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
 interface
 
+
 uses
-  Windows, SysUtils //, System.Classes
-  //, Dialogs
+  {$IFDEF MSWINDOWS}Windows,{$ENDIF}
+  SysUtils
   ;
 
 

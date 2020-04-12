@@ -1,19 +1,14 @@
 unit JPL.Colors.ColorClass;
 
-{$IFDEF FPC}
-  {$mode delphi}
-{$ENDIF}
-
+{$I .\..\jp.inc}
+{$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
 
 interface
 
 uses
-  //{$IFDEF MSWINDOWS} Windows,{$ENDIF}
   //{$IFDEF FPC} LCLType, {$ENDIF} // < TRGBTriple, TRBGQuad, MulDiv ...
   Graphics, SysUtils,
-  //Classes, Math,
   JPL.Colors;
-  //, JPL.Math, JPL.Strings, JPL.Conversion;
 
 
 type

@@ -3,12 +3,12 @@ unit JPL.Hash.HL_MD2;
 interface
 
 uses
-  Winapi.Windows, System.Classes, System.SysUtils,
-  JPL.Math, JPL.Win.Dialogs, JPL.TimeLogger,
+  Classes, SysUtils,
+  JPL.Math, JPL.TimeLogger,
   JPL.Hash.Common,
 
   // HashLib4Pascal - https://github.com/Xor-el/HashLib4Pascal
-  HlpHash, HlpHashResult, HlpIHashResult, HlpMD2;
+  HlpHash, HlpIHashResult, HlpMD2;
 
 
 const
