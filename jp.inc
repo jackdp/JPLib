@@ -70,6 +70,10 @@
     {$DEFINE DELPHIXE2}
   {$ENDIF}
 
+  {$IFDEF VER240}
+    {$DEFINE DELPHIXE3}
+  {$ENDIF}
+
 
 
 
@@ -93,19 +97,29 @@
   {$IFEND}
 
 
+  {$IF CompilerVersion <= 22}
+    {$DEFINE DELPHIXE_OR_BELOW}
+  {$IFEND}
+
   {$IF CompilerVersion >= 22}
     {$DEFINE DELPHIXE_OR_ABOVE}
     {$DEFINE HAS_FORMATSETTINGS}
+    {$DEFINE HAS_TSTRINGS_WRITEBOM}
   {$IFEND}
 
 
   {$IF CompilerVersion >= 23}
     {$DEFINE DELPHIXE2_OR_ABOVE}
+    {$DEFINE HAS_SYSTEM_UITYPES}
+    {$DEFINE HAS_UNIT_SCOPE}
+    {$DEFINE HAS_VCL_STYLES}
+    {$DEFINE HAS_ANSI_ENCODING}
   {$IFEND}
 
 
   {$IF CompilerVersion >= 24}
     {$DEFINE DELPHIXE3_OR_ABOVE}
+    {$DEFINE HAS_STYLE_ELEMENTS}
   {$IFEND}
 
 {$ENDIF} // DCC
