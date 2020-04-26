@@ -118,7 +118,7 @@ type
     function AsDebugString: string;
 
     procedure SaveToFile(const FileName: string; Append: Boolean = False;
-      bNormal: Boolean = True; bErrors: Boolean = True; bWarnings: Boolean = True; bHints: Boolean = True);
+      bInfo: Boolean = True; bErrors: Boolean = True; bWarnings: Boolean = True; bHints: Boolean = True);
 
 
     property List: TLogList read FList; //:< Log list - array of TLogItem.
@@ -362,7 +362,7 @@ begin
 end;
 
 {$hints off}
-procedure TJPSimpleLogger.SaveToFile(const FileName: string; Append, bNormal, bErrors, bWarnings, bHints: Boolean);
+procedure TJPSimpleLogger.SaveToFile(const FileName: string; Append, bInfo, bErrors, bWarnings, bHints: Boolean);
 var
   i, No: integer;
   LogStr: string;
@@ -395,7 +395,7 @@ begin
 
       Item := FList[i];
       if Item.Deleted then Continue;
-      if (Item.CategoryID = LOG_CATEGORY_ID_INFO) and (not bNormal) then Continue;
+      if (Item.CategoryID = LOG_CATEGORY_ID_INFO) and (not bInfo) then Continue;
       if (Item.CategoryID = LOG_CATEGORY_ID_ERRORS) and (not bErrors) then Continue;
       if (Item.CategoryID = LOG_CATEGORY_ID_WARNINGS) and (not bWarnings) then Continue;
       if (Item.CategoryID = LOG_CATEGORY_ID_HINTS) and (not bHints) then Continue;
