@@ -18,10 +18,10 @@
 interface
 
 uses
-  SysUtils, Classes,
+  SysUtils, Classes, Types,
   {$IFDEF MSWINDOWS}Windows,{$ENDIF}
   {$IFDEF LINUX}BaseUnix,{$ENDIF}
-  JPL.Strings, JPL.Conversion;
+  JPL.Strings, JPL.Conversion, JPL.FileSearch;
 
 const
   EMPTY_DATE = -127552;
@@ -75,6 +75,7 @@ type
 
   TFileInfoRec = record
     FileNameRec: TFileNameRec;
+    Exists: Boolean;
 
     {$IFDEF LINUX}
     StatOK: Boolean;
@@ -114,10 +115,52 @@ function DelFile(const FileName: string): Boolean;
 function GetIncFileName(const fName: string; NumPrefix: string = '_'; xpad: integer = 3): string;
 function GetUniqueFileName(Prefix: string = ''; Len: BYTE = 10; Ext: string = ''): string;
 
+function GetFiles(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): TStringDynArray;
+function GetDirectories(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): TStringDynArray;
+
 
 implementation
 
 
+function GetFiles(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): TStringDynArray;
+var
+  sl: TStringList;
+  i: integer;
+begin
+  SetLength(Result, 0);
+  sl := TStringList.Create;
+  try
+    JPGetFileList(SearchPattern, Directory, sl, RecurseDepth, True, True, nil, nil, nil);
+    sl.Sort;
+    for i := 0 to sl.Count - 1 do
+    begin
+      SetLength(Result, Length(Result) + 1);
+      Result[Length(Result) - 1] := sl[i];
+    end;
+  finally
+    sl.Free;
+  end;
+end;
+
+function GetDirectories(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): TStringDynArray;
+var
+  sl: TStringList;
+  i: integer;
+begin
+  SetLength(Result, 0);
+  sl := TStringList.Create;
+  try
+    JPGetDirectoryList(Directory, sl, True, RecurseDepth, nil);
+    sl.Sort;
+    for i := 0 to sl.Count - 1 do
+    begin
+      SetLength(Result, Length(Result) + 1);
+      Result[Length(Result) - 1] := sl[i];
+    end;
+  finally
+    sl.Free;
+  end;
+end;
 
 function GetIncFileName(const fName: string; NumPrefix: string = '_'; xpad: integer = 3): string;
 var
@@ -435,6 +478,7 @@ end;
 procedure TFileInfoRec.Clear;
 begin
   FileNameRec.Clear;
+  Exists := False;
 
   {$IFDEF LINUX}
   StatOK := False;
@@ -477,6 +521,7 @@ begin
   FileNameRec.Clear;
 
   if not FileExists(FileName) then Exit;
+  Exists := True;
 
   FileNameRec.AssignFileName(FileName);
   FullName := FileNameRec.FullFileName;
@@ -520,7 +565,8 @@ end;
 
 function TFileInfoRec.AsString: string;
 begin
-  Result := 'FileNameRec' + ENDL + FileNameRec.AsString('  ');
+  Result := 'File exists: ' + BoolToStr(Exists) + ENDL;
+  Result := Result + 'FileNameRec' + ENDL + FileNameRec.AsString('  ');
   {$IFDEF MSWINDOWS}
   Result := Result + ENDL + 'File Attributes: ' + Attributes.AsString(', ');
   {$ENDIF}
