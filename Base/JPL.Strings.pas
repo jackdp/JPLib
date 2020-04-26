@@ -46,7 +46,8 @@ function FixPathDelimiters(const FileName: string): string;
 function PadString(Text: string; i: integer; znak: Char = ' '): string;
 function Pad(Text: string; Len: integer; PaddingChar: Char = ' '): string; overload;
 function Pad(const x: integer; Len: integer; PaddingChar: Char = '0'): string; overload;
-function PadRight(Text: string; i: integer; znak: Char = ' '): string;
+function PadRight(Text: string; Len: integer; PaddingChar: Char = ' '): string; overload;
+function PadRight(const x: integer; Len: integer; PaddingChar: Char = ' '): string; overload;
 function UnquoteStr(s: string; bDoubleQuote: Boolean = True): string;
 function IntToStrEx(const x: int64; c: Char = ' '): string; overload;
 function IntToStrEx(const x: integer; c: Char = ' '): string; overload;
@@ -89,8 +90,8 @@ function MakeDistinctChars(s: string): string;
 function CharCount(c: Char; s: string): integer;
 function ReverseStr(const s: string): string;
 function FillStrToLen(s: string; Len: integer; FillValue: Char = ' '): string;
-function AnsiUpCase(zn: Char; Default: Char = #0): Char;     // A po co to?
-function AnsiLowCase(zn: Char; Default: Char = #0): Char;    // I to też?
+function AnsiUpCase(zn: Char; Default: Char = #0): Char;
+function AnsiLowCase(zn: Char; Default: Char = #0): Char;
 function RemoveChars(const SrcStr, CharsToRemove: string; IgnoreCase: Boolean = False): string; overload;
 function RemoveChars(const SrcStr: string; Chars: array of Char; IgnoreCase: Boolean = False): string; overload;
 function LeaveOnlyChars(const SrcStr, CharsToLeave: string): string;
@@ -1026,21 +1027,26 @@ begin
 end;
 
 {$hints off}
-function PadRight(Text: string; i: integer; znak: Char = ' '): string;
+function PadRight(Text: string; Len: integer; PaddingChar: Char = ' '): string;
 var
   x, y, k: integer;
   s: string;
 begin
   s := '';
-  if Length(Text) < i then
+  if Length(Text) < Len then
   begin
     x := Length(Text);
-    y := i - x;
+    y := Len - x;
     for k := 1 to y do
-      s := s + znak;
+      s := s + PaddingChar;
     Text := Text + s;
   end;
   Result := Text;
+end;
+
+function PadRight(const x: integer; Len: integer; PaddingChar: Char = ' '): string;
+begin
+  Result := PadRight(IntToStr(x), Len, PaddingChar);
 end;
 {$hints on}
 
