@@ -1,4 +1,4 @@
-unit JPL.Hash.Common;
+﻿unit JPL.Hash.Common;
 
 {$I .\..\jp.inc}
 {$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
@@ -8,7 +8,7 @@ interface
 
 uses
   {$IFDEF MSWINDOWS}Windows,{$ENDIF}
-  SysUtils, Classes, JPL.Conversion
+  SysUtils, Classes, JPL.Strings, JPL.Conversion
   ;
 
 
@@ -27,11 +27,11 @@ const
   DIGEST_LEN_BITS_512 = 64;  // 512 bits / 64 bytes
 
 
-  DIGEST_LEN_CRC16 = 2;      //   8 bits / 2 bytes
-  DIGEST_LEN_CRC24 = 3;      //  12 bits / 3 bytes
-  DIGEST_LEN_CRC32 = 4;      //  16 bits / 4 bytes
-  DIGEST_LEN_CRC64 = 8;      //  32 bits / 8 bytes
-  DIGEST_LEN_ADLER32 = 4;    //  16 bits / 4 bytes
+  DIGEST_LEN_CRC16 = 2;      //  16 bits / 2 bytes
+  DIGEST_LEN_CRC24 = 3;      //  24 bits / 3 bytes
+  DIGEST_LEN_CRC32 = 4;      //  32 bits / 4 bytes
+  DIGEST_LEN_CRC64 = 8;      //  64 bits / 8 bytes
+  DIGEST_LEN_ADLER32 = 4;    //  32 bits / 4 bytes
 
   DIGEST_LEN_MD2 = DIGEST_LEN_BITS_128;
   DIGEST_LEN_MD4 = DIGEST_LEN_BITS_128;
@@ -167,6 +167,8 @@ type
     htHaval
   );
 
+  THashTypeDynArray = array of TJPHashType;
+
   THashResultRec = record
     ValidHash: Boolean;
     HashType: TJPHashType;
@@ -196,11 +198,15 @@ var
 function FormatHash(HashStr: string; bUpperCase: Boolean; ByteSeparator: string = ''): string;
 function IsValidHashStr(const Hash: string): Boolean;
 function IsValidHashLen(const Hash: string; HashType: TJPHashType): Boolean;
-function GetHashLen(HashType: TJPHashType; ErrorResult: integer = -1): integer;
+function GetHashStrLength(HashType: TJPHashType; ErrorResult: integer = -1): integer;
+function GetHashDigestLength(const HashType: TJPHashType; ErrorResult: integer = -1): integer;
+function GetHashByteLength(const HashType: TJPHashType; ErrorResult: integer = -1): integer;
+function GetHashBitLength(const HashType: TJPHashType; ErrorResult: integer = -1): integer;
 
-// je�li wszystko OK, CheckHash zwraca True, w przeciwnym razie zwraca False i dodatkowe informacje w HashCheckRec
+// jeśli wszystko OK, CheckHash zwraca True, w przeciwnym razie zwraca False i dodatkowe informacje w HashCheckRec
 function CheckHash(Hash: string; HashType: TJPHashType; var HashCheckRec: THashCheckRec): Boolean;
 function HashTypeToStr(const HashType: TJPHashType; StrUnknownHash: string = ''): string;
+function StrToHashType(s: string; Default: TJPHashType = htNone): TJPHashType;
 procedure ClearHashResultRec(var hrr: THashResultRec);
 
 function IsChecksum(const HashType: TJPHashType): Boolean;
@@ -212,9 +218,99 @@ function IsSha3Hash(const HashType: TJPHashType): Boolean;
 function HashReverseBytes(A: LongInt): LongInt; {-rotate byte of LongInt}
 function GetSpeedValue_MB_per_sec(const FileSize: Int64; const ElapsedTimeMs: DWORD; ErrorValue: Double = 0): Double;
 
+function GetPossibleHashes(HashStr: string; bAddZeroIfOddLength: Boolean = True): THashTypeDynArray;
+
 
 
 implementation
+
+
+
+function GetPossibleHashes(HashStr: string; bAddZeroIfOddLength: Boolean = True): THashTypeDynArray;
+var
+  Len: integer;
+
+  procedure Add(const ht: TJPHashType);
+  begin
+    SetLength(Result, Length(Result) + 1);
+    Result[Length(Result) - 1] := ht;
+  end;
+
+begin
+  SetLength(Result, 0);
+  HashStr := RemoveAll(HashStr, ' ');
+  HashStr := RemoveAll(HashStr, '-');
+  Len := Length(HashStr);
+  if Odd(Len) then
+    if bAddZeroIfOddLength then HashStr := '0' + HashStr
+    else Exit;
+
+  if Len = 4 then Add(htCrc16);
+
+  case Len of
+    4: Add(htCrc16);
+    6: Add(htCrc24);
+    8:
+      begin
+        Add(htCrc32);
+        Add(htAdler32);
+      end;
+    16: Add(htCrc64);
+    32:
+      begin
+        Add(htMd2);
+        Add(htMd4);
+        Add(htMd5);
+        Add(htRipeMD);
+        Add(htRipeMD128);
+        Add(htSnefru128);
+        Add(htED2K);
+        //Add(htAICH);
+      end;
+    40:
+      begin
+        Add(htRipeMD160);
+        Add(htSha0);
+        Add(htSha1);
+        Add(htHas160);
+        //Add(htBTIH);
+      end;
+    48: Add(htTiger);
+    56:
+      begin
+        Add(htSha2_224);
+        Add(htSha2_512_224);
+        Add(htSha3_224);
+      end;
+    64:
+      begin
+        Add(htRipeMD256);
+        Add(htSha2_256);
+        Add(htSha2_512_256);
+        Add(htSha3_256);
+        Add(htShake128);
+        Add(htSnefru256);
+        Add(htEdonr256);
+        Add(htGost);
+        Add(htGostCryptopro);
+        Add(htHaval);
+      end;
+    80: Add(htRipeMD320);
+    96:
+      begin
+        Add(htSha2_384);
+        Add(htSha3_384);
+      end;
+    128:
+      begin
+        Add(htSha2_512);
+        Add(htSha3_512);
+        Add(htShake256);
+        Add(htWhirlpool);
+      end;
+  end;
+
+end;
 
 
 
@@ -314,6 +410,64 @@ begin
   end;
 end;
 
+function StrToHashType(s: string; Default: TJPHashType = htNone): TJPHashType;
+begin
+  s := RemoveAll(s, ' ');
+  s := RemoveAll(s, '-');
+  s := ReplaceAll(s, '\', '/');
+  s := LowerCase(s);
+
+  if (s = '') or (s = 'none') then Result := htNone
+  else if s = 'crc16' then Result := htCrc16
+  else if s = 'crc24' then Result := htCrc24
+  else if s = 'crc32' then Result := htCrc32
+  else if s = 'crc64' then Result := htCrc64
+  else if s = 'adler32' then Result := htAdler32
+
+  else if s = 'md2' then Result := htMd2
+  else if s = 'md4' then Result := htMd4
+  else if s = 'md5' then Result := htMd5
+  else if s = 'ripemd' then Result := htRipeMD
+  else if s = 'ripemd128' then Result := htRipeMD128
+  else if s = 'ripemd160' then Result := htRipeMD160
+  else if s = 'ripemd256' then Result := htRipeMD256
+  else if s = 'ripemd320' then Result := htRipeMD320
+
+  else if s = 'sha0' then Result := htSha0
+  else if s = 'sha1' then Result := htSha1
+  else if (s = 'sha2224') or (s = 'sha224') then Result := htSha2_224
+  else if (s = 'sha2256') or (s = 'sha256') then Result := htSha2_256
+  else if (s = 'sha2384') or (s = 'sha384') then Result := htSha2_384
+  else if (s = 'sha2512') or (s = 'sha512') then Result := htSha2_512
+  else if (s = 'sha2512/224') or (s = 'sha512/224') then Result := htSha2_512_224
+  else if (s = 'sha2512/256') or (s = 'sha512/256') then Result := htSha2_512_256
+
+  else if s = 'sha3224' then Result := htSha3_224
+  else if s = 'sha3256' then Result := htSha3_256
+  else if s = 'sha3384' then Result := htSha3_384
+  else if s = 'sha3512' then Result := htSha3_512
+
+  else if s = 'shake128' then Result := htShake128
+  else if s = 'shake256' then Result := htShake256
+  else if s = 'whirlpool' then Result := htWhirlpool
+
+  else if s = 'snefru128' then Result := htSnefru128
+  else if s = 'snefru256' then Result := htSnefru256
+
+  else if s = 'edonr256' then Result := htEdonr256
+  else if s = 'edonr512' then Result := htEdonr512
+
+  else if s = 'gost' then Result := htGost
+  else if s = 'gostcryptopro' then Result := htGostCryptopro
+
+  else if s = 'has160' then Result := htHas160
+  else if s = 'tiger' then Result := htTiger
+  else if s = 'ed2k' then Result := htED2K
+  else if s = 'haval' then Result := htHaval
+
+  else Result := Default;
+end;
+
 function HashTypeToStr(const HashType: TJPHashType; StrUnknownHash: string = ''): string;
 begin
   case HashType of
@@ -334,17 +488,17 @@ begin
 
     htSha0: Result := 'SHA-0';
     htSha1: Result := 'SHA-1';
-    htSha2_224: Result := 'SHA-2-224';
-    htSha2_256: Result := 'SHA-2-256';
-    htSha2_384: Result := 'SHA-2-384';
-    htSha2_512: Result := 'SHA-2-512';
-    htSha2_512_224: Result := 'SHA-2-512/224';
-    htSha2_512_256: Result := 'SHA-2-512/256';
+    htSha2_224: Result := 'SHA-2 224';
+    htSha2_256: Result := 'SHA-2 256';
+    htSha2_384: Result := 'SHA-2 384';
+    htSha2_512: Result := 'SHA-2 512';
+    htSha2_512_224: Result := 'SHA-2 512/224';
+    htSha2_512_256: Result := 'SHA-2 512/256';
 
-    htSha3_224: Result := 'SHA-3-224';
-    htSha3_256: Result := 'SHA-3-256';
-    htSha3_384: Result := 'SHA-3-384';
-    htSha3_512: Result := 'SHA-3-512';
+    htSha3_224: Result := 'SHA-3 224';
+    htSha3_256: Result := 'SHA-3 256';
+    htSha3_384: Result := 'SHA-3 384';
+    htSha3_512: Result := 'SHA-3 512';
 
     htShake128: Result := 'SHAKE-128';
     htShake256: Result := 'SHAKE-256';
@@ -374,7 +528,7 @@ begin
   end;
 end;
 
-function GetHashLen(HashType: TJPHashType; ErrorResult: integer = -1): integer;
+function GetHashStrLength(HashType: TJPHashType; ErrorResult: integer = -1): integer;
 begin
   case HashType of
     htCrc16: Result := HASH_LEN_CRC16;
@@ -435,13 +589,38 @@ begin
   end;
 end;
 
+function GetHashDigestLength(const HashType: TJPHashType; ErrorResult: integer = -1): integer;
+var
+  StrLen: integer;
+begin
+  Result := ErrorResult;
+  StrLen := GetHashStrLength(HashType, ErrorResult);
+  if StrLen = ErrorResult then Exit;
+  Result := StrLen div 2;
+end;
+
+function GetHashByteLength(const HashType: TJPHashType; ErrorResult: integer = -1): integer;
+begin
+  Result := GetHashDigestLength(HashType, ErrorResult);
+end;
+
+function GetHashBitLength(const HashType: TJPHashType; ErrorResult: integer = -1): integer;
+var
+  x: integer;
+begin
+  Result := ErrorResult;
+  x := GetHashDigestLength(HashType, ErrorResult);
+  if x = ErrorResult then Exit;
+  Result := x * 8;
+end;
+
 function IsValidHashLen(const Hash: string; HashType: TJPHashType): Boolean;
 var
   HashLen: integer;
 begin
   HashLen := Length(Hash);
   if Odd(HashLen) then Result := False
-  else Result := HashLen = GetHashLen(HashType, -1);
+  else Result := HashLen = GetHashStrLength(HashType, -1);
 end;
 
 function IsValidHashStr(const Hash: string): Boolean;
@@ -453,7 +632,7 @@ function CheckHash(Hash: string; HashType: TJPHashType; var HashCheckRec: THashC
 begin
   HashCheckRec.ValidChars := IsValidHashStr(Hash);
   HashCheckRec.ValidLen := IsValidHashLen(Hash, HashType);
-  HashCheckRec.ExpectedLen := GetHashLen(HashType);
+  HashCheckRec.ExpectedLen := GetHashStrLength(HashType);
   Result := HashCheckRec.ValidChars and HashCheckRec.ValidLen;
 end;
 
