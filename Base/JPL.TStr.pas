@@ -89,6 +89,10 @@ type
     class function TrimFromEnd(const s: string; const StringToCut: string): string; static;
     class function TrimFromStart(const s: string; const StringToCut: string): string; static;
 
+    class function CharCount(const s: string; const AChar: Char): integer; static;
+    class function FirstCharPos(const s: string; const AChar: Char): integer; static;
+    class function LastCharPos(const s: string; const AChar: Char): integer; static;
+
     class property DecimalSeparator: Char read GetDecimalSeparator write SetDecimalSeparator;
     class property ThousandSeparator: Char read GetThousandSeparator write SetThousandSeparator;
     class property DateSeparator: Char read GetDateSeparator write SetDateSeparator;
@@ -316,6 +320,41 @@ end;
 class function TStr.TrimFromStart(const s, StringToCut: string): string;
 begin
   Result := JPL.Strings.TrimFromStart(s, StringToCut);
+end;
+
+class function TStr.CharCount(const s: string; const AChar: Char): integer;
+var
+  i: integer;
+begin
+  Result := 0;
+  for i := 1 to Length(s) do
+    if s[i] = AChar then Inc(Result);
+end;
+
+class function TStr.FirstCharPos(const s: string; const AChar: Char): integer;
+var
+  i: integer;
+begin
+  Result := 0;
+  for i := 1 to Length(s) do
+    if s[i] = AChar then
+    begin
+      Result := i;
+      Break;
+    end;
+end;
+
+class function TStr.LastCharPos(const s: string; const AChar: Char): integer;
+var
+  i: integer;
+begin
+  Result := 0;
+  for i := Length(s) downto 1 do
+    if s[i] = AChar then
+    begin
+      Result := i;
+      Break;
+    end;
 end;
 
 class function TStr.GetDecimalSeparator: Char;
