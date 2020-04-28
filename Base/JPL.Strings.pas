@@ -144,7 +144,9 @@ function TrimENDL(const s: string): string; // removes trailing sLineBreak (ENDL
 function TrimExtDot(const FileExtension: string): string;
 function AddFileNameSuffix(const FileName, Suffix: string): string;
 function AddFileNamePrefix(const FileName, Prefix: string): string;
+function TrimFileExt(const FileName: string): string;
 procedure SplitFileName(fName: string; out Dir, BaseFileName, Ext: string; bIncludePathDelimiter: Boolean = True; bRemoveDotFromExt: Boolean = False);
+function PathIsAbsolute(const FileName: string): Boolean;
 
 function GetDecimalSeparator: Char;
 
@@ -164,6 +166,15 @@ begin
   {$ENDIF}
 end;
 
+function PathIsAbsolute(const FileName: string): Boolean;
+begin
+  {$IFDEF MSWINDOWS}
+  Result := (Length(FileName) >= 3) and CharInSet(FileName[1], ['A'..'Z','a'..'z']) and (FileName[2] = ':') and CharInSet(FileName[3], ['/', '\']);
+  {$ELSE}
+  // UNIX / Linux
+  Result := (Length(FileName) > 0) and (FileName[1] = '/');
+  {$ENDIF}
+end;
 
 function SplitStr(const InStr: string; out LeftStr, RightStr: string; const Separator: string): Boolean;
 var
@@ -238,6 +249,11 @@ begin
   if Prefix = '' then Exit(FileName);
   SplitFileName(FileName, Dir, ShortName, Ext, False, False);
   Result := Dir + PathDelim + Prefix + ShortName + Ext;
+end;
+
+function TrimFileExt(const FileName: string): string;
+begin
+  Result := ChangeFileExt(FileName, '');
 end;
 
 function TrimENDL(const s: string): string;
