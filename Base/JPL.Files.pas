@@ -117,6 +117,7 @@ function GetUniqueFileName(Prefix: string = ''; Len: BYTE = 10; Ext: string = ''
 
 function GetFiles(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): TStringDynArray;
 function GetDirectories(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): TStringDynArray;
+function SubdirectoryCount(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): integer;
 
 
 implementation
@@ -160,6 +161,11 @@ begin
   finally
     sl.Free;
   end;
+end;
+
+function SubdirectoryCount(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): integer;
+begin
+  Result := Length(GetDirectories(Directory, SearchPattern, RecurseDepth));
 end;
 
 function GetIncFileName(const fName: string; NumPrefix: string = '_'; xpad: integer = 3): string;
@@ -319,6 +325,7 @@ begin
     FileTimeToLocalFileTime(SearchRec.FindData.ftCreationTime, FileTime);
     FileTimeToSystemTime(FileTime, SysTime);
     Result := SystemTimeToDateTime(SysTime);
+    SysUtils.FindClose(SearchRec);
   end
   else Result := 0;
 end;
@@ -343,6 +350,7 @@ begin
     FileTimeToSystemTime(FileTime, SysTime);
     LastWriteTime := SystemTimeToDateTime(SysTime);
 
+    SysUtils.FindClose(SearchRec);
     Result := True;
   end
   else Result := False;
