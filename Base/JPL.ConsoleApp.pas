@@ -2,8 +2,12 @@
 
 {
   Jacek Pazera
-  http://www.pazera-software.com
-  Last mod: 2018.03.18
+  https://www.pazera-software.com
+  https://github.com/jackdp
+
+  2020.08.18
+  Added JPL.Conversion to uses, removed helpers: Pad, itos
+  Removed const ENDL
 }
 
 {$I .\..\jp.inc}
@@ -17,9 +21,12 @@
 interface
 
 uses
-  {$IFDEF MSWINDOWS} Windows, ShellApi, {$ENDIF}
+  {$IFDEF MSWINDOWS}
+  Windows, {$IFDEF DCC}ShellApi,{$ENDIF}
+  {$ENDIF}
   SysUtils, Types,
   JPL.Strings,
+  JPL.Conversion,
   JPL.Console,
   JPL.SimpleLogger,
   JPL.CmdLineParser;
@@ -66,7 +73,6 @@ const
     {$ENDIF}
   {$ENDIF}
 
-  ENDL = sLineBreak;
 
 {
   App variables:
@@ -238,28 +244,6 @@ type
 
 implementation
 
-{$region '              helpers               '}
-function itos(const x: integer): string;
-begin
-  Result := IntToSTr(x);
-end;
-
-function Pad(Text: string; i: integer; znak: char = ' '): string;
-var
-  x, y, k: integer;
-  s: string;
-begin
-  s := '';
-  if Length(Text) < i then
-  begin
-    x := length(Text);
-    y := i - x;
-    for k := 1 to y do s := s + znak;
-    Text := s + Text;
-  end;
-  Result := Text;
-end;
-{$endregion helpers}
 
 constructor TJPConsoleApp.Create;
 begin
