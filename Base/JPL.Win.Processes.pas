@@ -11,10 +11,11 @@ uses
   Windows, SysUtils, Classes, {$IFDEF FPC}JwaTlHelp32, JwaPsApi{$ELSE}TlHelp32, PsAPI{$ENDIF}, ShellAPI;
 
 
-function GetProcessFileName(const pID: DWORD): string;
+function GetProcessFileName(const ProcessID: DWORD): string;
 function IsAppRunning(const FileName: string): Boolean;
 function GetThreadFileName(const tID: DWORD): string;
-procedure RunAsAdmin(hWnd: HWND; FileName, Parameters: string);
+procedure RunAsAdmin(const hWnd: HWND; const FileName, Parameters: string);
+function GetProcessModulesCount(const ProcessID: DWORD): integer;
 
 
 {$ENDIF} // MSWINDOWS
@@ -25,7 +26,27 @@ implementation
 
 {$IFDEF MSWINDOWS}
 
-procedure RunAsAdmin(hWnd: HWND; FileName, Parameters: string);
+
+function GetProcessModulesCount(const ProcessID: DWORD): integer;
+var
+  h: THandle;
+  me32: TModuleEntry32;
+begin
+  Result := 0;
+
+  h := CreateToolHelp32Snapshot(TH32CS_SNAPMODULE, ProcessID);
+  try
+    me32.dwSize := SizeOf(TModuleEntry32);
+    if Module32First(h, me32) then
+    repeat
+      if me32.th32ProcessID = ProcessID then Inc(Result);
+    until Integer(Module32Next(h, me32)) = 0;
+  finally
+    CloseHandle(h);
+  end;
+end;
+
+procedure RunAsAdmin(const hWnd: HWND; const FileName, Parameters: string);
 var
   {$IFDEF UNICODE}
   sei: TShellExecuteInfoW;
@@ -105,7 +126,7 @@ begin
   pe32.dwSize := SizeOf(TProcessEntry32);
   if integer(Process32First(snap, pe32)) <> 0 then
     repeat
-      if UpperCase(FileName) = UpperCase(GetProcessFileName(pe32.th32ProcessID)) then
+      if AnsiUpperCase(FileName) = AnsiUpperCase(GetProcessFileName(pe32.th32ProcessID)) then
       begin
         Result := True;
         Break;
@@ -114,7 +135,7 @@ begin
   CloseHandle(snap);
 end;
 
-function GetProcessFileName(const pID: DWORD): string;
+function GetProcessFileName(const ProcessID: DWORD): string;
 var
   hProc: HWND;
   buffer: array[0..1023] of Char;
@@ -125,7 +146,7 @@ begin
 
   if (Win32Platform = VER_PLATFORM_WIN32_NT) and (Win32MajorVersion > 3) then
   begin
-    hProc := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, False, pID);
+    hProc := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, False, ProcessID);
     if hProc <> 0 then
     begin
       FillChar(buffer{%H-}, SizeOf(buffer), 0);
@@ -140,7 +161,7 @@ begin
     pe32.dwSize := SizeOf(TProcessEntry32);
     if integer(Process32First(snap, pe32)) <> 0 then
       repeat
-        if integer(pID) = integer(pe32.th32ProcessID) then
+        if integer(ProcessID) = integer(pe32.th32ProcessID) then
         begin
           Result := pe32.szExeFile;
           Break;
