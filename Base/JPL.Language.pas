@@ -21,10 +21,175 @@ uses
   SysUtils;
 
 type
+
   TJPCodePageNameRec = record
     DotNETName: string;
     FullName: string;
   end;
+
+  TCodePageRec = record
+    CodePage: Word;
+    DotNETName: string;
+    FullName: string;
+  end;
+
+
+const
+
+  ArrCodePages: array[0..151] of TCodePageRec = (
+    (CodePage:    37; DotNETName: 'IBM037'; FullName: 'IBM EBCDIC US-Canada'),
+    (CodePage:   437; DotNETName: 'IBM437'; FullName: 'OEM United States'),
+    (CodePage:   500; DotNETName: 'IBM500'; FullName: 'IBM EBCDIC International'),
+    (CodePage:   708; DotNETName: 'ASMO-708'; FullName: 'Arabic (ASMO 708)'),
+    (CodePage:   709; DotNETName: ''; FullName: 'Arabic (ASMO-449+, BCON V4)'),
+    (CodePage:   710; DotNETName: ''; FullName: 'Arabic - Transparent Arabic'),
+    (CodePage:   720; DotNETName: 'DOS-720'; FullName: 'Arabic (Transparent ASMO); Arabic (DOS)'),
+    (CodePage:   737; DotNETName: 'ibm737'; FullName: 'OEM Greek (formerly 437G); Greek (DOS)'),
+    (CodePage:   775; DotNETName: 'ibm775'; FullName: 'OEM Baltic; Baltic (DOS)'),
+    (CodePage:   850; DotNETName: 'ibm850'; FullName: 'OEM Multilingual Latin 1; Western European (DOS)'),
+    (CodePage:   852; DotNETName: 'ibm852'; FullName: 'OEM Latin 2; Central European (DOS)'),
+    (CodePage:   855; DotNETName: 'IBM855'; FullName: 'OEM Cyrillic (primarily Russian)'),
+    (CodePage:   857; DotNETName: 'ibm857'; FullName: 'OEM Turkish; Turkish (DOS)'),
+    (CodePage:   858; DotNETName: 'IBM00858'; FullName: 'OEM Multilingual Latin 1 + Euro symbol'),
+    (CodePage:   860; DotNETName: 'IBM860'; FullName: 'OEM Portuguese; Portuguese (DOS)'),
+    (CodePage:   861; DotNETName: 'ibm861'; FullName: 'OEM Icelandic; Icelandic (DOS)'),
+    (CodePage:   862; DotNETName: 'DOS-862'; FullName: 'OEM Hebrew; Hebrew (DOS)'),
+    (CodePage:   863; DotNETName: 'IBM863'; FullName: 'OEM French Canadian; French Canadian (DOS)'),
+    (CodePage:   864; DotNETName: 'IBM864'; FullName: 'OEM Arabic; Arabic (864)'),
+    (CodePage:   865; DotNETName: 'IBM865'; FullName: 'OEM Nordic; Nordic (DOS)'),
+    (CodePage:   866; DotNETName: 'cp866'; FullName: 'OEM Russian; Cyrillic (DOS)'),
+    (CodePage:   869; DotNETName: 'ibm869'; FullName: 'OEM Modern Greek; Greek, Modern (DOS)'),
+    (CodePage:   870; DotNETName: 'IBM870'; FullName: 'IBM EBCDIC Multilingual/ROECE (Latin 2); IBM EBCDIC Multilingual Latin 2'),
+    (CodePage:   874; DotNETName: 'windows-874'; FullName: 'ANSI/OEM Thai (ISO 8859-11); Thai (Windows)'),
+    (CodePage:   875; DotNETName: 'cp875'; FullName: 'IBM EBCDIC Greek Modern'),
+    (CodePage:   932; DotNETName: 'shift_jis'; FullName: 'ANSI/OEM Japanese; Japanese (Shift-JIS)'),
+    (CodePage:   936; DotNETName: 'gb2312'; FullName: 'ANSI/OEM Simplified Chinese (PRC, Singapore); Chinese Simplified (GB2312)'),
+    (CodePage:   949; DotNETName: 'ks_c_5601-1987'; FullName: 'ANSI/OEM Korean (Unified Hangul Code)'),
+    (CodePage:   950; DotNETName: 'big5'; FullName: 'ANSI/OEM Traditional Chinese (Taiwan; Hong Kong SAR, PRC); Chinese Traditional (Big5)'),
+    (CodePage:  1026; DotNETName: 'IBM1026'; FullName: 'IBM EBCDIC Turkish (Latin 5)'),
+    (CodePage:  1047; DotNETName: 'IBM01047'; FullName: 'IBM EBCDIC Latin 1/Open System'),
+    (CodePage:  1140; DotNETName: 'IBM01140'; FullName: 'IBM EBCDIC US-Canada (037 + Euro symbol); IBM EBCDIC (US-Canada-Euro)'),
+    (CodePage:  1141; DotNETName: 'IBM01141'; FullName: 'IBM EBCDIC Germany (20273 + Euro symbol); IBM EBCDIC (Germany-Euro)'),
+    (CodePage:  1142; DotNETName: 'IBM01142'; FullName: 'IBM EBCDIC Denmark-Norway (20277 + Euro symbol); IBM EBCDIC (Denmark-Norway-Euro)'),
+    (CodePage:  1143; DotNETName: 'IBM01143'; FullName: 'IBM EBCDIC Finland-Sweden (20278 + Euro symbol); IBM EBCDIC (Finland-Sweden-Euro)'),
+    (CodePage:  1144; DotNETName: 'IBM01144'; FullName: 'IBM EBCDIC Italy (20280 + Euro symbol); IBM EBCDIC (Italy-Euro)'),
+    (CodePage:  1145; DotNETName: 'IBM01145'; FullName: 'IBM EBCDIC Latin America-Spain (20284 + Euro symbol); IBM EBCDIC (Spain-Euro)'),
+    (CodePage:  1146; DotNETName: 'IBM01146'; FullName: 'IBM EBCDIC United Kingdom (20285 + Euro symbol); IBM EBCDIC (UK-Euro)'),
+    (CodePage:  1147; DotNETName: 'IBM01147'; FullName: 'IBM EBCDIC France (20297 + Euro symbol); IBM EBCDIC (France-Euro)'),
+    (CodePage:  1148; DotNETName: 'IBM01148'; FullName: 'IBM EBCDIC International (500 + Euro symbol); IBM EBCDIC (International-Euro)'),
+    (CodePage:  1149; DotNETName: 'IBM01149'; FullName: 'IBM EBCDIC Icelandic (20871 + Euro symbol); IBM EBCDIC (Icelandic-Euro)'),
+    (CodePage:  1200; DotNETName: 'utf-16'; FullName: 'Unicode UTF-16, little endian byte order (BMP of ISO 10646)'),
+    (CodePage:  1201; DotNETName: 'unicodeFFFE'; FullName: 'Unicode UTF-16, big endian byte order'),
+    (CodePage:  1250; DotNETName: 'windows-1250'; FullName: 'ANSI Central European; Central European (Windows)'),
+    (CodePage:  1251; DotNETName: 'windows-1251'; FullName: 'ANSI Cyrillic; Cyrillic (Windows)'),
+    (CodePage:  1252; DotNETName: 'windows-1252'; FullName: 'ANSI Latin 1; Western European (Windows)'),
+    (CodePage:  1253; DotNETName: 'windows-1253'; FullName: 'ANSI Greek; Greek (Windows)'),
+    (CodePage:  1254; DotNETName: 'windows-1254'; FullName: 'ANSI Turkish; Turkish (Windows)'),
+    (CodePage:  1255; DotNETName: 'windows-1255'; FullName: 'ANSI Hebrew; Hebrew (Windows)'),
+    (CodePage:  1256; DotNETName: 'windows-1256'; FullName: 'ANSI Arabic; Arabic (Windows)'),
+    (CodePage:  1257; DotNETName: 'windows-1257'; FullName: 'ANSI Baltic; Baltic (Windows)'),
+    (CodePage:  1258; DotNETName: 'windows-1258'; FullName: 'ANSI/OEM Vietnamese; Vietnamese (Windows)'),
+    (CodePage:  1361; DotNETName: 'Johab'; FullName: 'Korean (Johab)'),
+    (CodePage: 10000; DotNETName: 'macintosh'; FullName: 'MAC Roman; Western European (Mac)'),
+    (CodePage: 10001; DotNETName: 'x-mac-japanese'; FullName: 'Japanese (Mac)'),
+    (CodePage: 10002; DotNETName: 'x-mac-chinesetrad'; FullName: 'MAC Traditional Chinese (Big5); Chinese Traditional (Mac)'),
+    (CodePage: 10003; DotNETName: 'x-mac-korean'; FullName: 'Korean (Mac)'),
+    (CodePage: 10004; DotNETName: 'x-mac-arabic'; FullName: 'Arabic (Mac)'),
+    (CodePage: 10005; DotNETName: 'x-mac-hebrew'; FullName: 'Hebrew (Mac)'),
+    (CodePage: 10006; DotNETName: 'x-mac-greek'; FullName: 'Greek (Mac)'),
+    (CodePage: 10007; DotNETName: 'x-mac-cyrillic'; FullName: 'Cyrillic (Mac)'),
+    (CodePage: 10008; DotNETName: 'x-mac-chinesesimp'; FullName: 'MAC Simplified Chinese (GB 2312); Chinese Simplified (Mac)'),
+    (CodePage: 10010; DotNETName: 'x-mac-romanian'; FullName: 'Romanian (Mac)'),
+    (CodePage: 10017; DotNETName: 'x-mac-ukrainian'; FullName: 'Ukrainian (Mac)'),
+    (CodePage: 10021; DotNETName: 'x-mac-thai'; FullName: 'Thai (Mac)'),
+    (CodePage: 10029; DotNETName: 'x-mac-ce'; FullName: 'MAC Latin 2; Central European (Mac)'),
+    (CodePage: 10079; DotNETName: 'x-mac-icelandic'; FullName: 'Icelandic (Mac)'),
+    (CodePage: 10081; DotNETName: 'x-mac-turkish'; FullName: 'Turkish (Mac)'),
+    (CodePage: 10082; DotNETName: 'x-mac-croatian'; FullName: 'Croatian (Mac)'),
+    (CodePage: 12000; DotNETName: 'utf-32'; FullName: 'Unicode UTF-32, little endian byte order'),
+    (CodePage: 12001; DotNETName: 'utf-32BE'; FullName: 'Unicode UTF-32, big endian byte order'),
+    (CodePage: 20000; DotNETName: 'x-Chinese_CNS'; FullName: 'CNS Taiwan; Chinese Traditional (CNS)'),
+    (CodePage: 20001; DotNETName: 'x-cp20001'; FullName: 'TCA Taiwan'),
+    (CodePage: 20002; DotNETName: 'x_Chinese-Eten'; FullName: 'Eten Taiwan; Chinese Traditional (Eten)'),
+    (CodePage: 20003; DotNETName: 'x-cp20003'; FullName: 'IBM5550 Taiwan'),
+    (CodePage: 20004; DotNETName: 'x-cp20004'; FullName: 'TeleText Taiwan'),
+    (CodePage: 20005; DotNETName: 'x-cp20005'; FullName: 'Wang Taiwan'),
+    (CodePage: 20105; DotNETName: 'x-IA5'; FullName: 'IA5 (IRV International Alphabet No. 5, 7-bit); Western European (IA5)'),
+    (CodePage: 20106; DotNETName: 'x-IA5-German'; FullName: 'IA5 German (7-bit)'),
+    (CodePage: 20107; DotNETName: 'x-IA5-Swedish'; FullName: 'IA5 Swedish (7-bit)'),
+    (CodePage: 20108; DotNETName: 'x-IA5-Norwegian'; FullName: 'IA5 Norwegian (7-bit)'),
+    (CodePage: 20127; DotNETName: 'us-ascii'; FullName: 'US-ASCII (7-bit)'),
+    (CodePage: 20261; DotNETName: 'x-cp20261'; FullName: 'T.61'),
+    (CodePage: 20269; DotNETName: 'x-cp20269'; FullName: 'ISO 6937 Non-Spacing Accent'),
+    (CodePage: 20273; DotNETName: 'IBM273'; FullName: 'IBM EBCDIC Germany'),
+    (CodePage: 20277; DotNETName: 'IBM277'; FullName: 'IBM EBCDIC Denmark-Norway'),
+    (CodePage: 20278; DotNETName: 'IBM278'; FullName: 'IBM EBCDIC Finland-Sweden'),
+    (CodePage: 20280; DotNETName: 'IBM280'; FullName: 'IBM EBCDIC Italy'),
+    (CodePage: 20284; DotNETName: 'IBM284'; FullName: 'IBM EBCDIC Latin America-Spain'),
+    (CodePage: 20285; DotNETName: 'IBM285'; FullName: 'IBM EBCDIC United Kingdom'),
+    (CodePage: 20290; DotNETName: 'IBM290'; FullName: 'IBM EBCDIC Japanese Katakana Extended'),
+    (CodePage: 20297; DotNETName: 'IBM297'; FullName: 'IBM EBCDIC France'),
+    (CodePage: 20420; DotNETName: 'IBM420'; FullName: 'IBM EBCDIC Arabic'),
+    (CodePage: 20423; DotNETName: 'IBM423'; FullName: 'IBM EBCDIC Greek'),
+    (CodePage: 20424; DotNETName: 'IBM424'; FullName: 'IBM EBCDIC Hebrew'),
+    (CodePage: 20833; DotNETName: 'x-EBCDIC-KoreanExtended'; FullName: 'IBM EBCDIC Korean Extended'),
+    (CodePage: 20838; DotNETName: 'IBM-Thai'; FullName: 'IBM EBCDIC Thai'),
+    (CodePage: 20866; DotNETName: 'koi8-r'; FullName: 'Russian (KOI8-R); Cyrillic (KOI8-R)'),
+    (CodePage: 20871; DotNETName: 'IBM871'; FullName: 'IBM EBCDIC Icelandic'),
+    (CodePage: 20880; DotNETName: 'IBM880'; FullName: 'IBM EBCDIC Cyrillic Russian'),
+    (CodePage: 20905; DotNETName: 'IBM905'; FullName: 'IBM EBCDIC Turkish'),
+    (CodePage: 20924; DotNETName: 'IBM00924'; FullName: 'IBM EBCDIC Latin 1/Open System (1047 + Euro symbol)'),
+    (CodePage: 20932; DotNETName: 'EUC-JP'; FullName: 'Japanese (JIS 0208-1990 and 0212-1990)'),
+    (CodePage: 20936; DotNETName: 'x-cp20936'; FullName: 'Simplified Chinese (GB2312); Chinese Simplified (GB2312-80)'),
+    (CodePage: 20949; DotNETName: 'x-cp20949'; FullName: 'Korean Wansung'),
+    (CodePage: 21025; DotNETName: 'cp1025'; FullName: 'IBM EBCDIC Cyrillic Serbian-Bulgarian'),
+    (CodePage: 21027; DotNETName: ''; FullName: ''), // (deprecated)
+    (CodePage: 21866; DotNETName: 'koi8-u'; FullName: 'Ukrainian (KOI8-U); Cyrillic (KOI8-U)'),
+    (CodePage: 28591; DotNETName: 'iso-8859-1'; FullName: 'ISO 8859-1 Latin 1; Western European (ISO)'),
+    (CodePage: 28592; DotNETName: 'iso-8859-2'; FullName: 'ISO 8859-2 Central European; Central European (ISO)'),
+    (CodePage: 28593; DotNETName: 'iso-8859-3'; FullName: 'ISO 8859-3 Latin 3'),
+    (CodePage: 28594; DotNETName: 'iso-8859-4'; FullName: 'ISO 8859-4 Baltic'),
+    (CodePage: 28595; DotNETName: 'iso-8859-5'; FullName: 'ISO 8859-5 Cyrillic'),
+    (CodePage: 28596; DotNETName: 'iso-8859-6'; FullName: 'ISO 8859-6 Arabic'),
+    (CodePage: 28597; DotNETName: 'iso-8859-7'; FullName: 'ISO 8859-7 Greek'),
+    (CodePage: 28598; DotNETName: 'iso-8859-8'; FullName: 'ISO 8859-8 Hebrew; Hebrew (ISO-Visual)'),
+    (CodePage: 28599; DotNETName: 'iso-8859-9'; FullName: 'ISO 8859-9 Turkish'),
+    (CodePage: 28603; DotNETName: 'iso-8859-13'; FullName: 'ISO 8859-13 Estonian'),
+    (CodePage: 28605; DotNETName: 'iso-8859-15'; FullName: 'ISO 8859-15 Latin 9'),
+    (CodePage: 29001; DotNETName: 'x-Europa'; FullName: 'Europa 3'),
+    (CodePage: 38598; DotNETName: 'iso-8859-8-i'; FullName: 'ISO 8859-8 Hebrew; Hebrew (ISO-Logical)'),
+    (CodePage: 50220; DotNETName: 'iso-2022-jp'; FullName: 'ISO 2022 Japanese with no halfwidth Katakana; Japanese (JIS)'),
+    (CodePage: 50221; DotNETName: 'csISO2022JP'; FullName: 'ISO 2022 Japanese with halfwidth Katakana; Japanese (JIS-Allow 1 byte Kana)'),
+    (CodePage: 50222; DotNETName: 'iso-2022-jp'; FullName: 'ISO 2022 Japanese JIS X 0201-1989; Japanese (JIS-Allow 1 byte Kana - SO/SI)'),
+    (CodePage: 50225; DotNETName: 'iso-2022-kr'; FullName: 'ISO 2022 Korean'),
+    (CodePage: 50227; DotNETName: 'x-cp50227'; FullName: 'ISO 2022 Simplified Chinese; Chinese Simplified (ISO 2022)'),
+    (CodePage: 50229; DotNETName: ''; FullName: 'ISO 2022 Traditional Chinese'),
+    (CodePage: 50930; DotNETName: ''; FullName: 'EBCDIC Japanese (Katakana) Extended'),
+    (CodePage: 50931; DotNETName: ''; FullName: 'EBCDIC US-Canada and Japanese'),
+    (CodePage: 50933; DotNETName: ''; FullName: 'EBCDIC Korean Extended and Korean'),
+    (CodePage: 50935; DotNETName: ''; FullName: 'EBCDIC Simplified Chinese Extended and Simplified Chinese'),
+    (CodePage: 50936; DotNETName: ''; FullName: 'EBCDIC Simplified Chinese'),
+    (CodePage: 50937; DotNETName: ''; FullName: 'EBCDIC US-Canada and Traditional Chinese'),
+    (CodePage: 50939; DotNETName: ''; FullName: 'EBCDIC Japanese (Latin) Extended and Japanese'),
+    (CodePage: 51932; DotNETName: 'euc-jp'; FullName: 'EUC Japanese'),
+    (CodePage: 51936; DotNETName: 'EUC-CN'; FullName: 'EUC Simplified Chinese; Chinese Simplified (EUC)'),
+    (CodePage: 51949; DotNETName: 'euc-kr'; FullName: 'EUC Korean'),
+    (CodePage: 51950; DotNETName: ''; FullName: 'EUC Traditional Chinese'),
+    (CodePage: 52936; DotNETName: 'hz-gb-2312'; FullName: 'HZ-GB2312 Simplified Chinese; Chinese Simplified (HZ)'),
+    (CodePage: 54936; DotNETName: 'GB18030'; FullName: ''),
+    (CodePage: 57002; DotNETName: 'x-iscii-de'; FullName: 'ISCII Devanagari'),
+    (CodePage: 57003; DotNETName: 'x-iscii-be'; FullName: 'ISCII Bangla'),
+    (CodePage: 57004; DotNETName: 'x-iscii-ta'; FullName: 'ISCII Tamil'),
+    (CodePage: 57005; DotNETName: 'x-iscii-te'; FullName: 'ISCII Telugu'),
+    (CodePage: 57006; DotNETName: 'x-iscii-as'; FullName: 'ISCII Assamese'),
+    (CodePage: 57007; DotNETName: 'x-iscii-or'; FullName: 'ISCII Odia'),
+    (CodePage: 57008; DotNETName: 'x-iscii-ka'; FullName: 'ISCII Kannada'),
+    (CodePage: 57009; DotNETName: 'x-iscii-ma'; FullName: 'ISCII Malayalam'),
+    (CodePage: 57010; DotNETName: 'x-iscii-gu'; FullName: 'ISCII Gujarati'),
+    (CodePage: 57011; DotNETName: 'x-iscii-pa'; FullName: 'ISCII Punjabi'),
+    (CodePage: 65000; DotNETName: 'utf-7'; FullName: 'Unicode (UTF-7)'),
+    (CodePage: 65001; DotNETName: 'utf-8'; FullName: 'Unicode (UTF-8)')
+  );
 
 
 {$IFDEF MSWINDOWS}
@@ -64,172 +229,19 @@ begin
 end;
 
 procedure GetCodePageNames(const CP: WORD; out cpnr: TJPCodePageNameRec);
-
-  procedure Save(const DN, FN: string);
-  begin
-    cpnr.DotNETName := DN;
-    cpnr.FullName := FN;
-  end;
-
+var
+  i: integer;
 begin
-  case CP of
-    037: Save('IBM037', 'IBM EBCDIC US-Canada');
-    437: Save('IBM437', 'OEM United States');
-    500: Save('IBM500', 'IBM EBCDIC International');
-    708: Save('ASMO-708', 'Arabic (ASMO 708)');
-    709: Save('', 'Arabic (ASMO-449+, BCON V4)');
-    710: Save('', 'Arabic - Transparent Arabic');
-    720: Save('DOS-720', 'Arabic (Transparent ASMO); Arabic (DOS)');
-    737: Save('ibm737', 'OEM Greek (formerly 437G); Greek (DOS)');
-    775: Save('ibm775', 'OEM Baltic; Baltic (DOS)');
-    850: Save('ibm850', 'OEM Multilingual Latin 1; Western European (DOS)');
-    852: Save('ibm852', 'OEM Latin 2; Central European (DOS)');
-    855: Save('IBM855', 'OEM Cyrillic (primarily Russian)');
-    857: Save('ibm857', 'OEM Turkish; Turkish (DOS)');
-    858: Save('IBM00858', 'OEM Multilingual Latin 1 + Euro symbol');
-    860: Save('IBM860', 'OEM Portuguese; Portuguese (DOS)');
-    861: Save('ibm861', 'OEM Icelandic; Icelandic (DOS)');
-    862: Save('DOS-862', 'OEM Hebrew; Hebrew (DOS)');
-    863: Save('IBM863', 'OEM French Canadian; French Canadian (DOS)');
-    864: Save('IBM864', 'OEM Arabic; Arabic (864)');
-    865: Save('IBM865', 'OEM Nordic; Nordic (DOS)');
-    866: Save('cp866', 'OEM Russian; Cyrillic (DOS)');
-    869: Save('ibm869', 'OEM Modern Greek; Greek, Modern (DOS)');
-    870: Save('IBM870', 'IBM EBCDIC Multilingual/ROECE (Latin 2); IBM EBCDIC Multilingual Latin 2');
-    874: Save('windows-874', 'ANSI/OEM Thai (ISO 8859-11); Thai (Windows)');
-    875: Save('cp875', 'IBM EBCDIC Greek Modern');
-    932: Save('shift_jis', 'ANSI/OEM Japanese; Japanese (Shift-JIS)');
-    936: Save('gb2312', 'ANSI/OEM Simplified Chinese (PRC, Singapore); Chinese Simplified (GB2312)');
-    949: Save('ks_c_5601-1987', 'ANSI/OEM Korean (Unified Hangul Code)');
-    950: Save('big5', 'ANSI/OEM Traditional Chinese (Taiwan; Hong Kong SAR, PRC); Chinese Traditional (Big5)');
-    1026: Save('IBM1026', 'IBM EBCDIC Turkish (Latin 5)');
-    1047: Save('IBM01047', 'IBM EBCDIC Latin 1/Open System');
-    1140: Save('IBM01140', 'IBM EBCDIC US-Canada (037 + Euro symbol); IBM EBCDIC (US-Canada-Euro)');
-    1141: Save('IBM01141', 'IBM EBCDIC Germany (20273 + Euro symbol); IBM EBCDIC (Germany-Euro)');
-    1142: Save('IBM01142', 'IBM EBCDIC Denmark-Norway (20277 + Euro symbol); IBM EBCDIC (Denmark-Norway-Euro)');
-    1143: Save('IBM01143', 'IBM EBCDIC Finland-Sweden (20278 + Euro symbol); IBM EBCDIC (Finland-Sweden-Euro)');
-    1144: Save('IBM01144', 'IBM EBCDIC Italy (20280 + Euro symbol); IBM EBCDIC (Italy-Euro)');
-    1145: Save('IBM01145', 'IBM EBCDIC Latin America-Spain (20284 + Euro symbol); IBM EBCDIC (Spain-Euro)');
-    1146: Save('IBM01146', 'IBM EBCDIC United Kingdom (20285 + Euro symbol); IBM EBCDIC (UK-Euro)');
-    1147: Save('IBM01147', 'IBM EBCDIC France (20297 + Euro symbol); IBM EBCDIC (France-Euro)');
-    1148: Save('IBM01148', 'IBM EBCDIC International (500 + Euro symbol); IBM EBCDIC (International-Euro)');
-    1149: Save('IBM01149', 'IBM EBCDIC Icelandic (20871 + Euro symbol); IBM EBCDIC (Icelandic-Euro)');
-    1200: Save('utf-16', 'Unicode UTF-16, little endian byte order (BMP of ISO 10646)'); //; available only to managed applications');
-    1201: Save('unicodeFFFE', 'Unicode UTF-16, big endian byte order'); //; available only to managed applications');
-    1250: Save('windows-1250', 'ANSI Central European; Central European (Windows)');
-    1251: Save('windows-1251', 'ANSI Cyrillic; Cyrillic (Windows)');
-    1252: Save('windows-1252', 'ANSI Latin 1; Western European (Windows)');
-    1253: Save('windows-1253', 'ANSI Greek; Greek (Windows)');
-    1254: Save('windows-1254', 'ANSI Turkish; Turkish (Windows)');
-    1255: Save('windows-1255', 'ANSI Hebrew; Hebrew (Windows)');
-    1256: Save('windows-1256', 'ANSI Arabic; Arabic (Windows)');
-    1257: Save('windows-1257', 'ANSI Baltic; Baltic (Windows)');
-    1258: Save('windows-1258', 'ANSI/OEM Vietnamese; Vietnamese (Windows)');
-    1361: Save('Johab', 'Korean (Johab)');
-    10000: Save('macintosh', 'MAC Roman; Western European (Mac)');
-    10001: Save('x-mac-japanese', 'Japanese (Mac)');
-    10002: Save('x-mac-chinesetrad', 'MAC Traditional Chinese (Big5); Chinese Traditional (Mac)');
-    10003: Save('x-mac-korean', 'Korean (Mac)');
-    10004: Save('x-mac-arabic', 'Arabic (Mac)');
-    10005: Save('x-mac-hebrew', 'Hebrew (Mac)');
-    10006: Save('x-mac-greek', 'Greek (Mac)');
-    10007: Save('x-mac-cyrillic', 'Cyrillic (Mac)');
-    10008: Save('x-mac-chinesesimp', 'MAC Simplified Chinese (GB 2312); Chinese Simplified (Mac)');
-    10010: Save('x-mac-romanian', 'Romanian (Mac)');
-    10017: Save('x-mac-ukrainian', 'Ukrainian (Mac)');
-    10021: Save('x-mac-thai', 'Thai (Mac)');
-    10029: Save('x-mac-ce', 'MAC Latin 2; Central European (Mac)');
-    10079: Save('x-mac-icelandic', 'Icelandic (Mac)');
-    10081: Save('x-mac-turkish', 'Turkish (Mac)');
-    10082: Save('x-mac-croatian', 'Croatian (Mac)');
-    12000: Save('utf-32', 'Unicode UTF-32, little endian byte order'); //; available only to managed applications');
-    12001: Save('utf-32BE', 'Unicode UTF-32, big endian byte order'); //; available only to managed applications');
-    20000: Save('x-Chinese_CNS', 'CNS Taiwan; Chinese Traditional (CNS)');
-    20001: Save('x-cp20001', 'TCA Taiwan');
-    20002: Save('x_Chinese-Eten', 'Eten Taiwan; Chinese Traditional (Eten)');
-    20003: Save('x-cp20003', 'IBM5550 Taiwan');
-    20004: Save('x-cp20004', 'TeleText Taiwan');
-    20005: Save('x-cp20005', 'Wang Taiwan');
-    20105: Save('x-IA5', 'IA5 (IRV International Alphabet No. 5, 7-bit); Western European (IA5)');
-    20106: Save('x-IA5-German', 'IA5 German (7-bit)');
-    20107: Save('x-IA5-Swedish', 'IA5 Swedish (7-bit)');
-    20108: Save('x-IA5-Norwegian', 'IA5 Norwegian (7-bit)');
-    20127: Save('us-ascii', 'US-ASCII (7-bit)');
-    20261: Save('x-cp20261', 'T.61');
-    20269: Save('x-cp20269', 'ISO 6937 Non-Spacing Accent');
-    20273: Save('IBM273', 'IBM EBCDIC Germany');
-    20277: Save('IBM277', 'IBM EBCDIC Denmark-Norway');
-    20278: Save('IBM278', 'IBM EBCDIC Finland-Sweden');
-    20280: Save('IBM280', 'IBM EBCDIC Italy');
-    20284: Save('IBM284', 'IBM EBCDIC Latin America-Spain');
-    20285: Save('IBM285', 'IBM EBCDIC United Kingdom');
-    20290: Save('IBM290', 'IBM EBCDIC Japanese Katakana Extended');
-    20297: Save('IBM297', 'IBM EBCDIC France');
-    20420: Save('IBM420', 'IBM EBCDIC Arabic');
-    20423: Save('IBM423', 'IBM EBCDIC Greek');
-    20424: Save('IBM424', 'IBM EBCDIC Hebrew');
-    20833: Save('x-EBCDIC-KoreanExtended', 'IBM EBCDIC Korean Extended');
-    20838: Save('IBM-Thai', 'IBM EBCDIC Thai');
-    20866: Save('koi8-r', 'Russian (KOI8-R); Cyrillic (KOI8-R)');
-    20871: Save('IBM871', 'IBM EBCDIC Icelandic');
-    20880: Save('IBM880', 'IBM EBCDIC Cyrillic Russian');
-    20905: Save('IBM905', 'IBM EBCDIC Turkish');
-    20924: Save('IBM00924', 'IBM EBCDIC Latin 1/Open System (1047 + Euro symbol)');
-    20932: Save('EUC-JP', 'Japanese (JIS 0208-1990 and 0212-1990)');
-    20936: Save('x-cp20936', 'Simplified Chinese (GB2312); Chinese Simplified (GB2312-80)');
-    20949: Save('x-cp20949', 'Korean Wansung');
-    21025: Save('cp1025', 'IBM EBCDIC Cyrillic Serbian-Bulgarian');
-    21027: Save('', '(deprecated)');
-    21866: Save('koi8-u', 'Ukrainian (KOI8-U); Cyrillic (KOI8-U)');
-    28591: Save('iso-8859-1', 'ISO 8859-1 Latin 1; Western European (ISO)');
-    28592: Save('iso-8859-2', 'ISO 8859-2 Central European; Central European (ISO)');
-    28593: Save('iso-8859-3', 'ISO 8859-3 Latin 3');
-    28594: Save('iso-8859-4', 'ISO 8859-4 Baltic');
-    28595: Save('iso-8859-5', 'ISO 8859-5 Cyrillic');
-    28596: Save('iso-8859-6', 'ISO 8859-6 Arabic');
-    28597: Save('iso-8859-7', 'ISO 8859-7 Greek');
-    28598: Save('iso-8859-8', 'ISO 8859-8 Hebrew; Hebrew (ISO-Visual)');
-    28599: Save('iso-8859-9', 'ISO 8859-9 Turkish');
-    28603: Save('iso-8859-13', 'ISO 8859-13 Estonian');
-    28605: Save('iso-8859-15', 'ISO 8859-15 Latin 9');
-    29001: Save('x-Europa', 'Europa 3');
-    38598: Save('iso-8859-8-i', 'ISO 8859-8 Hebrew; Hebrew (ISO-Logical)');
-    50220: Save('iso-2022-jp', 'ISO 2022 Japanese with no halfwidth Katakana; Japanese (JIS)');
-    50221: Save('csISO2022JP', 'ISO 2022 Japanese with halfwidth Katakana; Japanese (JIS-Allow 1 byte Kana)');
-    50222: Save('iso-2022-jp', 'ISO 2022 Japanese JIS X 0201-1989; Japanese (JIS-Allow 1 byte Kana - SO/SI)');
-    50225: Save('iso-2022-kr', 'ISO 2022 Korean');
-    50227: Save('x-cp50227', 'ISO 2022 Simplified Chinese; Chinese Simplified (ISO 2022)');
-    50229: Save('', 'ISO 2022 Traditional Chinese');
-    50930: Save('', 'EBCDIC Japanese (Katakana) Extended');
-    50931: Save('', 'EBCDIC US-Canada and Japanese');
-    50933: Save('', 'EBCDIC Korean Extended and Korean');
-    50935: Save('', 'EBCDIC Simplified Chinese Extended and Simplified Chinese');
-    50936: Save('', 'EBCDIC Simplified Chinese');
-    50937: Save('', 'EBCDIC US-Canada and Traditional Chinese');
-    50939: Save('', 'EBCDIC Japanese (Latin) Extended and Japanese');
-    51932: Save('euc-jp', 'EUC Japanese');
-    51936: Save('EUC-CN', 'EUC Simplified Chinese; Chinese Simplified (EUC)');
-    51949: Save('euc-kr', 'EUC Korean');
-    51950: Save('', 'EUC Traditional Chinese');
-    52936: Save('hz-gb-2312', 'HZ-GB2312 Simplified Chinese; Chinese Simplified (HZ)');
-    54936: Save('GB18030', '');
-    57002: Save('x-iscii-de', 'ISCII Devanagari');
-    57003: Save('x-iscii-be', 'ISCII Bangla');
-    57004: Save('x-iscii-ta', 'ISCII Tamil');
-    57005: Save('x-iscii-te', 'ISCII Telugu');
-    57006: Save('x-iscii-as', 'ISCII Assamese');
-    57007: Save('x-iscii-or', 'ISCII Odia');
-    57008: Save('x-iscii-ka', 'ISCII Kannada');
-    57009: Save('x-iscii-ma', 'ISCII Malayalam');
-    57010: Save('x-iscii-gu', 'ISCII Gujarati');
-    57011: Save('x-iscii-pa', 'ISCII Punjabi');
-    65000: Save('utf-7', 'Unicode (UTF-7)');
-    65001: Save('utf-8', 'Unicode (UTF-8)');
+  cpnr.DotNETName := '';
+  cpnr.FullName := '';
 
-  else
-    Save('', '');
-  end;
-
+  for i := 0 to Length(ArrCodePages) - 1 do
+    if ArrCodePages[i].CodePage = CP then
+    begin
+      cpnr.DotNETName := ArrCodePages[i].DotNETName;
+      cpnr.FullName := ArrCodePages[i].FullName;
+      Break;
+    end;
 end;
 
 
