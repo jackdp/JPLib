@@ -25,6 +25,9 @@ uses
   Dialogs,
   JPL.Strings, JPL.Conversion, JPL.IniFile, JPL.FileSearch, JPL.RTTI;
 
+const
+  INVALID_COMPONENT_PROP_STR = '!45758679@@##INVALID##@@8989568!';
+
 
 type
 
@@ -73,12 +76,24 @@ type
   TLangItemProperties = TDictionary<string,string>;
 
   TLangComponentItem = record
+  private
+    procedure SetCaption(const Value: string);
+    function GetCaption: string;
+  public
     Component: TComponent;
     Properties: TLangItemProperties;
     function AsInfoStr(Indent: string = '  '): string;
-    function AddProperty(const PropertyName, PropertyString: string): TLangComponentItem;
-    function ap(const PropertyName, PropertyString: string): TLangComponentItem; // As above, but shorter name
+
+    function AddProperty(const PropertyName, PropertyString: string): TLangComponentItem; overload;
+    function ap(const PropertyName, PropertyString: string): TLangComponentItem; overload; // As above, but shorter name
+    function AddProperty(const PropertyName: string): TLangComponentItem; overload;
+    function ap(const PropertyName: string): TLangComponentItem; overload; // As above, but shorter name
+
+    function AddCaption(const CaptionStr: string): TLangComponentItem;
+    function AddHint(const HintStr: string): TLangComponentItem;
     function GetProperty(const PropertyName: string; Default: string = ''): string;
+
+    property Caption: string read GetCaption write SetCaption;
   end;
 
   // KEY: INI key name, VALUE: TLangComponentItem
@@ -104,20 +119,36 @@ type
     destructor Destroy; override;
 
     procedure Clear;
-    procedure LoadFromIniSection(const Ini: TJPIniFile); //; const SectionName: string);
+    procedure LoadFromIniSection(const Ini: TJPIniFile);
     procedure UpdateComponents;
 
     procedure AddString(const KeyName, StrValue: string);
     function GetString(const KeyName: string; Default: string = ''): string;
 
+
     function AddComponent(const ComponentName: string): TLangComponentItem; overload;
     function AddComponent(Component: TComponent): TLangComponentItem; overload;
-    function ac(Component: TComponent): TLangComponentItem; // As above, but shorter name
+    function AddComponent(Component: TComponent; const ACaption: string): TLangComponentItem; overload;
+    function AddComponent(Component: TComponent; const ACaption, AHint: string): TLangComponentItem; overload;
+
+    // ac = AddComponent (short name)
+    function ac(Component: TComponent): TLangComponentItem; overload;
+    function ac(Component: TComponent; const ACaption: string): TLangComponentItem; overload;
+    function ac(Component: TComponent; const ACaption, AHint: string): TLangComponentItem; overload;
+
+
+    function AddComponentWithCaption(Component: TComponent): TLangComponentItem;
+    function acc(Component: TComponent): TLangComponentItem; // calls AddComponentWithCaption
+
+    function AddComponentWithCaptionAndHint(Component: TComponent): TLangComponentItem;
+    function acch(Component: TComponent): TLangComponentItem; // calls AddComponentWithCaptionAndHint
+
 
     function AddLabel(const ALabel: TCustomLabel; bCaption: Boolean = True; bHint: Boolean = False): TLangComponentItem;
     function AddStaticText(const StaticText: TStaticText; bCaption: Boolean = True; bHint: Boolean = False): TLangComponentItem;
     function AddAction(const Action: TCustomAction; bCaption: Boolean = True; bHint: Boolean = True): TLangComponentItem;
     function AddCheckBox(const CheckBox: TCheckBox; bCaption: Boolean = True; bHint: Boolean = True): TLangComponentItem;
+    procedure AddCheckBoxArray(Arr: array of TCheckBox; bCaption: Boolean = True; bHint: Boolean = True);
     function AddRadioButton(const RadioButton: TRadioButton; bCaption: Boolean = True; bHint: Boolean = True): TLangComponentItem;
     function AddLabeledEdit(const LabeledEdit: TCustomLabeledEdit; bLabelCaption: Boolean = True; bEditText: Boolean = False): TLangComponentItem;
 
@@ -161,6 +192,8 @@ type
     function AsInfoStr: string;
     procedure FillComboBox;
 
+    function ReloadSectionFromFile(const SectionName, IniFileName: string): Boolean;
+
     procedure SetActiveLanguageByIndex(const Index: integer);
     procedure SetActiveLanguageByIniFileName(const IniFileName: string);
 
@@ -174,6 +207,7 @@ type
 
     function AddSection(const SectionName: string): TLangSection;
     function GetSectionByName(const SectionName: string): TLangSection;
+    procedure RemoveSection(LangSection: TLangSection);
 
     function GetString(const SectionName, KeyName: string; Default: string = ''): string;
 
@@ -362,16 +396,98 @@ begin
 end;
 
 
+  {$region '                    Add component                    '}
 
 function TLangSection.AddComponent(Component: TComponent): TLangComponentItem; // overload
 var
   Item: TLangComponentItem;
 begin
-  Item.Component := Component;
-  Item.Properties := TLangItemProperties.Create;
-  FLangComponentItems.AddOrSetValue(Component.Name, Item);
+  if FLangComponentItems.ContainsKey(Component.Name) then Item := FLangComponentItems.Items[Component.Name]
+  else
+  begin
+    Item.Component := Component;
+    Item.Properties := TLangItemProperties.Create;
+    FLangComponentItems.AddOrSetValue(Component.Name, Item);
+  end;
   Result := Item;
 end;
+
+function TLangSection.AddComponent(Component: TComponent; const ACaption: string): TLangComponentItem;
+begin
+  Result := AddComponent(Component);
+  Result.AddCaption(ACaption);
+end;
+
+function TLangSection.AddComponent(Component: TComponent; const ACaption, AHint: string): TLangComponentItem;
+begin
+  Result := AddComponent(Component);
+  Result.AddCaption(ACaption);
+  Result.AddHint(AHint);
+end;
+
+function TLangSection.AddComponent(const ComponentName: string): TLangComponentItem; // overload
+var
+  Item: TLangComponentItem;
+begin
+  if FLangComponentItems.ContainsKey(ComponentName) then Item := FLangComponentItems.Items[ComponentName]
+  else
+  begin
+    Item.Component := nil;
+    Item.Properties := TLangItemProperties.Create;
+    FLangComponentItems.AddOrSetValue(ComponentName, Item);
+  end;
+  Result := Item;
+end;
+
+function TLangSection.ac(Component: TComponent): TLangComponentItem;
+begin
+  Result := AddComponent(Component);
+end;
+
+function TLangSection.ac(Component: TComponent; const ACaption: string): TLangComponentItem;
+begin
+  Result := AddComponent(Component, ACaption);
+end;
+
+function TLangSection.ac(Component: TComponent; const ACaption, AHint: string): TLangComponentItem;
+begin
+  Result := AddComponent(Component, ACaption, AHint);
+end;
+
+function TLangSection.AddComponentWithCaption(Component: TComponent): TLangComponentItem;
+var
+  s: string;
+begin
+  Result := AddComponent(Component);
+  s := GetPropertyText(Component, 'Caption', INVALID_COMPONENT_PROP_STR);
+  if s <> INVALID_COMPONENT_PROP_STR then Result.AddCaption(s);
+end;
+
+function TLangSection.acc(Component: TComponent): TLangComponentItem;
+begin
+  Result := AddComponentWithCaption(Component);
+end;
+
+function TLangSection.AddComponentWithCaptionAndHint(Component: TComponent): TLangComponentItem;
+var
+  s: string;
+begin
+  Result := AddComponent(Component);
+
+  s := GetPropertyText(Component, 'Caption', INVALID_COMPONENT_PROP_STR);
+  if s <> INVALID_COMPONENT_PROP_STR then Result.AddCaption(s);
+
+  s := GetPropertyText(Component, 'Hint', INVALID_COMPONENT_PROP_STR);
+  if s <> INVALID_COMPONENT_PROP_STR then Result.AddHint(s);
+end;
+
+function TLangSection.acch(Component: TComponent): TLangComponentItem;
+begin
+  Result := AddComponentWithCaptionAndHint(Component);
+end;
+
+  {$endregion Add component}
+
 
 
 function TLangSection.AddAction(const Action: TCustomAction; bCaption: Boolean = True; bHint: Boolean = True): TLangComponentItem;
@@ -416,20 +532,19 @@ begin
   if bHint then Result.AddProperty('Hint', CheckBox.Hint);
 end;
 
-function TLangSection.ac(Component: TComponent): TLangComponentItem;
+procedure TLangSection.AddCheckBoxArray(Arr: array of TCheckBox; bCaption: Boolean = True; bHint: Boolean = True);
+var
+  cb: TCheckBox;
+  i: integer;
 begin
-  Result := AddComponent(Component);
+  for i := 0 to Length(Arr) - 1 do
+  begin
+    cb := Arr[i];
+    AddCheckBox(cb, bCaption, bHint);
+  end;
 end;
 
-function TLangSection.AddComponent(const ComponentName: string): TLangComponentItem; // overload
-var
-  Item: TLangComponentItem;
-begin
-  Item.Component := nil;
-  Item.Properties := TLangItemProperties.Create;
-  FLangComponentItems.AddOrSetValue(ComponentName, Item);
-  Result := Item;
-end;
+
 
 
 
@@ -484,10 +599,34 @@ begin
   Properties.AddOrSetValue(PropertyName, PropertyString);
 end;
 
-
 function TLangComponentItem.ap(const PropertyName, PropertyString: string): TLangComponentItem;
 begin
   Result := AddProperty(PropertyName, PropertyString);
+end;
+
+function TLangComponentItem.AddProperty(const PropertyName: string): TLangComponentItem;
+var
+  s: string;
+begin
+  Result := Self;
+  if not Assigned(Self.Component) then Exit;
+  s := GetPropertyText(Self.Component, PropertyName, INVALID_COMPONENT_PROP_STR);
+  if s <> INVALID_COMPONENT_PROP_STR then Result := AddProperty(PropertyName, s);
+end;
+
+function TLangComponentItem.ap(const PropertyName: string): TLangComponentItem;
+begin
+  Result := AddProperty(PropertyName);
+end;
+
+function TLangComponentItem.AddCaption(const CaptionStr: string): TLangComponentItem;
+begin
+  Result := AddProperty('Caption', CaptionStr);
+end;
+
+function TLangComponentItem.AddHint(const HintStr: string): TLangComponentItem;
+begin
+  Result := AddProperty('Hint', HintStr);
 end;
 
 function TLangComponentItem.AsInfoStr(Indent: string): string;
@@ -515,6 +654,16 @@ begin
   Result := Default;
   if not Assigned(Properties) then Exit;
   if not Properties.TryGetValue(PropertyName, Result) then Exit;
+end;
+
+function TLangComponentItem.GetCaption: string;
+begin
+  Result := GetProperty('Caption');
+end;
+
+procedure TLangComponentItem.SetCaption(const Value: string);
+begin
+  AddProperty('Caption', Value);
 end;
 
 {$endregion TLangComponentItem}
@@ -659,6 +808,13 @@ begin
     end;
 end;
 
+
+
+procedure TLangMgr.RemoveSection(LangSection: TLangSection);
+begin
+  FLangSections.Remove(LangSection);
+end;
+
 function TLangMgr.GetSectionCount: integer;
 begin
   Result := FLangSections.Count;
@@ -688,6 +844,32 @@ begin
       Section.LoadFromIniSection(Ini);
       Section.UpdateComponents;      //ShowMessage(Section.SectionName + '    ' + IniFileName);
     end;
+    Ini.UpdateFileOnExit := False;
+  finally
+    Ini.Free;
+  end;
+end;
+
+function TLangMgr.ReloadSectionFromFile(const SectionName, IniFileName: string): Boolean;
+var
+  Ini: TJPIniFile;
+  Section: TLangSection;
+begin
+  Result := False;
+  if not FileExists(IniFileName) then Exit;
+  Ini := TJPIniFile.Create(IniFileName, TEncoding.UTF8);
+  try
+    Ini.UpdateFileOnExit := False;
+
+    for Section in FLangSections do
+      if Section.SectionName = SectionName then
+      begin
+        Section.LoadFromIniSection(Ini);
+        Section.UpdateComponents;
+        Result := True;
+        Break;
+      end;
+
     Ini.UpdateFileOnExit := False;
   finally
     Ini.Free;
@@ -917,5 +1099,7 @@ begin
     Indent + 'English language name: ' + LangName_InEnglish + ENDL +
     Indent + 'Native language name: ' + LangName_Native;
 end;
+
+
 
 end.
