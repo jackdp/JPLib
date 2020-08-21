@@ -9,7 +9,7 @@ interface
 
 
 uses
-  Windows, SysUtils, Classes, Messages,
+  Windows, SysUtils, Classes, Messages, ShellApi,
   JPL.Strings;
 
 
@@ -30,6 +30,7 @@ procedure ShowLastError(const Error: LongWord; MsgPrefix: string = ''; MsgTitle:
 function ScreenWidth: integer;
 function ScreenHeight: integer;
 function SetWindowOnTop(const WinHandle: HWND; const OnTop: Boolean): Boolean;
+function ShowFileInExplorer(const FileName: string; Handle: HWND = 0): Boolean;
 
 
 const
@@ -43,6 +44,15 @@ implementation
 
 
 {$IFDEF MSWINDOWS}
+
+function ShowFileInExplorer(const FileName: string; Handle: HWND = 0): Boolean;
+var
+  s: string;
+begin
+  s := '/select,' + FileName;
+  Result := ShellExecute(Handle, 'open', 'explorer.exe', PChar(s), '', SW_SHOW) > 32;
+end;
+
 
 function SetWindowOnTop(const WinHandle: HWND; const OnTop: Boolean): Boolean;
 var
