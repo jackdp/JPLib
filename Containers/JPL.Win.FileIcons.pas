@@ -111,15 +111,21 @@ var
   IconIndex: integer;
   Icon: TIcon;
   SHFileInfo: TSHFileInfo;
-  bExe: Boolean;
+  bForceAdd: Boolean;
 begin
   Result := -1;
-  if FMaxIconCount > 0 then
-    if FIconList.Count >= FMaxIconCount then Exit;
+  Ext := TrimUp(GetFileExt(fName, True));
 
-  Ext := TrimUp(ExtractFileExt(fName));
-  bExe := Ext = '.EXE';
-  if bExe then Ext := fName;
+  if FMaxIconCount > 0 then
+    if FIconList.Count >= FMaxIconCount then
+    begin
+      if not FIconList.TryGetValue(Ext, Result) then Result := -1;
+      Exit;
+    end;
+
+
+  bForceAdd := (Ext = 'EXE') or (Ext = 'ICO');
+  if bForceAdd then Ext := fName;
 
   if FIconList.TryGetValue(Ext, IconIndex) then Result := IconIndex
 
