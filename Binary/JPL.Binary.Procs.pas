@@ -17,7 +17,8 @@ function GetBitsInfo(fName: string; var BitsInfo: TBitsInfo; NotStandardChar: Ch
 function GetBitsInfo(Stream: TStream; var BitsInfo: TBitsInfo; NotStandardChar: Char = '.'): Boolean; overload;
 procedure ClearBitsInfo(var BitsInfo: TBitsInfo);
 
-function GetWinExeBinType(fName: string): integer;
+function GetWinExeBinType(const FileName: string): integer;
+function GetWinExeBits(const FileName: string): integer;
 function GetBinMagicStr(fName: string): string; overload;
 function GetBinMagicStr(Stream: TStream): string; overload;
 function GetExecutableBinType(fName: string; var FileTypeStr: string): integer;
@@ -36,6 +37,10 @@ function SwapUInt64(Value: UInt64): UInt64;
 
 function FileSizeInt(const FileName: string): int64;
 
+{$IFDEF DELPHIXE2_OR_BELOW}
+const
+  SCS_64BIT_BINARY = 6;
+{$ENDIF}
 
 implementation
 
@@ -360,26 +365,45 @@ begin
   Result := BinType;
 end;
 
-function GetWinExeBinType(fName: string): integer;
+function GetWinExeBinType(const FileName: string): integer;
 var
   bt: Cardinal;
 begin
+// https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getbinarytypea
+// https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getbinarytypew
   {$IFDEF DCC}
-  if GetBinaryType(PWideChar(fName), bt) then
+  if GetBinaryType(PWideChar(FileName), bt) then
   {$ELSE}
-  if GetBinaryType(PChar(fName), bt{%H-}) then
+  if GetBinaryType(PChar(FileName), bt{%H-}) then
   {$ENDIF}
   begin
     case bt of
-      BIN_WIN32: Result := BIN_WIN32;
-      BIN_WIN64: Result := BIN_WIN64;
-      //BIN_DOS: Result := BIN_DOS;
-      BIN_WIN16: Result := BIN_WIN16;
+      SCS_32BIT_BINARY: Result := BIN_WIN32;
+      SCS_DOS_BINARY: Result := BIN_DOS;
+      SCS_WOW_BINARY: Result := BIN_WIN16;
+      SCS_PIF_BINARY: Result := BIN_PIF;
+      SCS_POSIX_BINARY: Result := BIN_POSIX;
+      SCS_OS216_BINARY: Result := BIN_OS2_16;
+      SCS_64BIT_BINARY: Result := BIN_WIN64;
     else
       Result := BIN_UNKNOWN;
     end;
   end
   else Result := BIN_UNKNOWN;
+end;
+
+function GetWinExeBits(const FileName: string): integer;
+var
+  x: integer;
+begin
+  x := GetWinExeBinType(FileName);
+  case x of
+    BIN_DOS, SCS_WOW_BINARY, SCS_PIF_BINARY, SCS_OS216_BINARY: Result := 16;
+    BIN_WIN32: Result := 32;
+    BIN_WIN64: Result := 64;
+  else
+    Result := BIN_UNKNOWN;
+  end;
 end;
 
 function GetBinMagicStr(Stream: TStream): string; overload;
