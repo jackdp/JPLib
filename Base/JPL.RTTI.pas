@@ -26,6 +26,7 @@ function GetPropertyAsClass(const Obj: TObject; const PropertyName: string): TCl
 function TryGetPropertyAsClass(const Obj: TObject; const PropertyName: string; out OutClass: TClass): Boolean;
 
 function SetPropertyText(Obj: TObject; PropertyName: string; Text: string): Boolean;
+function GetPropertyText(Obj: TObject; const PropertyName, Default: string): string;
 {$ENDIF}
 
   
@@ -44,7 +45,6 @@ begin
   if not Assigned(Obj) then Exit;
   UPropName := UpperCase(PropertyName);
 
-
   RContext := TRttiContext.Create;
   try
     RType := RContext.GetType(Obj.ClassType);
@@ -56,15 +56,49 @@ begin
         if not RProperty.IsWritable then Exit;
         Kind := RProperty.GetValue(Obj).Kind;
 
-//        if (Kind <> tkUString) and (Kind <> tkWString) then Exit;
-//        RProperty.SetValue(Obj, Text);
-
         // http://docwiki.embarcadero.com/Libraries/Rio/en/System.TypInfo.TTypeKinds
         if (Kind = tkUString) or (Kind = tkString) or (Kind = tkLString) then RProperty.SetValue(Obj, Text)
         else if Kind = tkWString then RProperty.SetValue(Obj, WideString(Text){%H-})
         else Exit;
 
         Result := True;
+      end;
+    end;
+
+  finally
+    RContext.Free;
+  end;
+
+end;
+
+function GetPropertyText(Obj: TObject; const PropertyName, Default: string): string;
+var
+  RContext: TRttiContext;
+  RType: TRttiType;
+  RProperty: TRttiProperty;
+  Kind: TTypeKind;
+  UPropName: string;
+  Value: TValue;
+begin
+  Result := Default;
+  if not Assigned(Obj) then Exit;
+  UPropName := UpperCase(PropertyName);
+
+  RContext := TRttiContext.Create;
+  try
+    RType := RContext.GetType(Obj.ClassType);
+
+    for RProperty in RType.GetProperties do
+    begin
+      if UpperCase(RProperty.Name) = UPropName then
+      begin
+        if not RProperty.IsReadable then Exit;
+        Kind := RProperty.GetValue(Obj).Kind;
+        if (Kind = tkUString) or (Kind = tkString) or (Kind = tkLString) or (Kind = tkWString) then
+        begin
+          Value := RProperty.GetValue(Obj);
+          Result := Value.AsString;
+        end;
       end;
     end;
 
@@ -114,7 +148,6 @@ begin
   OutObj := GetPropertyAsObject(Obj, PropertyName);
   Result := OutObj <> nil;
 end;
-
 
 function GetPropertyAsClass(const Obj: TObject; const PropertyName: string): TClass;
 var
