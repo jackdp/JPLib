@@ -10,6 +10,8 @@ uses
 
 type
 
+  { TStringsHelper }
+
   TStringsHelper = class helper for TStrings
     procedure TrimAllLines;
     procedure RemoveEmptyLines;
@@ -18,6 +20,8 @@ type
     // Warning! Use only for lists with a relatively small number of lines (up to several thousand)
     // With larger lists it is very slow!
     procedure RemoveDuplicatesWithoutSorting(IgnoreCase: Boolean = False);
+
+    function LastLine: string;
   end;
 
 
@@ -122,6 +126,13 @@ begin
   finally
     EndUpdate;
   end;
+end;
+
+function TStringsHelper.LastLine: string;
+begin
+  Result := '';
+  if Count = 0 then Exit;
+  Result := Strings[Count - 1];
 end;
 
 
