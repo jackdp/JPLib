@@ -3,7 +3,6 @@
 {
   Jacek Pazera
   http://www.pazera-software.com
-  Last mod: 26.04.2019
 
   A class that allows you to search for files in many specified locations (local HDD, UNC paths) and for different file masks.
   Long file names (over 255 characters) are not a problem.
@@ -20,7 +19,7 @@
 
 
   Metoda postępowania z TJPFileSearcher:
-  1. Ustawić FileInfoMode (domyślnie fimOnlyFileNames - tylko nazwy plików).
+  1. Ustawić FileInfoMode (domyślnie fimOnlyFileNames - tylko nazwy plików, bez pobierania rozmiaru plików i dat).
   2. Dodać pliki do wyszukania za pomocą AddInput.
   3. Wywołać Search.
   4: Pobrać listę znalezionych plików: GetFileList lub GetFirstFile + GetNextFile, lub Items[Index].Results.
@@ -28,22 +27,21 @@
 
 }
 
-// TODO: Migracja fgl -> generics.collections
+// TODO: FPC: Migracja fgl -> generics.collections
 
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
   {$modeswitch ADVANCEDRECORDS}
-{$ELSE}
-Sorry Delphi! This is for FPC only!
 {$ENDIF}
 
 interface
 
 uses
+  {$IFDEF MSWINDOWS}Windows,{$ENDIF}
   {$IFDEF FPC}LazUTF8,{$ENDIF} // czy to jeszcze jest potrzebne?
   Classes, SysUtils,
 
-  {$IFDEF FPC}fgl,{$ENDIF}
+  {$IFDEF FPC}fgl,{$ELSE}Generics.Collections,{$ENDIF}
   JPL.Strings, JPL.FileSearch, JPL.Files;
 
 
@@ -75,8 +73,13 @@ type
     ExtInfoOK: Boolean;
   end;
 
-  TFSResults = specialize TFPGMap<integer,TFSResultItem>;
+  {$IFDEF FPC}
+  TFSResults = specialize TFPGMap<integer, TFSResultItem>;
   TFSFilesToSerach = specialize TFPGList<string>;
+  {$ELSE}
+  TFSResults = TDictionary<integer, TFSResultItem>;
+  TFSFilesToSerach = TList<string>;
+  {$ENDIF}
 
   // Input item
   TFSItem = record
@@ -89,8 +92,11 @@ type
     function ResultCount: integer;
   end;
 
+  {$IFDEF FPC}
   TFSItems = specialize TFPGMap<integer,TFSItem>;
-  //TFSOutput = specialize TFPGMap<integer,TFSOutputItem>;
+  {$ELSE}
+  TFSItems = TDictionary<integer, TFSItem>;
+  {$ENDIF}
 
   TFSStats = record
     MinFileSize: Int64;
@@ -259,13 +265,13 @@ end;
 
 procedure TJPFileSearcher.SetOnFoundDirectory(AValue: TJPEnumDirsProcObj);
 begin
-  if FOnFoundDirectory = AValue then Exit;
+  //if FOnFoundDirectory = AValue then Exit;
   FOnFoundDirectory := AValue;
 end;
 
 procedure TJPFileSearcher.SetOnFoundFile(AValue: TJPEnumFilesProcObj);
 begin
-  if FOnFoundFile = AValue then Exit;
+  //if FOnFoundFile = AValue then Exit;
   FOnFoundFile := AValue;
 end;
 
@@ -292,7 +298,7 @@ var
 
   function CanContinue: Boolean;
   begin
-    Result := not ( (FFileCountLimit > 0) and (xFiles {%H-}>= FFileCountLimit) );
+    Result := not ( (FFileCountLimit > 0) and (Cardinal(xFiles) >= FFileCountLimit) );
   end;
 
 begin
@@ -304,7 +310,12 @@ begin
     for i := 0 to FItems.Count - 1 do
     begin
 
+      {$IFDEF FPC}
       ii := FItems.Data[i];
+      {$ELSE}
+      ii := FItems.Items[i];
+      {$ENDIF}
+
       if ii.FilesToSearch.Count = 0 then Continue;
       Dir := ii.Directory;
       Dir := Trim(Dir);
@@ -321,6 +332,7 @@ begin
         sl.Clear;
 
         JPGetFileListObj(fMask, Dir, sl, ii.RecurseDepth, FAcceptDirectorySymLinks, FAcceptFileSymLinks, FOnFoundDirectory, FOnFoundFile, nil);
+
         for y := 0 to sl.Count - 1 do
         begin
           Inc(xFiles);
@@ -361,7 +373,9 @@ begin
   Result := AddInputWithTag(Dir, FileMasks, RecurseDepth, -1, '');
 end;
 
-function TJPFileSearcher.AddInputWithTag(const Dir: string; FileMasks: array of string; RecurseDepth: integer; Tag: integer = -1; TagStr: string = ''): integer;
+
+function TJPFileSearcher.AddInputWithTag(const Dir: string; FileMasks: array of string; RecurseDepth: integer = FS_DEAFULT_RECURSE_DEPTH;
+  Tag: integer = -1; TagStr: string = ''): integer;
 var
   ii: TFSItem;
   i: integer;
@@ -376,7 +390,11 @@ begin
 
   ii.Results := TFSResults.Create;
 
+  {$IFDEF FPC}
   FItems.AddOrSetData(FItems.Count, ii);
+  {$ELSE}
+  FItems.AddOrSetValue(FItems.Count, ii);
+  {$ENDIF}
   Result := FItems.Count - 1;
 end;
 
@@ -384,7 +402,11 @@ function TJPFileSearcher.TryGetInputItem(const Index: integer; out FSInputItem: 
 begin
   if FItems.Count = 0 then Exit(False);
   Result := Index in [0..FItems.Count - 1];
+  {$IFDEF FPC}
   FSInputItem := FItems.Data[Index];
+  {$ELSE}
+  FSInputItem := FItems.Items[Index];
+  {$ENDIF}
 end;
 
 procedure TJPFileSearcher.GetFileList(FileList: TStrings);
@@ -395,7 +417,11 @@ begin
   FileList.Clear;
   for i := 0 to FItems.Count - 1 do
   begin
+    {$IFDEF FPC}
     ii := FItems.Data[i];
+    {$ELSE}
+    ii := FItems[i];
+    {$ENDIF}
     for x := 0 to ii.Results.Count - 1 do
       FileList.Add(ii.Results[x].FileName);
   end;
@@ -413,7 +439,11 @@ begin
 
   for i := 0 to FItems.Count - 1 do
   begin
+    {$IFDEF FPC}
     ii := FItems.Data[i];
+    {$ELSE}
+    ii := FItems[i];
+    {$ENDIF}
     if ii.Results.Count > 0 then
     begin
       FileName := ii.Results[0].FileName;
@@ -435,14 +465,22 @@ begin
   xIInd := FSearchRec.InputItemIndex;
   xRInd := FSearchRec.ResultIndex + 1;
 
+  {$IFDEF FPC}
   ii := FItems.Data[xIInd];
+  {$ELSE}
+  ii := FItems[xIInd];
+  {$ENDIF}
 
   if xRInd > ii.Results.Count - 1 then
   begin
 
     for i := xIInd + 1 to FItems.Count - 1 do
     begin
+      {$IFDEF FPC}
       ii := FItems.Data[i];
+      {$ELSE}
+      ii := FItems[i];
+      {$ENDIF}
       if ii.Results.Count > 0 then
       begin
         FileName := ii.Results[0].FileName;
@@ -472,9 +510,9 @@ begin
   Result := '';
   for i := 0 to FItems.Count - 1 do
   begin
-    Result += '  ### InputItem ' + IntToStrEx(i + 1) + ' / ' + IntToStrEx(FItems.Count) + ' ###' + ENDL;
-    Result += FSInputItemToStr(FItems[i]) + ENDL;
-    Result += '------------------------------------' + ENDL;
+    Result := Result + '  ### InputItem ' + IntToStrEx(i + 1) + ' / ' + IntToStrEx(FItems.Count) + ' ###' + ENDL;
+    Result := Result + FSInputItemToStr(FItems[i]) + ENDL;
+    Result := Result + '------------------------------------' + ENDL;
   end;
 end;
 
@@ -487,7 +525,11 @@ end;
 
 function TJPFileSearcher.GetItems(Index: integer): TFSItem;
 begin
+  {$IFDEF FPC}
   Result := FItems.Data[Index];
+  {$ELSE}
+  Result := FItems[Index];
+  {$ENDIF}
 end;
 
 function TJPFileSearcher.GetOutputCount: integer;
@@ -496,7 +538,11 @@ var
 begin
   Result := 0;
   for i := 0 to FItems.Count - 1 do
+    {$IFDEF FPC}
     Result += FItems.Data[i].Results.Count;
+    {$ELSE}
+    Result := Result + FItems[i].Results.Count;
+    {$ENDIF}
 end;
 
 procedure TJPFileSearcher.SetAcceptDirectorySymLinks(AValue: Boolean);
@@ -533,10 +579,17 @@ begin
   if FStats.FileCount = 0 then Exit;
 
   for i := 0 to FItems.Count - 1 do
+    {$IFDEF FPC}
     for x := 0 to FItems.Data[i].ResultCount - 1 do
+    {$ELSE}
+    for x := 0 to FItems[i].ResultCount - 1 do
+    {$ENDIF}
     begin
-
+      {$IFDEF FPC}
       ri := FItems.Data[i].Results.Data[x];
+      {$ELSE}
+      ri := FItems[i].Results[x];
+      {$ENDIF}
       xLen := Length(ri.FileName);
       if xLen < FStats.MinFileNameLen then FStats.MinFileNameLen := xLen;
       if xLen > FStats.MaxFileNameLen then FStats.MaxFileNameLen := xLen;
@@ -576,13 +629,13 @@ begin
   Result := Indent + FSOutputItem.FileName;
   if ShowOnlyNames then Exit;
   s := IntToStrEx(FSOutputItem.FileSize) + ' bytes';
-  if FSOutputItem.FileSize > 1024 then s += ' (' + GetFileSizeString(FSOutputItem.FileSize) + ')';
-  Result +=
+  if FSOutputItem.FileSize > 1024 then s := s + ' (' + GetFileSizeString(FSOutputItem.FileSize) + ')';
+  Result := Result +
     ENDL + Indent + 'FileSize: ' + s + ENDL +
     Indent + 'LastWrite: ' + DateTimeToStr(FSOutputItem.Dates.LastWrite) + ENDL +
     Indent + 'LastAccess: ' + DateTimeToStr(FSOutputItem.Dates.LastAccess);
-  {$IFDEF MSWINDOWS} Result += ENDL + Indent + 'Creation: ' + DateTimeToStr(FSOutputItem.Dates.Creation); {$ENDIF}
-  Result += ENDL;
+  {$IFDEF MSWINDOWS} Result := Result + ENDL + Indent + 'Creation: ' + DateTimeToStr(FSOutputItem.Dates.Creation); {$ENDIF}
+  Result := Result + ENDL;
 end;
 
 function FSInputItemToStr(FSInputItem: TFSItem; ShowResults: Boolean; Indent: string): string;
@@ -601,19 +654,23 @@ begin
 
   if Assigned(FSInputItem.FilesToSearch) then
   begin
-    Result += ENDL + Indent + 'Number of files to search: ' + FSInputItem.FilesToSearch.Count.ToString;
+    Result := Result + ENDL + Indent + 'Number of files to search: ' + FSInputItem.FilesToSearch.Count.ToString;
 
     for i := 0 to FSInputItem.FilesToSearch.Count - 1 do
-      Result += ENDL + Indent2 + FSInputItem.FilesToSearch[i];
+      Result := Result + ENDL + Indent2 + FSInputItem.FilesToSearch[i];
   end;
 
   if not ShowResults then Exit;
 
-  if FSInputItem.Results.Count > 0 then Result += ENDL + 'Results: ' + IntToStrEx(FSInputItem.Results.Count);
+  if FSInputItem.Results.Count > 0 then Result := Result + ENDL + 'Results: ' + IntToStrEx(FSInputItem.Results.Count);
   for i := 0 to FSInputItem.Results.Count - 1 do
   begin
+    {$IFDEF FPC}
     FSOutput := FSInputItem.Results.Data[i];
-    Result += ENDL + FSOuputItemToStr(FSOutput, False, Indent2);
+    {$ELSE}
+    FSOutput := FSInputItem.Results[i];
+    {$ENDIF}
+    Result := Result + ENDL + FSOuputItemToStr(FSOutput, False, Indent2);
   end;
 
 end;
