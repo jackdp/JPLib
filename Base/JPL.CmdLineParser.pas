@@ -7,12 +7,20 @@
 
   Assumptions: Using as few units as possible. No generics.collections, fgl, etc.
 
-  Last mod: 2018.02.28
+
+  2020.05.02
+  [+] function GetOptionValues(OptionName: string): TStringDynArray
+      This functions returns all values for the given option.
+      User can pass many values for one option, eg.: -f "file 1" -f "file 2" -f "file 3".
+      GetOptionValue returns value of the last option ("file 3").
+      GetOptionsValues returns the array of ALL values.
 
   2018.02.28 Removed dependency on JPL.Strings and JP.Utils
+
   2018.01.22
-  [+] AcceptAllNonOptions - if True, all parameters that do not start with the "-" or "/" sign will be saved in FUnknownParams array,
-                            and they will not be treated as errors.
+  [+] AcceptAllNonOptions: Boolean
+      If AcceptAllNonOptions = True, all parameters that do not starts with the "-", "/" or "--" will be saved in
+      the FUnknownParams array, and they will not be treated as errors.
 
 }
 
@@ -39,6 +47,7 @@ interface
 
 uses
   {$IFDEF MSWINDOWS} Windows, {$ENDIF}
+  Types, // needed for TStringDynArray
   SysUtils;
 
 
@@ -60,12 +69,15 @@ type
   TArray<T> = array of T;
   {$ENDIF}
 
-  TClpParsingMode = (cpmCustom, cpmDelphi); { TODO: Zablokować cpmCustom dla Linuksa. Na razie działa prawidłowo tylko na Windowsie. }
+  // IMPORTANT!
+  // cpmCustom: "-abc=123" after parsing it will be treated as a string
+  // cpmDelphi: "-abc=123" after parsing it will be treated as a option abc with value = 123
+  TClpParsingMode = (cpmCustom, cpmDelphi); { TODO: Block the cpmCustom mode on Linux. Currently it works only on Windows. }
                                             { Does the CommandLineToArgvW equivalent for Linux exists? }
 
   TClpUsageFormat = (cufNone, cufSimple, cufWget);
 
-  TArgv = array of string; // TArray<string>; <- Delphi 2009 exception???
+  TArgv = array of string; // TArray<string>; <- Delphi 2009 exception (Why ???)
 
   TClpParamType = (
     cptCommand,
@@ -220,6 +232,7 @@ type
       function GetShortOptionValue(OptionName: string; NoValueStr: string = ''): string;
       function GetLongOptionValue(OptionName: string; NoValueStr: string = ''): string;
       function GetOptionValue(const OptionName: string; NoValueStr: string = ''): string;
+      function GetOptionValues(OptionName: string): TStringDynArray;
 
       function TryGetOptionValueAsBool(
         const OptionName: string; out ResultValue: Boolean; TrueStr: string = '1|y|yes'; FalseStr: string = '0|n|no';
@@ -330,9 +343,10 @@ function StripQuotes(s: string; QChar: Char = '"'): string;
 
 implementation
 
+
 {$region '      copied from JPL units         '}
 
-function PadRight(Text: string; i: integer; znak: char = ' '): string;
+function PadRight(Text: string; i: integer; AChar: Char = ' '): string;
 var
   x, y, k: integer;
   s: string;
@@ -342,7 +356,7 @@ begin
   begin
     x := Length(Text);
     y := i - x;
-    for k := 1 to y do s := s + znak;
+    for k := 1 to y do s := s + AChar;
     Text := Text + s;
   end;
   Result := Text;
@@ -359,7 +373,6 @@ begin
   while x > 0 do
   begin
     SetLength(Arr, Length(Arr) + 1);
-//    Arr[High(Arr)] := Copy(s, 1, x - 1);
     Arr[Length(Arr) - 1] := Copy(s, 1, x - 1);
     s := Copy(s, x + Length(EndLineStr), Length(s));
     x := Pos(EndLineStr, s);
@@ -368,7 +381,6 @@ begin
   if s <> '' then
   begin
     SetLength(Arr, Length(Arr) + 1);
-//    Arr[High(Arr)] := s;
     Arr[Length(Arr) - 1] := s;
   end;
 end;
@@ -810,8 +822,6 @@ begin
   else if bHasShortName then OptionType := cotShort
   else OptionType := cotLong;
   FOptions[xInd].OptionType := OptionType;
-
-
 end;
 
 procedure TJPCmdLineParser.RegisterShortOption(const OptionName: string; ValueType: TClpValueType = cvtNone; IsOptionNeeded: Boolean = False; Hidden: Boolean = False;
@@ -962,6 +972,58 @@ begin
   if xInd >= 0 then Result := StripQuotes(FOptions[xInd].Value) else Result := NoValueStr;
 end;
 
+function TJPCmdLineParser.GetOptionValues(OptionName: string): TStringDynArray;
+var
+  i: integer;
+  Option: TClpOption;
+  ShortOptionName, LongOptionName, ParamOptionName: string;
+  b: Boolean;
+  Param: TClpParam;
+begin
+  SetLength(Result, 0);
+  if OptionName = '' then Exit;
+  if FIgnoreCase then OptionName := UpperCase(OptionName);
+
+  // Wyszukuję krótką i pełną nazwę opcji OptionName
+  b := False;
+  for i := 0 to OptionCount - 1 do
+  begin
+    Option := Options[i];
+    if not Option.Parsed then Continue;
+
+    if FIgnoreCase then
+    begin
+      ShortOptionName := UpperCase(Option.ShortName);
+      LongOptionName := UpperCase(Option.LongName);
+    end
+    else
+    begin
+      ShortOptionName := Option.ShortName;
+      LongOptionName := Option.LongName;
+    end;
+
+    b := (ShortOptionName = OptionName) or (LongOptionName = OptionName);
+    if b then Break;
+  end; // for i
+
+  if not b then Exit;
+
+
+  // Szukam wszystkich wartości opcji OptionName na liście sparsowanych parametrów
+  for i := 0 to ParsedParamCount - 1 do
+  begin
+    Param := ParsedParam[i];
+
+    if FIgnoreCase then ParamOptionName := UpperCase(Param.OptionName) else ParamOptionName := Param.OptionName;
+    if (ParamOptionName = ShortOptionName) or (ParamOptionName = LongOptionName) then
+    begin
+      SetLength(Result, Length(Result) + 1);
+      Result[Length(Result) - 1] := StripQuotes(Param.OptionValue);
+    end;
+  end;
+
+end;
+
 function TJPCmdLineParser.GetOptionIndex(const OptionName: string): integer;
 var
   xInd: integer;
@@ -1022,7 +1084,6 @@ begin
   Result := TrimRight(s);
 end;
 
-
 function TJPCmdLineParser.IsOptionExists(OptionName: string): Boolean;
 begin
   Result := IsShortOptionExists(OptionName) or IsLongOptionExists(OptionName);
@@ -1073,7 +1134,6 @@ function TJPCmdLineParser.GetOptionCount: integer;
 begin
   Result := Length(FOptions);
 end;
-
 
 function TJPCmdLineParser.GetOptionExtraInfoIndex(const OptionName: string): integer;
 var
