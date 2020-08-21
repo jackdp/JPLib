@@ -17,6 +17,7 @@ uses
 procedure SplitStrToList(LineToParse: string; var List: TStringList; DataSeparator: string = ',');
 function SaveStringToFile(const FileName, FileContent: string; Encoding: TEncoding): Boolean;
 function GetLineStartingWith(List: TStrings; const TextToFind: string; IgnoreCase: Boolean = True; StartIndex: integer = 0): string;
+procedure ReverseStrings(List: TStrings);
 
 
 implementation
@@ -88,6 +89,23 @@ begin
     if LineToParse <> '' then List.Add(LineToParse);
   end;
 
+end;
+
+procedure ReverseStrings(List: TStrings);
+var
+  i, xCount, xInd: integer;
+  stemp: string;
+begin
+  xCount := List.Count;
+  if xCount <= 1 then Exit;
+
+  for i := 0 to (xCount div 2) - 1 do
+  begin
+    xInd := xCount - 1 - i;
+    stemp := List[i];
+    List[i] := List[xInd];
+    List[xInd] := stemp;
+  end;
 end;
 
 
