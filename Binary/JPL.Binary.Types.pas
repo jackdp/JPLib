@@ -23,11 +23,14 @@ const
   MAGIC_STR_MZ = 'MZ'; // Marek Żbikowski - https://en.wikipedia.org/wiki/Mark_Zbikowski
   MAGIS_STR_ELF = 'ELF';
 
-  // WIndows & DOS
+  // Windows & DOS
   BIN_WIN32 = 0;
-  BIN_WIN64 = 6;
   BIN_DOS = 1;
   BIN_WIN16 = 2;
+  BIN_PIF = 3;
+  BIN_POSIX = 4;
+  BIN_OS2_16 = 5;
+  BIN_WIN64 = 6;
 
   // Unix & Linux
   BIN_UNIX16 = 102;
@@ -43,8 +46,6 @@ const
   BIN_MACHO_64_BIG_ENDIAN = 240;
   BIN_MACHO_FAT_MULTIARCH = 300; // Big endian
   //BIN_MACHO_FAT_MULTIARCH_BE = 310;
-
-
 
   BIN_UNKNOWN = -1;
 
