@@ -36,7 +36,7 @@ implementation
 
 function WinMsg(const Text, Caption: string; Handle: HWND = 0; MBType: DWORD = MB_OK or MB_ICONINFORMATION): integer;
 begin
-  MessageBox(Handle, PChar(Text), PChar(Caption), MBType);
+  Result := MessageBox(Handle, PChar(Text), PChar(Caption), MBType);
 end;
 
 procedure MB(const Text: string; Caption: string = 'Information'; Handle: HWND = 0);
@@ -67,4 +67,5 @@ end;
 {$ENDIF} // MSWINDOWS
 
 end.
+
 
