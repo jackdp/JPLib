@@ -95,6 +95,7 @@ function AnsiLowCase(zn: Char; Default: Char = #0): Char;
 function RemoveChars(const SrcStr, CharsToRemove: string; IgnoreCase: Boolean = False): string; overload;
 function RemoveChars(const SrcStr: string; Chars: array of Char; IgnoreCase: Boolean = False): string; overload;
 function LeaveOnlyChars(const SrcStr, CharsToLeave: string): string;
+function RemoveNonDecimals(const s: string): string;
 function CutStrBefore(s, CutBeforeText: string; IgnoreCase: Boolean = False): string;
 function CutStrAfter(s, CutAfterText: string; IgnoreCase: Boolean = False; IncludeSearchText: Boolean = True): string;
 
@@ -661,6 +662,11 @@ begin
   for c in SrcStr do
     if Pos(c, CharsToLeave) > 0 then sr := sr + c;
   Result := sr;
+end;
+
+function RemoveNonDecimals(const s: string): string;
+begin
+  Result := LeaveOnlyChars(s, '0123456789');
 end;
 
 function RemoveChars(const SrcStr, CharsToRemove: string; IgnoreCase: Boolean): string;
