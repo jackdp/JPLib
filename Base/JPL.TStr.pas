@@ -13,7 +13,7 @@
 interface
 
 uses 
-  Windows, SysUtils, Classes, Types,
+  {Windows, }SysUtils, Classes, Types,
   JPL.Strings, JPL.Conversion;
 
 
@@ -41,6 +41,7 @@ type
 
     class function RemoveSpaces(const s: string): string; static;
     class function RemoveAll(const Text, ToRemove: string; IgnoreCase: Boolean = False): string; static;
+    class function RemoveNonDecimals(const SrcStr: string): string; static;
     class function RemoveChars(const SrcStr, CharsToRemove: string; IgnoreCase: Boolean = False): string; overload; static;
     class function RemoveChars(const SrcStr: string; Chars: array of Char; IgnoreCase: Boolean = False): string; overload; static;
     class function ReplaceAll(const SrcStr, OldStr, NewStr: string; IgnoreCase: Boolean = False): string; static;
@@ -93,6 +94,8 @@ type
     class function FirstCharPos(const s: string; const AChar: Char): integer; static;
     class function LastCharPos(const s: string; const AChar: Char): integer; static;
 
+    class function IsFileMask(const FileName: string): Boolean; static;
+
     class property DecimalSeparator: Char read GetDecimalSeparator write SetDecimalSeparator;
     class property ThousandSeparator: Char read GetThousandSeparator write SetThousandSeparator;
     class property DateSeparator: Char read GetDateSeparator write SetDateSeparator;
@@ -143,6 +146,11 @@ end;
 class function TStr.RemoveAll(const Text, ToRemove: string; IgnoreCase: Boolean = False): string;
 begin
   Result := JPL.Strings.RemoveAll(Text, ToRemove, IgnoreCase);
+end;
+
+class function TStr.RemoveNonDecimals(const SrcStr: string): string;
+begin
+  Result := JPL.Strings.RemoveNonDecimals(SrcStr);
 end;
 
 class function TStr.RemoveChars(const SrcStr, CharsToRemove: string; IgnoreCase: Boolean = False): string;
@@ -357,6 +365,11 @@ begin
     end;
 end;
 
+class function TStr.IsFileMask(const FileName: string): Boolean;
+begin
+  Result := TStr.Contains(FileName, '*') or TStr.Contains(FileName, '?');
+end;
+
 class function TStr.GetDecimalSeparator: Char;
 begin
   {$IFDEF FPC}Result := FormatSettings.DecimalSeparator;{$ENDIF}
@@ -371,7 +384,7 @@ end;
 
 class procedure TStr.SetDecimalSeparator(const Value: Char);
 begin
-  {$IFDEF FPC}FormatSettings.DecimalSeparator = Value;{$ENDIF}
+  {$IFDEF FPC}FormatSettings.DecimalSeparator := Value;{$ENDIF}
   {$IFDEF DCC}
     {$IFDEF DELPHIXE_OR_ABOVE}
     FormatSettings.DecimalSeparator := Value;
@@ -395,7 +408,7 @@ end;
 
 class procedure TStr.SetThousandSeparator(const Value: Char);
 begin
-  {$IFDEF FPC}FormatSettings.ThousandSeparator = Value;{$ENDIF}
+  {$IFDEF FPC}FormatSettings.ThousandSeparator := Value;{$ENDIF}
   {$IFDEF DCC}
     {$IFDEF DELPHIXE_OR_ABOVE}
     FormatSettings.ThousandSeparator := Value;
@@ -419,7 +432,7 @@ end;
 
 class procedure TStr.SetDateSeparator(const Value: Char);
 begin
-  {$IFDEF FPC}FormatSettings.DateSeparator = Value;{$ENDIF}
+  {$IFDEF FPC}FormatSettings.DateSeparator := Value;{$ENDIF}
   {$IFDEF DCC}
     {$IFDEF DELPHIXE_OR_ABOVE}
     FormatSettings.DateSeparator := Value;
@@ -443,7 +456,7 @@ end;
 
 class procedure TStr.SetTimeSeparator(const Value: Char);
 begin
-  {$IFDEF FPC}FormatSettings.TimeSeparator = Value;{$ENDIF}
+  {$IFDEF FPC}FormatSettings.TimeSeparator := Value;{$ENDIF}
   {$IFDEF DCC}
     {$IFDEF DELPHIXE_OR_ABOVE}
     FormatSettings.TimeSeparator := Value;
