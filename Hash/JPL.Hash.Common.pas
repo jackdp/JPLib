@@ -245,7 +245,6 @@ begin
     if bAddZeroIfOddLength then HashStr := '0' + HashStr
     else Exit;
 
-  if Len = 4 then Add(htCrc16);
 
   case Len of
     4: Add(htCrc16);
@@ -414,7 +413,9 @@ function StrToHashType(s: string; Default: TJPHashType = htNone): TJPHashType;
 begin
   s := RemoveAll(s, ' ');
   s := RemoveAll(s, '-');
-  s := ReplaceAll(s, '\', '/');
+  s := RemoveAll(s, '_');
+  s := ReplaceAll(s, '\', '');
+  s := ReplaceAll(s, '/', '');
   s := LowerCase(s);
 
   if (s = '') or (s = 'none') then Result := htNone
@@ -428,10 +429,10 @@ begin
   else if s = 'md4' then Result := htMd4
   else if s = 'md5' then Result := htMd5
   else if s = 'ripemd' then Result := htRipeMD
-  else if s = 'ripemd128' then Result := htRipeMD128
-  else if s = 'ripemd160' then Result := htRipeMD160
-  else if s = 'ripemd256' then Result := htRipeMD256
-  else if s = 'ripemd320' then Result := htRipeMD320
+  else if (s = 'ripemd128') or (s = 'rmd128') then Result := htRipeMD128
+  else if (s = 'ripemd160') or (s = 'rmd160') then Result := htRipeMD160
+  else if (s = 'ripemd256') or (s = 'rmd256') then Result := htRipeMD256
+  else if (s = 'ripemd320') or (s = 'rmd320') then Result := htRipeMD320
 
   else if s = 'sha0' then Result := htSha0
   else if s = 'sha1' then Result := htSha1
@@ -439,8 +440,8 @@ begin
   else if (s = 'sha2256') or (s = 'sha256') then Result := htSha2_256
   else if (s = 'sha2384') or (s = 'sha384') then Result := htSha2_384
   else if (s = 'sha2512') or (s = 'sha512') then Result := htSha2_512
-  else if (s = 'sha2512/224') or (s = 'sha512/224') then Result := htSha2_512_224
-  else if (s = 'sha2512/256') or (s = 'sha512/256') then Result := htSha2_512_256
+  else if (s = 'sha2512224') then Result := htSha2_512_224
+  else if (s = 'sha2512256') then Result := htSha2_512_256
 
   else if s = 'sha3224' then Result := htSha3_224
   else if s = 'sha3256' then Result := htSha3_256
