@@ -13,11 +13,13 @@
 interface
 
 uses 
-  {Windows, }SysUtils, Classes, Types,
+  {Windows, }SysUtils, {Classes,} Types,
   JPL.Strings, JPL.Conversion;
 
 
 type
+
+  { TStr }
 
   TStr = record
   private
@@ -50,7 +52,7 @@ type
     class function TrimAndUp(const s: string): string; static;
     class function TrimAndLow(const s: string): string; static;
     class function InsertNumSep(NumStr: string; Separator: string = ' '; NumBlockSize: integer = 3; MaxInsertions: integer = 255): string; overload; static;
-    class function InsertNumSep(const x: integer; Separator: string = ' '; NumBlockSize: integer = 3; MaxInsertions: integer = 255): string; overload; static;
+    class function InsertNumSep(const x: Int64; Separator: string = ' '; NumBlockSize: integer = 3; MaxInsertions: integer = 255): string; overload; static;
 
     {$IFDEF DELPHI2009_OR_BELOW}
     class procedure SplitStrToArray(s: string; var Arr: TStringDynArray; const EndLineStr: string = sLineBreak); static;
@@ -85,6 +87,7 @@ type
     class function StartsText(const SubStr, s: string): Boolean; static;
     class function EndsText(const SubStr, s: string): Boolean; static;
     class function StartsWith(const SubStr, s: string; IgnoreCase: Boolean = False): Boolean; static;
+    class function StartsWithHexPrefix(const s: string): Boolean; static;
     class function EndsWith(const SubStr, s: string; IgnoreCase: Boolean = False): Boolean; static;
 
     class function TrimFromEnd(const s: string; const StringToCut: string): string; static;
@@ -188,7 +191,7 @@ begin
   Result := JPL.Strings.InsertNumSep(NumStr, Separator, NumBlockSize, MaxInsertions);
 end;
 
-class function TStr.InsertNumSep(const x: integer; Separator: string; NumBlockSize, MaxInsertions: integer): string;
+class function TStr.InsertNumSep(const x: Int64; Separator: string; NumBlockSize: integer; MaxInsertions: integer): string;
 begin
   Result := JPL.Strings.InsertNumSep(IntToStr(x), Separator, NumBlockSize, MaxInsertions);
 end;
@@ -207,7 +210,7 @@ begin
   Result := JPL.Strings.SplitStr(InStr, LeftStr, RightStr, Separator);
 end;
 
-class function TStr.AddBounds(const s: string; LeftBound, RightBound: string): string;
+class function TStr.AddBounds(const s: string; LeftBound: string; RightBound: string): string;
 begin
   Result := JPL.Strings.AddBounds(s, LeftBound, RightBound);
 end;
@@ -314,18 +317,23 @@ begin
   else Result := TStr.StartsStr(SubStr, s);
 end;
 
+class function TStr.StartsWithHexPrefix(const s: string): Boolean;
+begin
+  Result := TStr.StartsStr('$', s) or TStr.StartsStr('0x', s) or TStr.StartsStr('0X', s);
+end;
+
 class function TStr.EndsWith(const SubStr, s: string; IgnoreCase: Boolean): Boolean;
 begin
   if IgnoreCase then Result := TStr.EndsText(SubStr, s)
   else Result := TStr.EndsStr(SubStr, s);
 end;
 
-class function TStr.TrimFromEnd(const s, StringToCut: string): string;
+class function TStr.TrimFromEnd(const s: string; const StringToCut: string): string;
 begin
   Result := JPL.Strings.TrimFromEnd(s, StringToCut);
 end;
 
-class function TStr.TrimFromStart(const s, StringToCut: string): string;
+class function TStr.TrimFromStart(const s: string; const StringToCut: string): string;
 begin
   Result := JPL.Strings.TrimFromStart(s, StringToCut);
 end;
