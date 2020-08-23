@@ -122,6 +122,8 @@ const
   CON_COLOR_NONE = 200;
 
   {$IFDEF MSWINDOWS}
+  VK_ANY = 0;
+
   CON_COLOR_RED_DARK = 4;
   CON_COLOR_RED_LIGHT = 12;
   CON_COLOR_GREEN_DARK = 2;
@@ -226,6 +228,12 @@ type
     procedure Clear;
   end;
 
+  {$IFDEF MSWINDOWS}
+  TConsoleCursorPos = COORD;
+  {$ENDIF}
+
+
+  { TConsole }
 
   TConsole = record
   private
@@ -233,6 +241,13 @@ type
     class var FOutputCodePage: UINT;
     class var FOriginalOutputCodePage: UINT;
     class function GetOutputCodePage: UINT; static;
+    class function GetStdErrorHandle: HWND; static;
+    class function GetStdOutputHandle: HWND; static;
+    class function GetStdInputHandle: HWND; static;
+    class function GetCursorPosX: SmallInt; static;
+    class function GetCursorPosY: SmallInt; static;
+    class procedure SetCursorPosX(const X: SmallInt); static;
+    class procedure SetCursorPosY(const Y: SmallInt); static;
     class procedure SetOutputCodePage(AValue: UINT); static;
     {$ENDIF}
 
@@ -242,8 +257,11 @@ type
     {$IFEND}
   public
 
-    {$region '     colors       '}
+    const ExitCodeOK = CON_EXIT_CODE_OK;
+    const ExitCodeError = CON_EXIT_CODE_ERROR;
+    const ExitCodeSyntaxError = CON_EXIT_CODE_SYNTAX_ERROR;
 
+    {$region '     colors       '}
 
     const clNone = CON_COLOR_NONE;
 
@@ -370,8 +388,20 @@ type
 
     {$IFDEF MSWINDOWS}
     class function RestoreOriginalOutputCodePage: Boolean; static;
+    class function GetCursorPos(var X, Y: SmallInt): Boolean; overload; static;
+    class function GetCursorPos(var ccp: TConsoleCursorPos): Boolean; overload; static;
+    class function MoveCursor(const DeltaX, DeltaY: SmallInt): Boolean; static;
+
+    class function WaitForKeyPressed(VirtualKeyCode: WORD = VK_ANY; Milliseconds: DWORD = INFINITE; SleepInterval: DWORD = 25): Boolean; static;
+    class function ConWaitForReturnPressed(Milliseconds: DWORD = INFINITE): Boolean; static;
+
     class property OriginalOutputCodePage: UINT read FOriginalOutputCodePage;
     class property OutputCodePage: UINT read GetOutputCodePage write SetOutputCodePage;
+    class property StdOutputHandle: HWND read GetStdOutputHandle;
+    class property StdInputHandle: HWND read GetStdInputHandle;
+    class property StdErrorHandle: HWND read GetStdErrorHandle;
+    class property CursorPosX: SmallInt read GetCursorPosX write SetCursorPosX;
+    class property CursorPosY: SmallInt read GetCursorPosY write SetCursorPosY;
     {$ENDIF}
     {$IF Defined(FPC) or Defined(DELPHIXE2_OR_ABOVE)}
     class property TextCodePage: Cardinal read GetTextCodePage write SetTextCodePage;
@@ -382,11 +412,16 @@ type
 procedure ConInit;
 {$IFDEF MSWINDOWS}
 function ConOK: Boolean;
+procedure ConUpdateStandardHandles;
 function ConGetCurrentTextAttr: WORD;
 procedure ConSetTextAttrs(const Attrs: WORD);
 
 // To use ANSI Escape Codes on Windows, ENABLE_VIRTUAL_TERMINAL_PROCESSING must be set in the console mode.
 function ConSetVirtualTerminalProcessing(const Enable: Boolean): Boolean;
+
+// Returns True if the VirtualKeyCode is pressed
+function ConWaitForKeyPressed(VirtualKeyCode: WORD = VK_ANY; Milliseconds: DWORD = INFINITE; SleepInterval: DWORD = 25): Boolean;
+function ConWaitForReturnPressed(Milliseconds: DWORD = INFINITE): Boolean;
 {$ENDIF}
 
 function ConCanUseAEC: Boolean; // AEC - ANSI Escape Codes
@@ -445,7 +480,9 @@ var
   ConForceAEC: Boolean;
 
   {$IFDEF MSWINDOWS}
-  ConStdOut: THandle;
+  ConStdOut: HWND;
+  ConStdInput: HWND;
+  ConStdError: HWND;
   ConCurrentTextAttrs: WORD;
   ConOriginalTextAttrs: WORD;
   ConInitialized: Boolean = False;
@@ -462,6 +499,9 @@ begin
 end;
 
 {$IFDEF MSWINDOWS}
+
+
+
 function ConGetCurrentTextAttr: WORD;
 begin
   Result := ConCurrentTextAttrs;
@@ -479,12 +519,62 @@ var
 begin
   Result := False;
   if not ConOK then Exit;
-  dwMode := 0; // FPC-LAZ: Supress stupid warning
+  dwMode := 0; // FPC-LAZ: initialize
   if not GetConsoleMode(ConStdOut, dwMode) then Exit;
   if Enable then dwMode := dwMode or ENABLE_VIRTUAL_TERMINAL_PROCESSING
   else dwMode := dwMode and (not ENABLE_VIRTUAL_TERMINAL_PROCESSING);
   Result := SetConsoleMode(ConStdOut, dwMode);
   ConVirtualTerminalProcessingEnabled := Result and Enable;
+end;
+
+function ConWaitForKeyPressed(VirtualKeyCode: WORD = VK_ANY; Milliseconds: DWORD = INFINITE; SleepInterval: DWORD = 25): Boolean;
+var
+  ir: TInputRecord;
+  dwEvents: DWORD;
+  tmEnd: DWORD;
+  dwKey: WORD;
+begin
+  Result := False;
+  tmEnd := 0;
+
+  ConUpdateStandardHandles;
+  if ConStdInput = INVALID_HANDLE_VALUE then Exit;
+  if (Milliseconds <> INFINITE) and (Milliseconds > 0) then tmEnd := GetTickCount + Milliseconds;
+
+  // FPC: initialize
+  ir.Reserved := 0;
+  dwEvents := 0;
+
+  while True do
+  begin
+    Sleep(SleepInterval);
+
+    if not GetNumberOfConsoleInputEvents(ConStdInput, dwEvents) then Exit;
+
+    if dwEvents <> 0 then
+    begin
+      if not ReadConsoleInput(ConStdInput, ir, 1, dwEvents) then Exit;
+
+      if ir.Event.KeyEvent.bKeyDown and (ir.EventType = KEY_EVENT) then
+      begin
+        dwKey := ir.Event.KeyEvent.wVirtualKeyCode;
+        // Przy VK_ANY sprawdzam dodatkowo VK_CONTROL, aby nie zablokować Ctrl+C
+        if ( (VirtualKeyCode = VK_ANY) and (dwKey <> VK_CONTROL) ) or (VirtualKeyCode = dwKey) then
+        begin
+          Result := True;
+          Break;
+        end;
+      end;
+    end;
+
+    if (Milliseconds <> INFINITE) and (Milliseconds > 0) and (GetTickCount >= tmEnd) then Break;
+  end;
+
+end;
+
+function ConWaitForReturnPressed(Milliseconds: DWORD = INFINITE): Boolean;
+begin
+  Result := ConWaitForKeyPressed(VK_RETURN, Milliseconds);
 end;
 {$ENDIF}
 
@@ -1162,9 +1252,27 @@ begin
   FOutputCodePage := GetConsoleOutputCP;
 end;
 
-class function TConsole.GetOutputCodePage: Cardinal; {$IFDEF FPC}static;{$ENDIF}
+class function TConsole.GetOutputCodePage: UINT;
 begin
   Result := GetConsoleOutputCP;
+end;
+
+class function TConsole.GetStdErrorHandle: HWND;
+begin
+  ConUpdateStandardHandles;
+  Result := ConStdError;
+end;
+
+class function TConsole.GetStdOutputHandle: HWND;
+begin
+  ConUpdateStandardHandles;
+  Result := ConStdOut;
+end;
+
+class function TConsole.GetStdInputHandle: HWND;
+begin
+  ConUpdateStandardHandles;
+  Result := ConStdInput;
 end;
 
 class function TConsole.RestoreOriginalOutputCodePage: Boolean;
@@ -1173,10 +1281,92 @@ begin
   if not SetConsoleOutputCP(FOriginalOutputCodePage) then Exit(False);
   Result := GetConsoleOutputCP = FOriginalOutputCodePage;
 end;
-{$ENDIF}
+
+class function TConsole.MoveCursor(const DeltaX, DeltaY: SmallInt): Boolean;
+var
+  csbi: TConsoleScreenBufferInfo;
+  ccp: TConsoleCursorPos;
+  hOut: HWND;
+begin
+  Result := False;
+  hOut := StdOutputHandle;
+  if not GetConsoleScreenBufferInfo(hOut, csbi{%H-}) then Exit;
+  ccp.X := csbi.dwCursorPosition.X + DeltaX;
+  ccp.Y := csbi.dwCursorPosition.Y + DeltaY;
+  Result := SetConsoleCursorPosition(hOut, ccp);
+end;
+
+class function TConsole.GetCursorPos(var ccp: TConsoleCursorPos): Boolean;
+var
+  csbi: TConsoleScreenBufferInfo;
+begin
+  Result := False;
+  if not GetConsoleScreenBufferInfo(StdOutputHandle, csbi{%H-}) then Exit;
+  ccp.X := csbi.dwCursorPosition.X;
+  ccp.Y := csbi.dwCursorPosition.Y;
+  Result := True;
+end;
+
+class function TConsole.GetCursorPos(var X, Y: SmallInt): Boolean;
+var
+  ccp: TConsoleCursorPos;
+begin
+  Result := False;
+  if not GetCursorPos(ccp{%H-}) then Exit;
+  X := ccp.X;
+  Y := ccp.Y;
+end;
+
+class function TConsole.GetCursorPosY: SmallInt;
+var
+  x: SmallInt;
+begin
+  Result := 0;
+  x := 0;
+  GetCursorPos(x, Result);
+end;
+
+class procedure TConsole.SetCursorPosY(const Y: SmallInt);
+var
+  ccp: TConsoleCursorPos;
+begin
+  if not GetCursorPos(ccp{%H-}) then Exit;
+  ccp.Y := Y;
+  SetConsoleCursorPosition(StdOutputHandle, ccp);
+end;
+
+class function TConsole.GetCursorPosX: SmallInt;
+var
+  y: SmallInt;
+begin
+  Result := 0;
+  y := 0;
+  GetCursorPos(Result, y);
+end;
+
+class procedure TConsole.SetCursorPosX(const X: SmallInt);
+var
+  ccp: TConsoleCursorPos;
+begin
+  if not GetCursorPos(ccp{%H-}) then Exit;
+  ccp.X := X;
+  SetConsoleCursorPosition(StdOutputHandle, ccp);
+end;
+
+class function TConsole.WaitForKeyPressed(VirtualKeyCode: WORD = VK_ANY; Milliseconds: DWORD = INFINITE; SleepInterval: DWORD = 25): Boolean;
+begin
+  Result := ConWaitForKeyPressed(VirtualKeyCode, Milliseconds, SleepInterval);
+end;
+
+class function TConsole.ConWaitForReturnPressed(Milliseconds: DWORD = INFINITE): Boolean;
+begin
+  Result := ConWaitForReturnPressed(Milliseconds);
+end;
+
+{$ENDIF} //MSWINDOWS
 
 {$IF Defined(FPC) or Defined(DELPHIXE2_OR_ABOVE)}
-class procedure TConsole.SetTextCodePage(AValue: Cardinal); {$IFDEF FPC}static;{$ENDIF}
+class procedure TConsole.SetTextCodePage(AValue: Cardinal);
 begin
   System.SetTextCodePage(Output, AValue);
 end;
@@ -1327,6 +1517,13 @@ function ConOK: Boolean;
 begin
   Result := ConInitialized;
 end;
+
+procedure ConUpdateStandardHandles;
+begin
+  ConStdInput := GetStdHandle(STD_INPUT_HANDLE);
+  ConStdError := GetStdHandle(STD_ERROR_HANDLE);
+  ConStdOut := GetStdHandle(STD_OUTPUT_HANDLE);
+end;
 {$ENDIF}
 
 
@@ -1339,16 +1536,18 @@ begin
   {$IFDEF MSWINDOWS}
   ConInitialized := False;
 
-  ConStdOut := GetStdHandle(STD_OUTPUT_HANDLE);
-  if ConStdOut = INVALID_HANDLE_VALUE then Exit;
-
-  csbi.wAttributes := 0; // FPC-LAZ: Supress stupid warning
-  FillChar(csbi, SizeOf(csbi), 0);
-  if not GetConsoleScreenBufferInfo(ConStdOut, csbi) then Exit;
-
-  ConInitialized := True;
-  ConOriginalTextAttrs := csbi.wAttributes;
-  ConCurrentTextAttrs := ConOriginalTextAttrs;
+  ConUpdateStandardHandles;
+  if ConStdOut <> INVALID_HANDLE_VALUE then
+  begin
+    csbi.wAttributes := 0; // FPC-LAZ: initialize
+    FillChar(csbi, SizeOf(csbi), 0);
+    if GetConsoleScreenBufferInfo(ConStdOut, csbi) then
+    begin
+      ConInitialized := True;
+      ConOriginalTextAttrs := csbi.wAttributes;
+      ConCurrentTextAttrs := ConOriginalTextAttrs;
+    end;
+  end;
   {$ENDIF}
 
   ConOutputIsCharacterDevice := OutputIsCharacterDevice;
