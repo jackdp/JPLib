@@ -24,7 +24,7 @@ uses
   {$IFDEF MSWINDOWS}
   Windows, {$IFDEF DCC}ShellApi,{$ENDIF}
   {$ENDIF}
-  SysUtils, Types,
+  SysUtils, {%H-}Types,
   JPL.Strings,
   JPL.Conversion,
   JPL.Console,
@@ -106,6 +106,8 @@ type
   end;
 
 
+  { TJPConsoleApp }
+
   TJPConsoleApp = class
   private
     FAuthor: string;
@@ -124,6 +126,7 @@ type
     FName: string;
     FShortUsageStr: string;
     FTerminated: Boolean;
+    FTrimExtFromExeShortName: Boolean;
     FTryHelpStr: string;
     FUsageStr: string;
     FVersion: TJPConsoleAppVersion;
@@ -152,6 +155,7 @@ type
 
     {$IFDEF MSWINDOWS}
     procedure GoToUrl(const URL: string);
+    procedure SetTrimExtFromExeShortName(AValue: Boolean);
     {$ENDIF}
 
   public
@@ -212,6 +216,7 @@ type
     property TryHelpStr: string read FTryHelpStr write FTryHelpStr;
 
     property ExeShortName: string read GetExeShortName;
+    property TrimExtFromExeShortName: Boolean read FTrimExtFromExeShortName write SetTrimExtFromExeShortName;
     property ExeFullName: string read GetExeFullName;
     property ExeDirectory: string read GetExeDirectory;
     property ExePath: string read GetExePath;
@@ -272,7 +277,7 @@ begin
   FShortUsageStr := '';
   FExtraInfoStr := '';
   FExamplesStr := '';
-  FTryHelpStr := 'Try "' + ExeShortName + ' --help" for more info.';
+  FTryHelpStr := 'Try "' + ExeShortName + ' --help" for more information.';
 
   FUseColors := True;
 
@@ -334,6 +339,7 @@ end;
 function TJPConsoleApp.GetExeShortName: string;
 begin
   Result := ExtractFileName(ParamStr(0));
+  if TrimExtFromExeShortName then Result := ChangeFileExt(Result, '');
 end;
 
 function TJPConsoleApp.GetParamCount: integer;
@@ -501,6 +507,12 @@ end;
 procedure TJPConsoleApp.GoToUrl(const URL: string);
 begin
   ShellExecute(0, 'open', PChar(URL), '', '', SW_SHOW);
+end;
+
+procedure TJPConsoleApp.SetTrimExtFromExeShortName(AValue: Boolean);
+begin
+  if FTrimExtFromExeShortName = AValue then Exit;
+  FTrimExtFromExeShortName := AValue;
 end;
 
 procedure TJPConsoleApp.GoToHomePage;
