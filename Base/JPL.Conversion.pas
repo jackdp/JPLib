@@ -119,10 +119,76 @@ function TryHexToInt(Hex: string; var xInt: Int64): Boolean; overload;
 function TryHexToInt(Hex: string; var xInt: integer): Boolean; overload;
 function TryHexToByte(Hex: string; var xb: Byte): Boolean;
 
+function TryGetMilliseconds(const NumStr: string; out MilliSeconds: Int64): Boolean;
+
 
 
 implementation
 
+uses
+  JPL.TStr;
+
+
+function TryGetMilliseconds(const NumStr: string; out MilliSeconds: Int64): Boolean;
+var
+  s: string;
+  dx64: Double;
+  ux64: UInt64;
+  bSeconds, bMinutes, bHours, bDays: Boolean;
+begin
+  Result := False;
+
+  s := TStr.TrimAndLow(NumStr);
+  s := TStr.TrimBounds(s, '"', '"');
+  s := TStr.RemoveSpaces(s);
+
+  bSeconds := False;
+  bMinutes := False;
+  bHours := False;
+  bDays := False;
+
+  if TStr.EndsStr('ms', s) then s := TStr.TrimFromEnd(s, 'ms')
+  else if TStr.EndsStr('s', s) then
+  begin
+    bSeconds := True;
+    s := TStr.TrimFromEnd(s, 's');
+  end
+  else if TStr.EndsStr('m', s) then
+  begin
+    bMinutes := True;
+    s := TStr.TrimFromEnd(s, 'm');
+  end
+  else if TStr.EndsStr('h', s) then
+  begin
+    bHours := True;
+    s := TStr.TrimFromEnd(s, 'h');
+  end
+  else if TStr.EndsStr('d', s) then
+  begin
+    bDays := True;
+    s := TStr.TrimFromEnd(s, 'd');
+  end
+  else bSeconds := True;
+
+  dx64 := 0;
+  if (TStr.StartsWithHexPrefix(s)) or (Copy(s, 1, 1) = '%') then
+  begin
+    if not TryStrToUInt64(s, ux64) then Exit;
+    dx64 := ux64;
+  end
+  else if not TryStoF(s, dx64) then Exit;
+
+  if bSeconds then dx64 := dx64 * 1000
+  else if bMinutes then dx64 := dx64 * 1000 * 60
+  else if bHours then dx64 := dx64 * 1000 * 60 * 60
+  else if bDays then dx64 := dx64 * 1000 * 60 * 60 * 24;
+
+  //if dx64 > TIME_MAX then Exit;
+
+  MilliSeconds := Int64(Round(dx64));
+  Result := True;
+
+end;
 
 function TryHexToByte(Hex: string; var xb: Byte): Boolean;
 var
