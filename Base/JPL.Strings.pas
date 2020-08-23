@@ -84,6 +84,7 @@ function IsBigLetter(const c: Char): Boolean;
 function IsSmallLetter(const c: Char): Boolean;
 function IsLetter(const c: Char): Boolean;
 function IsNumber(const c: Char): Boolean;
+function LastCharIsNumber(const s: string): Boolean;
 
 function DistinctChars(s: string; IgnoreCase: Boolean = True): Boolean;
 function MakeDistinctChars(s: string): string;
@@ -785,6 +786,14 @@ function IsNumber(const c: Char): Boolean;
 begin
   //Result := c in ['0'..'9'];
   Result := CharInSet(c, ['0'..'9']);
+end;
+
+
+function LastCharIsNumber(const s: string): Boolean;
+begin
+  Result := False;
+  if Length(s) < 1 then Exit;
+  Result := IsNumber(s[Length(s)]);
 end;
 
 {$IFDEF DCC}
