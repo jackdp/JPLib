@@ -72,7 +72,8 @@ function TimeToMs(tm: TDateTime): int64;
 function DayTimeStr(dt: TDateTime; DateSeparator: string = '.'; TimeSeparator: string = ':'; DateTimeSeparator: string = ' '; MSecSeparator: string = '.'; bShowMSec: Boolean = True): string;
 
 
-function MsToTimeStr(ms: integer; RoundToSeconds: Boolean = False): string;
+function MsToTimeStr(ms: Int64; RoundToSeconds: Boolean = False): string;
+function MsToTimeStrEx(ms: Int64; RoundToSeconds: Boolean = False; DayStr: string = 'd '): string;
 
 function GetTimestamp(dt: TDateTime; bShowMSec: Boolean = True; DateSeparator: string = '-'; TimeSeparator: string = ';'; DateTimeSeparator: string = '_';
   MSecSeparator: string = '.'): string;
@@ -189,9 +190,9 @@ begin
   Result := DayTimeStr(dt, DateSeparator, TimeSeparator, DateTimeSeparator, MSecSeparator, bShowMSec);
 end;
 
-function MsToTimeStr(ms: integer; RoundToSeconds: Boolean = False): string;
+function MsToTimeStr(ms: Int64; RoundToSeconds: Boolean = False): string;
 var
-  h, m, s: integer;
+  h, m, s: Int64;
 begin
   if RoundToSeconds then Result := '00:00:00'
   else Result := '00:00:00.000';
@@ -209,6 +210,41 @@ begin
     Result := Pad(itos(h), 2, '0') + ':' + Pad(itos(m), 2, '0') + ':' + Pad(itos(s), 2, '0');
   end
   else Result := Pad(itos(h), 2, '0') + ':' + Pad(itos(m), 2, '0') + ':' + Pad(itos(s), 2, '0') + '.' + Pad(itos(ms), 3, '0');
+end;
+
+function MsToTimeStrEx(ms: Int64; RoundToSeconds: Boolean; DayStr: string = 'd '): string;
+const
+  MS_IN_DAY = 1000 * 60 * 60 * 24;
+var
+  d, h, m, s: Int64;
+begin
+  if RoundToSeconds then Result := '00:00:00'
+  else Result := '00:00:00.000';
+  if ms <= 0 then Exit;
+  d := 0;
+
+  if ms >= MS_IN_DAY then
+  begin
+    d := ms div MS_IN_DAY;
+    ms := ms - (d * MS_IN_DAY);
+  end;
+
+  h := ms div (60 * 60 * 1000);
+
+  ms := ms - (h * 60 * 60 * 1000);
+
+  m := ms div (60 * 1000);
+  ms := ms - (m * 60 * 1000);
+  s := ms div 1000;
+  ms := ms - (s * 1000);
+  if RoundToSeconds then
+  begin
+    if ms >= 500 then Inc(s);
+    Result := Pad(itos(h), 2, '0') + ':' + Pad(itos(m), 2, '0') + ':' + Pad(itos(s), 2, '0');
+  end
+  else Result := Pad(itos(h), 2, '0') + ':' + Pad(itos(m), 2, '0') + ':' + Pad(itos(s), 2, '0') + '.' + Pad(itos(ms), 3, '0');
+
+  if d > 0 then Result := itos(d) + DayStr + Result;
 end;
 
 
