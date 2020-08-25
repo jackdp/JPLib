@@ -14,7 +14,7 @@
       </SearchPaths>
     </CompilerOptions>
     <Description Value="JPLib"/>
-    <Files Count="36">
+    <Files Count="39">
       <Item1>
         <Filename Value="..\..\Base\JPL.CmdLineParser.pas"/>
         <UnitName Value="JPL.CmdLineParser"/>
@@ -159,6 +159,18 @@
         <Filename Value="..\..\jp.inc"/>
         <Type Value="Include"/>
       </Item36>
+      <Item37>
+        <Filename Value="..\..\Base\JPL.TStr.pas"/>
+        <UnitName Value="JPL.TStr"/>
+      </Item37>
+      <Item38>
+        <Filename Value="..\..\Base\JPL.TStringsHelper.pas"/>
+        <UnitName Value="JPL.TStringsHelper"/>
+      </Item38>
+      <Item39>
+        <Filename Value="..\..\Base\JPL.Win.SimpleTimer.pas"/>
+        <UnitName Value="JPL.Win.SimpleTimer"/>
+      </Item39>
     </Files>
     <RequiredPkgs Count="3">
       <Item1>

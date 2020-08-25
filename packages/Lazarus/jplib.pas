@@ -12,7 +12,7 @@ uses
   JPL.FileSearch, JPL.FileSearcher, JPL.IniFile, JPL.JsonHelpers, JPL.Language, JPL.Math, JPL.MemIniFile, JPL.RTTI, JPL.StrHash, 
   JPL.Strings.Ext, JPL.Strings, JPL.Units, JPL.Utils, JPL.Win.Dialogs, JPL.Win.FileSystem, JPL.Win.Processes, JPL.Win.Shortcuts, 
   JPL.Win.System, JPL.Win.VersionInfo, JPL.StrList, JPL.Win.FileIcons, JPL.ColorArrays, JPL.Colors.ColorClass, JPL.Colors.List, 
-  JPL.Colors, JPL.SimpleLogger, JPL.TimeLogger, LazarusPackageIntf;
+  JPL.Colors, JPL.SimpleLogger, JPL.TimeLogger, JPL.TStr, JPL.TStringsHelper, JPL.Win.SimpleTimer, LazarusPackageIntf;
 
 implementation
 

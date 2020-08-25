@@ -65,6 +65,7 @@ contains
   JPL.Win.Shortcuts in '..\..\Base\JPL.Win.Shortcuts.pas',
   JPL.Win.System in '..\..\Base\JPL.Win.System.pas',
   JPL.Win.VersionInfo in '..\..\Base\JPL.Win.VersionInfo.pas',
+  JPL.Win.SimpleTimer in '..\..\Base\JPL.Win.SimpleTimer.pas',
 
   // Binary
   JPL.Binary.Elf in '..\..\Binary\JPL.Binary.Elf.pas',
