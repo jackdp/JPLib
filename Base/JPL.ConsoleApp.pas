@@ -216,7 +216,9 @@ type
     property TryHelpStr: string read FTryHelpStr write FTryHelpStr;
 
     property ExeShortName: string read GetExeShortName;
+    {$IFDEF MSWINDOWS}
     property TrimExtFromExeShortName: Boolean read FTrimExtFromExeShortName write SetTrimExtFromExeShortName;
+    {$ENDIF}
     property ExeFullName: string read GetExeFullName;
     property ExeDirectory: string read GetExeDirectory;
     property ExePath: string read GetExePath;
@@ -339,7 +341,9 @@ end;
 function TJPConsoleApp.GetExeShortName: string;
 begin
   Result := ExtractFileName(ParamStr(0));
+  {$IFDEF MSWINDOWS}
   if TrimExtFromExeShortName then Result := ChangeFileExt(Result, '');
+  {$ENDIF}
 end;
 
 function TJPConsoleApp.GetParamCount: integer;
