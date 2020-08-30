@@ -28,6 +28,7 @@ const
   {$IFDEF FPC}
   INVALID_FILE_ATTRIBUTES  = DWORD(-1);
   {$ENDIF}
+  UNC_PREFIX = '\\?\';
 
   {$IFDEF DELPHI2010_OR_BELOW}
   faCompressed  = $00000800;
@@ -35,7 +36,10 @@ const
   faVirtual     = $00010000;
   {$ENDIF}
 
+
 type
+
+  TFileSystemItemType = (fsitFile, fsitDirectory, fsitUnknown);
 
   TFileNameRec = record
     FullFileName: string;         //  C:\dir\file.ext   |  /etc/dir/file.ext
@@ -115,15 +119,57 @@ function DelFile(const FileName: string): Boolean;
 function GetIncFileName(const fName: string; NumPrefix: string = '_'; xpad: integer = 3): string;
 function GetUniqueFileName(Prefix: string = ''; Len: BYTE = 10; Ext: string = ''): string;
 
-function GetFiles(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): TStringDynArray;
-function GetDirectories(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): TStringDynArray;
-function SubdirectoryCount(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): integer;
+function GetFiles(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0; AcceptSymLinks: Boolean = True): TStringDynArray;
+function GetDirectories(const StartDir: string; RecurseDepth: Word = 0; AcceptSymLinks: Boolean = True): TStringDynArray;
+function SubdirectoryCount(const Directory: string; RecurseDepth: Word = 0; AcceptSymLinks: Boolean = True): integer;
+
+function DirectoryExistsEx(const Dir: string; AcceptSymLinks: Boolean = True): Boolean;
+function AddUncPrefix(const FileOrDirectoryName: string): string;
+
+function GetFileSystemItemType(const FileOrDirectoryName: string): TFileSystemItemType;
 
 
 implementation
 
 
-function GetFiles(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): TStringDynArray;
+function GetFileSystemItemType(const FileOrDirectoryName: string): TFileSystemItemType;
+begin
+  if DirectoryExists(FileOrDirectoryName) then Result := fsitDirectory
+  else if FileExists(FileOrDirectoryName) then Result := fsitFile
+  else Result := fsitUnknown;
+end;
+
+function AddUncPrefix(const FileOrDirectoryName: string): string;
+begin
+  if Copy(FileOrDirectoryName, 1, 2) <> '\\' then Result := UNC_PREFIX + FileOrDirectoryName
+  else Result := FileOrDirectoryName;
+end;
+
+function DirectoryExistsEx(const Dir: string; AcceptSymLinks: Boolean = True): Boolean;
+var
+  SR: SysUtils.TSearchRec;
+
+  function IsDirectory: Boolean;
+  begin
+    Result := ( (SR.Attr and faDirectory) <> 0 ) and (SR.Name <> '.') and (SR.Name <> '..');
+    if Result and (not AcceptSymLinks) then Result := ( Result and ( (SR.Attr and faSymLink) = 0) );
+  end;
+
+begin
+  Result := False;
+  {$IFDEF MSWINDOWS}
+  if FindFirst(AddUncPrefix(Dir), faAnyFile, SR) = 0 then
+  {$ELSE}
+  if FindFirst(Dir, faAnyFile, SR) = 0 then
+  {$ENDIF}
+  try
+    Result := IsDirectory;
+  finally
+    SysUtils.FindClose(SR);
+  end;
+end;
+
+function GetFiles(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0; AcceptSymLinks: Boolean = True): TStringDynArray;
 var
   sl: TStringList;
   i: integer;
@@ -131,7 +177,7 @@ begin
   SetLength(Result, 0);
   sl := TStringList.Create;
   try
-    JPGetFileList(SearchPattern, Directory, sl, RecurseDepth, True, True, nil, nil, nil);
+    JPGetFileList(SearchPattern, Directory, sl, RecurseDepth, AcceptSymLinks, AcceptSymLinks, nil, nil, nil);
     sl.Sort;
     for i := 0 to sl.Count - 1 do
     begin
@@ -143,7 +189,7 @@ begin
   end;
 end;
 
-function GetDirectories(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): TStringDynArray;
+function GetDirectories(const StartDir: string; RecurseDepth: Word = 0; AcceptSymLinks: Boolean = True): TStringDynArray;
 var
   sl: TStringList;
   i: integer;
@@ -151,7 +197,7 @@ begin
   SetLength(Result, 0);
   sl := TStringList.Create;
   try
-    JPGetDirectoryList(Directory, sl, True, RecurseDepth, nil);
+    JPGetDirectoryList(StartDir, sl, AcceptSymLinks, RecurseDepth, nil);
     sl.Sort;
     for i := 0 to sl.Count - 1 do
     begin
@@ -163,9 +209,9 @@ begin
   end;
 end;
 
-function SubdirectoryCount(const Directory: string; SearchPattern: string = '*'; RecurseDepth: Word = 0): integer;
+function SubdirectoryCount(const Directory: string; RecurseDepth: Word = 0; AcceptSymLinks: Boolean = True): integer;
 begin
-  Result := Length(GetDirectories(Directory, SearchPattern, RecurseDepth));
+  Result := Length(GetDirectories(Directory, RecurseDepth, AcceptSymLinks));
 end;
 
 function GetIncFileName(const fName: string; NumPrefix: string = '_'; xpad: integer = 3): string;
