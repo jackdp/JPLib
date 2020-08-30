@@ -212,7 +212,7 @@ begin
   else Result := Pad(itos(h), 2, '0') + ':' + Pad(itos(m), 2, '0') + ':' + Pad(itos(s), 2, '0') + '.' + Pad(itos(ms), 3, '0');
 end;
 
-function MsToTimeStrEx(ms: Int64; RoundToSeconds: Boolean; DayStr: string = 'd '): string;
+function MsToTimeStrEx(ms: Int64; RoundToSeconds: Boolean = False; DayStr: string = 'd '): string;
 const
   MS_IN_DAY = 1000 * 60 * 60 * 24;
 var
