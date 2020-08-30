@@ -57,6 +57,7 @@ contains
   JPL.StrHash in '..\..\Base\JPL.StrHash.pas',
   JPL.Strings in '..\..\Base\JPL.Strings.pas',
   JPL.Strings.Ext in '..\..\Base\JPL.Strings.Ext.pas',
+  JPL.TStr in '..\..\Base\JPL.TStr.pas',
   JPL.Units in '..\..\Base\JPL.Units.pas',
   JPL.Utils in '..\..\Base\JPL.Utils.pas',
   JPL.Win.Dialogs in '..\..\Base\JPL.Win.Dialogs.pas',

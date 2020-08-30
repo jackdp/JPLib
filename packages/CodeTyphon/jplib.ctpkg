@@ -164,6 +164,18 @@
         <Type Value="Include"/>
         <FRMtype Value="0"/>
       </Item>
+      <Item>
+        <Filename Value="..\..\Base\JPL.TStr.pas"/>
+        <UnitName Value="JPL.TStr"/>
+      </Item>
+      <Item>
+        <Filename Value="..\..\Base\JPL.TStringsHelper.pas"/>
+        <UnitName Value="JPL.TStringsHelper"/>
+      </Item>
+      <Item>
+        <Filename Value="..\..\Base\JPL.Win.SimpleTimer.pas"/>
+        <UnitName Value="JPL.Win.SimpleTimer"/>
+      </Item>
     </Files>
     <RequiredPkgs>
       <Item>

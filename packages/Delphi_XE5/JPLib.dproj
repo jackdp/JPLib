@@ -114,6 +114,7 @@
         <DCCReference Include="..\..\Base\JPL.StrHash.pas"/>
         <DCCReference Include="..\..\Base\JPL.Strings.pas"/>
         <DCCReference Include="..\..\Base\JPL.Strings.Ext.pas"/>
+        <DCCReference Include="..\..\Base\JPL.TStr.pas"/>
         <DCCReference Include="..\..\Base\JPL.Units.pas"/>
         <DCCReference Include="..\..\Base\JPL.Utils.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.Dialogs.pas"/>
@@ -122,6 +123,7 @@
         <DCCReference Include="..\..\Base\JPL.Win.Shortcuts.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.System.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.VersionInfo.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.SimpleTimer.pas"/>
         <DCCReference Include="..\..\Binary\JPL.Binary.Elf.pas"/>
         <DCCReference Include="..\..\Binary\JPL.Binary.Mach.Types.pas"/>
         <DCCReference Include="..\..\Binary\JPL.Binary.MachFat.pas"/>
