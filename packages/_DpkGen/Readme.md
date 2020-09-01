@@ -2,7 +2,7 @@
 
 To execute the `generate_packages.bat` file, you need:
 1. **DpkGen** from http://www.pazera-software.com/products/dpk-generator/
-1. **StrRep** http://www.pazera-software.com/files/StrRep.exe (source below).
+1. **StrRep** https://www.pazera-software.com/files/StrRep.exe (source below).
 
 ```pascal
 program StrRep;
