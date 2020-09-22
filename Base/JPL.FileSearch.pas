@@ -1,4 +1,4 @@
-unit JPL.FileSearch;
+ï»¿unit JPL.FileSearch;
 
 {
   Jacek Pazera
@@ -9,10 +9,10 @@ unit JPL.FileSearch;
   The solution is not much slower than using recursion, but less memory-consuming.
 
 
-  Nierekursywne przetwarzanie plików i katalogów.
-  Rozwi¹zanie niewiele wolniejsze ni¿ z zastosowaniem rekurencji, za to mniej pamiêcio¿erne.
+  Nierekursywne przetwarzanie plikÃ³w i katalogÃ³w.
+  RozwiÄ…zanie niewiele wolniejsze niÅ¼ z zastosowaniem rekurencji, za to mniej pamiÄ™cioÅ¼erne.
 
-  Modu³ z 2002 roku. W kolejnych latach rozbudowywany.
+  ModuÅ‚ z 2002 roku. W kolejnych latach rozbudowywany.
 
   ------------------------------------------------------
 
@@ -27,9 +27,9 @@ unit JPL.FileSearch;
 
   Uwaga!
   FindFiles
-  FPC 3.1.1 ma problemy z maskami w FindFirst/FindNext. Czasami akceptuje pliki zupe³nie nie pasuj¹ce do maski!
-  Na Delphi XE7 wszystko dzia³a prawid³owo.
-  W FPC wprowadzi³em dodatkowe sprawdzenie przez MatchesMask.
+  FPC 3.1.1 ma problemy z maskami w FindFirst/FindNext. Czasami akceptuje pliki zupeÅ‚nie nie pasujÄ…ce do maski!
+  Na Delphi XE7 wszystko dziaÅ‚a prawidÅ‚owo.
+  W FPC wprowadziÅ‚em dodatkowe sprawdzenie przez MatchesMask.
 
 
 
@@ -62,7 +62,7 @@ const
 var
   // This variable determines whether the character case will be taken into account when searching for files.
   // In initialization section of the unit, it is set to False (for Windows), and True for other platforms.
-  JPFileSearchCaseSensitive: Boolean; // { TODO: Dodaæ CaseSensitive do funkcji JPGetFileList, JPGetDirectoryList, JPGetFileList2 }
+  JPFileSearchCaseSensitive: Boolean; // { TODO: DodaÄ‡ CaseSensitive do funkcji JPGetFileList, JPGetDirectoryList, JPGetFileList2 }
 {$ENDIF}
 
 
@@ -114,6 +114,7 @@ procedure JPGetDirectoryList(
   FileMask - Short file name (without path) or file mask.
   StartDir - Must be a directory name (not a mask).
   FileList - A list in which all found files will be saved.
+  RecurseDepth
   AcceptDirSymLinks - Decides whether to include symbolic links to directories during the search.
   AcceptFileSymLinks - Decides whether to include symbolic links to files during the search.
 }
@@ -305,8 +306,8 @@ var
 begin
   {$IFDEF FPC}
 
-  // FPC 3.1.1: FindFirst czasami "przepuszcza" pliki nie pasuj¹ce do maski, dlatego
-  // w FindFirst ustawiam maskê na '*', a filtrowanie wykonujê przy pomocy MatchesMask.
+  // FPC 3.1.1: FindFirst czasami "przepuszcza" pliki nie pasujÄ…ce do maski, dlatego
+  // w FindFirst ustawiam maskÄ™ na '*', a filtrowanie wykonujÄ™ przy pomocy MatchesMask.
   if FindFirst(StartDir + PathDelim + '*', faAnyFile, SR) = 0 then
   try
 
@@ -463,7 +464,7 @@ end;
 
 {$region ' ---------------------------------------------- JPGetFileList ------------------------------------------------- '}
 {
-  Procedura JPGetFileList najpierw tworzy listê katalogów w MainDirectoryList, a póŸniej listê plików dla ka¿dego znalezionego katalogu.
+  Procedura JPGetFileList najpierw tworzy listÄ™ katalogÃ³w w MainDirectoryList, a pÃ³Åºniej listÄ™ plikÃ³w dla kaÅ¼dego znalezionego katalogu.
 }
 procedure JPGetFileList(
   FileMask, StartDir: string; var FileList: TStringList; RecurseDepth: integer = DEFAULT_RECURSE_DEPTH;
@@ -850,7 +851,7 @@ begin
 
     //for i := 0 to FileList.Count - 1 do FileList[i] := RemoveUncPrefix(FileList[i]); // Prefix UNC usuwany w funkcji _GetFiles
 
-    if FileList.Count < 10000 then Filelist.Sort; // przy du¿ej liczbie plików sortowanie trwa bardzo d³ugo
+    if FileList.Count < 10000 then Filelist.Sort; // przy duÅ¼ej liczbie plikÃ³w sortowanie trwa bardzo dÅ‚ugo
 
     // ------------------------------------- file list created ---------------------------------------
 
