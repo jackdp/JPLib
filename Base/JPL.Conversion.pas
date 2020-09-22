@@ -103,6 +103,8 @@ function MSecToTimeStr(xmsec: int64; bShowMSec: Boolean = True): string;
 
 function GetIntInRange(const Value, Min, Max: integer): integer; overload;
 function GetIntInRange(const Value, Min, Max: Int64): Int64; overload;
+function GetIntInRange(const Value, Min, Max: SmallInt): SmallInt; overload;
+function GetIntInRange(const Value, Min, Max: ShortInt): ShortInt; overload;
 function GetFloatInRange(const Value, Min, Max: Single): Single; overload;
 function GetFloatInRange(const Value, Min, Max: Real): Real; overload;
 function GetFloatInRange(const Value, Min, Max: Double): Double; overload;
@@ -268,6 +270,20 @@ begin
 end;
 
 function GetIntInRange(const Value, Min, Max: Int64): Int64;
+begin
+  if Value < Min then Result := Min
+  else if Value > Max then Result := Max
+  else Result := Value;
+end;
+
+function GetIntInRange(const Value, Min, Max: SmallInt): SmallInt;
+begin
+  if Value < Min then Result := Min
+  else if Value > Max then Result := Max
+  else Result := Value;
+end;
+
+function GetIntInRange(const Value, Min, Max: ShortInt): ShortInt;
 begin
   if Value < Min then Result := Min
   else if Value > Max then Result := Max
