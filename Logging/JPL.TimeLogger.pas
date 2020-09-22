@@ -72,6 +72,7 @@ type
 
 
 function GetTimeCounterMS: Int64;
+function GetTickCountHP: Int64; // HP - high precision
 function MsToTimeStr(ms: integer; RoundToSeconds: Boolean = False): string;
 
 implementation
@@ -92,6 +93,11 @@ begin
   {$ENDIF}
 end;
 {$hints on}
+
+function GetTickCountHP: Int64;
+begin
+  Result := GetTimeCounterMS;
+end;
 
 function Pad(Text: string; i: integer; znak: char = ' '): string;
 var
