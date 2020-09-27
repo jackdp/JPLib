@@ -8,6 +8,9 @@ interface
   Jeśli zwrócona wartość będzie < 0, oznacza to, że nie udało się pobrać ikony danego pliku.
   Gdy zwrócona wartość >= 0, to jest ona indeksem ikony w wewnętrznej liście FImageList i można jej użyc
   w komponentach obsługujących TImageList.
+
+  GetBitmap returns the bitmap (TBitmap) from the associated TImageList.
+  You are responsible for the freeing the returned TBitmap.
 }
 
 {$IFDEF MSWINDOWS}
@@ -22,7 +25,7 @@ interface
 
 uses
   // Win API
-  ShellAPI,
+  Windows, ShellAPI,
 
   // System
   SysUtils, Classes, Generics.Collections,
@@ -44,12 +47,15 @@ type
     FIconList: TIconList;
     FImageList: TImageList;
     FMaxIconCount: integer;
+    FSmallIcons: Boolean;
+    FIconFlags: UINT;
     procedure SetMaxIconCount(const Value: integer);
   public
     constructor Create(ImageList: TImageList; xMaxIconCount: integer = -1);
     destructor Destroy; override;
     procedure ClearAll;
     function GetFileIconIndex(const fName: string): integer;
+    function GetBitmap(const Index: integer): TBitmap;
     function AddIcon(Ext: string; Icon: TIcon): integer;
     function IconCount: integer;
 
@@ -73,6 +79,8 @@ begin
   FIconList := TIconList.Create;
   FImageList := ImageList;
   FMaxIconCount := xMaxIconCount;
+  FSmallIcons := FImageList.Width <= 16;
+  if FSmallIcons then FIconFlags := SHGFI_SMALLICON or SHGFI_ICON else FIconFlags := SHGFI_LARGEICON or SHGFI_ICON;
 end;
 
 destructor TFileIcons.Destroy;
@@ -139,7 +147,7 @@ begin
 
       Icon := TIcon.Create;
       try
-        ShGetFileInfo(PChar(fName), 0, SHFileInfo, SizeOf(TSHFileInfo), SHGFI_SMALLICON or SHGFI_ICON);
+        ShGetFileInfo(PChar(fName), 0, SHFileInfo, SizeOf(TSHFileInfo), FIconFlags);
         if SHFileInfo.hIcon > 0 then
         begin
           Icon.Handle := SHFileInfo.hIcon;
@@ -159,8 +167,13 @@ begin
 
 end;
 
-
-
+function TFileIcons.GetBitmap(const Index: integer): TBitmap;
+begin
+  Result := TBitmap.Create;
+  Result.PixelFormat := pf32bit;
+  Result.Transparent := True;
+  FImageList.GetBitmap(Index, Result);
+end;
 
 function TFileIcons.IconCount: integer;
 begin
