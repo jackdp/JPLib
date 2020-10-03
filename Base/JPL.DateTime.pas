@@ -24,6 +24,12 @@ const
   MsMin = 60000;
   MsHour = 3600000;
   MsDay = 86400000;
+
+  MSEC_IN_SEC = 1000;
+  MSEC_IN_MIN = 60000;
+  MSEC_IN_HOUR = 3600000;
+  MSEC_IN_DAY = 86400000;
+
   MINUTESPERDAY = 1440;
   MsInBeat = 86.4 * MsSec;
   DTSep = '-';
@@ -62,6 +68,7 @@ function ParseDate(dt: TDateTime; DateFormat: TDateFormat = dfLongDay): string;
 function FirstDayOfYear(Year: WORD): TDateTime;
 function SecToTimeStr(Sec: DWORD): string;
 function MinToMs(Min: integer): integer;
+function MsToMinStr(const xms: Int64; MinSecSeparator: string = ':'; MinPostfix: string = ''; SecPostfix: string = ''; MSecPostfix: string = ''): string;
 function WithinDates(dt, dtStart, dtEnd: TDateTime): Boolean;
 function MinToHMStr(Min: integer): string;
 
@@ -407,7 +414,22 @@ begin
   Result := Min * 60000;
 end;
 
+function MsToMinStr(const xms: Int64; MinSecSeparator: string = ':'; MinPostfix: string = ''; SecPostfix: string = ''; MSecPostfix: string = ''): string;
+var
+  ms, xMin, xSec, xMSec: Int64;
+begin
+  ms := xms;
 
+  xMin := ms div MSEC_IN_MIN;
+  if xMin > 0 then ms := ms - xMin * MSEC_IN_MIN;
+
+  xSec := ms div 1000;
+  ms := ms - xSec * 1000;
+
+  xMSec := ms;
+
+  Result := itos(xMin) + MinPostfix + MinSecSeparator + Pad(itos(xSec), 2, '0') + SecPostfix + '.' + Pad(itos(xMSec), 3, '0') + MSecPostfix;
+end;
 
 function SecToTimeStr(Sec: DWORD): string;
 begin
