@@ -2,9 +2,9 @@
 
 Small library of Pascal units needed to compile my projects published on GitHub.
 
-Supported Delphi versions: **2009**, **2010**, **XE**, **XE2**, **XE3**, **XE4**, **XE5**, **XE6**, **XE7**, **XE8**, **10.0 Seattle**, **10.1 Berlin**, **10.2 Tokyo**, **10.3 Rio**.  
+Supported Delphi versions: **2009**, **2010**, **XE**, **XE2**, **XE3**, **XE4**, **XE5**, **XE6**, **XE7**, **XE8**, **10.0 Seattle**, **10.1 Berlin**, **10.2 Tokyo**, **10.3 Rio**, **10.4 Sydney**.  
 **Lazarus**: Required FPC version **3.0.4** or newer.  
-**CodeTyphon**: Tested on CodeTyphon 7.00 with FPC 3.3.1
+**CodeTyphon**: Tested on CodeTyphon 7.00, 7.10, 7.20 with FPC 3.3.1
 
 ---
 
@@ -25,6 +25,6 @@ Some units if the [Hash](./Hash) folder uses **HashLib4Pascal** library from htt
 
 ## License
 
-The license for my work is the simplest in the world: **You can do with my code whatever you want without any cost.**
+The license for my work: **Public domain**. You can do with my code whatever you want without any limitations.
 
 But, in some units I use code from other open source projects, so you should look at the PAS source files and license of the authors of these projects for more information.
