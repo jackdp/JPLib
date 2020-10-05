@@ -60,6 +60,7 @@ contains
   JPL.TStr in '..\..\Base\JPL.TStr.pas',
   JPL.Units in '..\..\Base\JPL.Units.pas',
   JPL.Utils in '..\..\Base\JPL.Utils.pas',
+  JPL.Rects in '..\..\Base\JPL.Rects.pas',
   JPL.Win.Dialogs in '..\..\Base\JPL.Win.Dialogs.pas',
   JPL.Win.FileSystem in '..\..\Base\JPL.Win.FileSystem.pas',
   JPL.Win.Processes in '..\..\Base\JPL.Win.Processes.pas',

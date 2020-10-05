@@ -176,6 +176,10 @@
         <Filename Value="..\..\Base\JPL.Win.SimpleTimer.pas"/>
         <UnitName Value="JPL.Win.SimpleTimer"/>
       </Item>
+      <Item>
+        <Filename Value="..\..\Base\JPL.Rects.pas"/>
+        <UnitName Value="JPL.Rects"/>
+      </Item>
     </Files>
     <RequiredPkgs>
       <Item>
