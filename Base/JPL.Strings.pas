@@ -125,6 +125,10 @@ procedure SplitStrToArray(s: string; var Arr: TStringDynArray; const EndLineStr:
 {$ELSE}
 procedure SplitStrToArray(s: string; var Arr: TArray<string>; const EndLineStr: string = sLineBreak);
 {$ENDIF}
+
+// The SplitStrToArrayEx procedure uses the initial allocation of the size of the array and incrementing its size by the ArrDeltaSize value
+// to avoid increasing the size of the array repeatedly by 1.
+procedure SplitStrToArrayEx(s: string; var Arr: TStringDynArray; const EndLineStr: string = sLineBreak; ArrDeltaSize: WORD = 100);
 function SplitStr(const InStr: string; out LeftStr, RightStr: string; const Separator: string): Boolean; overload;
 function SplitStr(const InStr: string; out LeftInt, RightInt: integer; const Separator: string): Boolean; overload;
 
@@ -133,6 +137,8 @@ function IsBoundedWith(const s: string; LeftBound, RightBound: string; IgnoreCas
 function AddBounds(const s: string; LeftBound, RightBound: Char): string; overload;
 function AddBounds(const s: string; LeftBound, RightBound: string): string; overload;
 function AddBounds(const s: string; StringToBoundSeparator: string = ' '; BoundChar: Char = '-'; BoundLen: Integer = 16): string; overload;
+
+function EnsureBounds(const s: string; LeftBound, RightBound: string): string;
 
 function GetRandomHexStr(Bytes: integer = 4; ByteSeparator: string = ''; bLowerCase: Boolean = False): string;
 function GetRandomIntStr(Len: integer = 10): string;
@@ -317,6 +323,16 @@ begin
   end;
 end;
 
+function EnsureBounds(const s: string; LeftBound, RightBound: string): string;
+var
+  x: integer;
+begin
+  Result := s;
+  if Copy(Result, 1, Length(LeftBound)) <> LeftBound then Result := LeftBound + Result;
+  x := Length(RightBound);
+  if Copy(Result, Length(Result) - x + 1, x) <> RightBound then Result := Result + RightBound;
+end;
+
 function AddBounds(const s: string; LeftBound, RightBound: Char): string;
 begin
   Result := LeftBound + s + RightBound;
@@ -374,6 +390,37 @@ begin
     s := Copy(s, x + Length(EndLineStr), Length(s));
     x := Pos(EndLineStr, s);
   end;
+
+  if s <> '' then
+  begin
+    SetLength(Arr, Length(Arr) + 1);
+    Arr[Length(Arr) - 1] := s;
+  end;
+end;
+
+// The SplitStrToArrayEx procedure uses the initial allocation of the size of the array and incrementing its size by the ArrDeltaSize value
+// to avoid increasing the size of the array repeatedly by 1.
+procedure SplitStrToArrayEx(s: string; var Arr: TStringDynArray; const EndLineStr: string = sLineBreak; ArrDeltaSize: WORD = 100);
+var
+  x, xCount: integer;
+begin
+  SetLength(Arr, 0);
+  if s = '' then Exit;
+
+  if ArrDeltaSize = 0 then ArrDeltaSize := 1; // must be greater than 0
+  xCount := 0;
+  x := Pos(EndLineStr, s);
+
+  while x > 0 do
+  begin
+    Inc(xCount);
+    if Length(Arr) = xCount - 1 then SetLength(Arr, Length(Arr) + ArrDeltaSize);
+    Arr[xCount - 1] := Copy(s, 1, x - 1);
+    s := Copy(s, x + Length(EndLineStr), Length(s));
+    x := Pos(EndLineStr, s);
+  end;
+
+  SetLength(Arr, xCount);
 
   if s <> '' then
   begin
