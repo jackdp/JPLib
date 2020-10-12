@@ -10,8 +10,6 @@ interface
 uses
   Windows, SysUtils, Classes, {$IFDEF DCC}{$IFDEF DELPHI2010_OR_ABOVE}IOUtils,{$ENDIF}{$ENDIF}
   JPL.Strings,
-  Dialogs,
-  Menus,
   ShellAPI, ComObj, ShlObj, ActiveX;
 
 
