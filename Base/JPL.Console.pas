@@ -93,7 +93,7 @@
 interface
 
 uses
-  SysUtils,
+  SysUtils, Types,
   {$IFDEF MSWINDOWS} Windows, {$ENDIF}
   {$IFDEF UNIX} BaseUnix, {$ENDIF}
   JPL.Strings;
@@ -384,6 +384,9 @@ type
     class procedure WriteTaggedText(s: string); static;
     class procedure WriteTaggedTextLine(s: string); static;
 
+    class procedure WriteStringArray(const Arr: TStringDynArray; const Prefix: string = ''; const AddNumbers: Boolean = False; const NumPostfix: string = '. ';
+      UseTags: Boolean = False); static;
+
     class procedure Init; static;
 
     {$IFDEF MSWINDOWS}
@@ -394,6 +397,8 @@ type
 
     class function WaitForKeyPressed(VirtualKeyCode: WORD = VK_ANY; Milliseconds: DWORD = INFINITE; SleepInterval: DWORD = 25): Boolean; static;
     class function ConWaitForReturnPressed(Milliseconds: DWORD = INFINITE): Boolean; static;
+
+    class function IsInputRedirected: Boolean; static;
 
     class property OriginalOutputCodePage: UINT read FOriginalOutputCodePage;
     class property OutputCodePage: UINT read GetOutputCodePage write SetOutputCodePage;
@@ -455,13 +460,14 @@ procedure ConWriteTaggedText(s: string);
 procedure ConWriteTaggedTextLine(s: string);
 
 procedure ConTestStandardColors;
-procedure ConTestRgbColors;
+procedure ConTestRgbColors(LineLen: Byte = 8);
 
 {$IFDEF MSWINDOWS}
 // If True, we can use ANSI Escape Codes. If False, we should use plain text only.
 // Character device: console, terminal, printer
 // Non-character device: file (redirection with ">"), pipe ...
 function OutputIsCharacterDevice: Boolean;
+function ConIsInputRedirected: Boolean;
 {$ELSE}
 // Jeśli wyjście (Output) jest "urządzeniem znakowym" (character device), oznacza to z reguły, że mamy do
 // czynienia z terminalem lub drukarką, i można stosować kolory (sekwencje ANSI). W przeciwnym razie najprawdopodobniej
@@ -477,7 +483,7 @@ var
   ConOutputIsCharacterDevice: Boolean;
 
   // Forces the use of ANSI Escape Codes, even if the output is not a character device.
-  ConForceAEC: Boolean;
+  ConForceAnsiEscapeCodes: Boolean;
 
   {$IFDEF MSWINDOWS}
   ConStdOut: HWND;
@@ -495,7 +501,7 @@ implementation
 
 function ConCanUseAEC: Boolean;
 begin
-  Result := ConOutputIsCharacterDevice or ConForceAEC;
+  Result := ConOutputIsCharacterDevice or ConForceAnsiEscapeCodes;
 end;
 
 {$IFDEF MSWINDOWS}
@@ -1116,7 +1122,7 @@ end;
 {$endregion ConTestStandardColors}
 
 {$region '                  ConTestRgbColors                              '}
-procedure ConTestRgbColors;
+procedure ConTestRgbColors(LineLen: Byte = 8);
 var
   i: integer;
   s: string;
@@ -1125,117 +1131,130 @@ begin
 
   // This procedure can be used to check if the console/terminal supports the ANSI Escape Codes.
 
+  if LineLen = 0 then LineLen := 1;
+
   Writeln('Black & White    RGB(x, x, x)');
   Writeln('x = ');
   for i := 0 to 255 do
   begin
     s := Pad(IntToStr(i), 4, ' ');
     ConSetRgbBackgroundColor(i, i, i);
-    ConSetRgbTextColor(255 - i, 255 - i, 255 - i);
+    if i in [96..159] then ConSetRgbTextColor(255, 255, 255) else ConSetRgbTextColor(255 - i, 255 - i, 255 - i);
     Write(s);
-    if (i + 1) mod 32 = 0 then
+    if (i + 1) mod LineLen = 0 then
     begin
       ConResetColorsAEC;
       Writeln;
     end;
   end;
+  ConResetColorsAEC;
 
   Writeln;
+  if (256 mod LineLen > 0) then Writeln;
   Writeln('Red    RGB(x, 0, 0)');
   Writeln('x = ');
   for i := 0 to 255 do
   begin
     s := Pad(IntToStr(i), 4, ' ');
     ConSetRgbBackgroundColor(i, 0, 0);
-    ConSetRgbTextColor(255 - i, 0, 0);
+    if i in [96..159] then ConSetRgbTextColor(255, 0, 0) else ConSetRgbTextColor(255 - i, 0, 0);
     Write(s);
-    if (i + 1) mod 32 = 0 then
+    if (i + 1) mod LineLen = 0 then
     begin
       ConResetColorsAEC;
       Writeln;
     end;
   end;
+  ConResetColorsAEC;
 
   Writeln;
+  if (256 mod LineLen > 0) then Writeln;
   Writeln('Green    RGB(0, x, 0)');
   Writeln('x = ');
   for i := 0 to 255 do
   begin
     s := Pad(IntToStr(i), 4, ' ');
     ConSetRgbBackgroundColor(0, i, 0);
-    ConSetRgbTextColor(0, 255 - i, 0);
+    if i in [96..159] then ConSetRgbTextColor(0, 255, 0) else ConSetRgbTextColor(0, 255 - i, 0);
     Write(s);
-    if (i + 1) mod 32 = 0 then
+    if (i + 1) mod LineLen = 0 then
     begin
       ConResetColorsAEC;
       Writeln;
     end;
   end;
+  ConResetColorsAEC;
 
   Writeln;
+  if (256 mod LineLen > 0) then Writeln;
   Writeln('Blue    RGB(0, 0, x)');
   Writeln('x = ');
   for i := 0 to 255 do
   begin
     s := Pad(IntToStr(i), 4, ' ');
     ConSetRgbBackgroundColor(0, 0, i);
-    ConSetRgbTextColor(0, 0, 255 - i);
+    if i in [96..159] then ConSetRgbTextColor(0, 0, 255) else ConSetRgbTextColor(0, 0, 255 - i);
     Write(s);
-    if (i + 1) mod 32 = 0 then
+    if (i + 1) mod LineLen = 0 then
     begin
       ConResetColorsAEC;
       Writeln;
     end;
   end;
+  ConResetColorsAEC;
 
   Writeln;
+  if (256 mod LineLen > 0) then Writeln;
   Writeln('Cyan    RGB(0, x, x)');
   Writeln('x = ');
   for i := 0 to 255 do
   begin
     s := Pad(IntToStr(i), 4, ' ');
     ConSetRgbBackgroundColor(0, i, i);
-    ConSetRgbTextColor(0, 255 - i, 255 - i);
+    if i in [96..159] then ConSetRgbTextColor(0, 255, 255) else ConSetRgbTextColor(0, 255 - i, 255 - i);
     Write(s);
-    if (i + 1) mod 32 = 0 then
+    if (i + 1) mod LineLen = 0 then
     begin
       ConResetColorsAEC;
       Writeln;
     end;
   end;
+  ConResetColorsAEC;
 
   Writeln;
+  if (256 mod LineLen > 0) then Writeln;
   Writeln('Magenta    RGB(x, 0, x)');
   Writeln('x = ');
   for i := 0 to 255 do
   begin
     s := Pad(IntToStr(i), 4, ' ');
     ConSetRgbBackgroundColor(i, 0, i);
-    ConSetRgbTextColor(255 - i, 0, 255 - i);
+    if i in [96..159] then ConSetRgbTextColor(255, 0, 255) else ConSetRgbTextColor(255 - i, 0, 255 - i);
     Write(s);
-    if (i + 1) mod 32 = 0 then
+    if (i + 1) mod LineLen = 0 then
     begin
       ConResetColorsAEC;
       Writeln;
     end;
   end;
+  ConResetColorsAEC;
 
   Writeln;
+  if (256 mod LineLen > 0) then Writeln;
   Writeln('Yellow    RGB(x, x, 0)');
   Writeln('x = ');
   for i := 0 to 255 do
   begin
     s := Pad(IntToStr(i), 4, ' ');
     ConSetRgbBackgroundColor(i, i, 0);
-    ConSetRgbTextColor(255 - i, 255 - i, 0);
+    if i in [96..159] then ConSetRgbTextColor(255, 255, 0) else ConSetRgbTextColor(255 - i, 255 - i, 0);
     Write(s);
-    if (i + 1) mod 32 = 0 then
+    if (i + 1) mod LineLen = 0 then
     begin
       ConResetColorsAEC;
       Writeln;
     end;
   end;
-
   ConResetColorsAEC;
 end;
 {$endregion ConTestRgbColors}
@@ -1363,6 +1382,11 @@ begin
   Result := ConWaitForReturnPressed(Milliseconds);
 end;
 
+class function TConsole.IsInputRedirected: Boolean;
+begin
+  Result := ConIsInputRedirected;
+end;
+
 {$ENDIF} //MSWINDOWS
 
 {$IF Defined(FPC) or Defined(DELPHIXE2_OR_ABOVE)}
@@ -1442,6 +1466,24 @@ begin
   ConWriteColoredTextLineEx(cce);
 end;
 
+class procedure TConsole.WriteStringArray(const Arr: TStringDynArray; const Prefix: string = ''; const AddNumbers: Boolean = False; const NumPostfix: string = '. ';
+  UseTags: Boolean = False);
+var
+  i, MaxNumLen: integer;
+  s: string;
+begin
+  if Length(Arr) = 0 then Exit;
+
+  MaxNumLen := Length(IntToStr(Length(Arr)));
+  for i := 0 to Length(Arr) - 1 do
+  begin
+    s := Prefix + Arr[i];
+    if AddNumbers then s := Pad(IntToStr(i + 1), MaxNumLen, ' ') + NumPostfix + s;
+    if UseTags then ConWriteTaggedTextLine(s)
+    else Writeln(s);
+  end;
+end;
+
 class procedure TConsole.WriteTaggedText(s: string);
 begin
   ConWriteTaggedText(s);
@@ -1484,6 +1526,12 @@ begin
 
   // GetFileType - min. OS: Windows XP | Windows Server 2003
   Result := GetFileType(ConStdOut) = FILE_TYPE_CHAR;
+end;
+
+function ConIsInputRedirected: Boolean;
+begin
+  if not ConOK then Exit(False);
+  Result := GetFileType(ConStdInput) <> FILE_TYPE_CHAR;
 end;
 {$ELSE}
 function OutputIsCharacterDevice(ResultIfStatFailed: Boolean): Boolean;
