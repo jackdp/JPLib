@@ -79,13 +79,18 @@ uses
 
 type
 
+  TConParCaseSensitiveMode = (csmDefault, csmCaseSensitive, csmIgnoreCase);
+
   TConParTextRec = record
     Text: string;
     TextColor: Byte;
     BgColor: Byte;
+    CaseSensitiveMode: TConParCaseSensitiveMode;
   end;
 
   TConParTextArray = array of TConParTextRec;
+
+
 
   TConColorParser = class
   private
@@ -110,7 +115,8 @@ type
     procedure ClearResult;
 
     // The text to be highlighted.
-    procedure AddHighlightedText(const Text: string; const TextColor, BgColor: Byte);
+    procedure AddHighlightedText(const Text: string; const TextColor, BgColor: Byte; const CaseSensitive: TConParCaseSensitiveMode = csmDefault);
+    procedure AddHighlightedText(const Text: string; const Colors: string; const CaseSensitive: TConParCaseSensitiveMode = csmDefault);
 
     // Main procedure
     procedure Parse;
@@ -148,6 +154,7 @@ implementation
 constructor TConColorParser.Create;
 begin
   inherited;
+  FCaseSensitive := False;
   Clear;
 end;
 
@@ -171,7 +178,8 @@ begin
   SetLength(FArrResults, 0);
 end;
 
-procedure TConColorParser.AddHighlightedText(const Text: string; const TextColor, BgColor: Byte);
+procedure TConColorParser.AddHighlightedText(const Text: string; const TextColor, BgColor: Byte;
+  const CaseSensitive: TConParCaseSensitiveMode = csmDefault);
 var
   xInd: integer;
 begin
@@ -181,6 +189,15 @@ begin
   FArrHiParams[xInd].Text := Text;
   FArrHiParams[xInd].TextColor := TextColor;
   FArrHiParams[xInd].BgColor := BgColor;
+  FArrHiParams[xInd].CaseSensitiveMode := CaseSensitive;
+end;
+
+procedure TConColorParser.AddHighlightedText(const Text: string; const Colors: string; const CaseSensitive: TConParCaseSensitiveMode);
+var
+  TextColor, BgColor: Byte;
+begin
+  ConGetColorsFromStr(Colors, TextColor, BgColor);
+  AddHighlightedText(Text, TextColor, BgColor, CaseSensitive);
 end;
 
 procedure TConColorParser.SetText(AValue: string);
@@ -209,31 +226,25 @@ end;
 
 {$region '                      Parse                           '}
 
+procedure TConColorParser.Parse;
 type
-
   TRange = record
     StartPos: integer;
     EndPos: integer;
     TextColor: Byte;
     BgColor: Byte;
-    //function Length: integer;   //      już niepotrzebne
   end;
 
   TRangesArray = array of TRange;
 
-//function TRange.Length: integer;
-//begin
-//  Result := Self.EndPos - Self.StartPos + 1;
-//end;
-
-procedure TConColorParser.Parse;
-type
   TLetter = record
     Znak: Char;
     TextColor: Byte;
     BgColor: Byte;
   end;
+
   TLetterArray = array of TLetter;
+
 var
   i, x, xStartPos: integer;
   s, us, sub, sr: string;
@@ -243,10 +254,12 @@ var
   ArrL: TLetterArray;
   Letter: TLetter;
   PrevColorT, PrevColorB: Byte;
+  bCS: Boolean;
 
 begin
   s := FText;
-  if not FCaseSensitive then us := AnsiUpperCase(s) else us := '';
+  us := AnsiUpperCase(s);
+
 
   // Utworzenie listy podświetlanych zakresów
   for i := 0 to High(FArrHiParams) do
@@ -258,7 +271,17 @@ begin
     while True do
     begin
 
-      if FCaseSensitive then x := PosEx(sub, s, xStartPos)
+      //if FCaseSensitive or (cptr.CaseSensitiveMode = csmCaseSensitive) then x := PosEx(sub, s, xStartPos)
+      //else x := PosEx(AnsiUpperCase(sub), us, xStartPos);
+
+      case cptr.CaseSensitiveMode of
+        csmCaseSensitive: bCS := True;
+        csmIgnoreCase: bCS := False;
+      else
+        bCS := FCaseSensitive;
+      end;
+
+      if bCS then x := PosEx(sub, s, xStartPos)
       else x := PosEx(AnsiUpperCase(sub), us, xStartPos);
 
       if x = 0 then Break;
@@ -275,7 +298,7 @@ begin
 
 
   // Zapisanie tekstu wejściowego do tablicy ArrL
-  SetLength(ArrL, Length(s));
+  SetLength(ArrL{%H-}, Length(s));
   for i := 0 to Length(s) - 1 do
   begin
     ArrL[i].Znak := s[i + 1];
