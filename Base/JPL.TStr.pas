@@ -13,13 +13,15 @@
 interface
 
 uses 
-  {Windows, }SysUtils, {Classes,} Types,
+  SysUtils, Types,
   JPL.Strings, JPL.Conversion;
 
 
-type
+const
+  ENDL = sLineBreak;
 
-  { TStr }
+
+type
 
   TStr = record
   private
@@ -38,6 +40,8 @@ type
     class function Pad(const x: integer; Len: integer; PaddingChar: Char = '0'): string; overload; static;
     class function PadRight(Text: string; Len: integer; PaddingChar: Char = ' '): string; overload; static;
     class function PadRight(const x: integer; Len: integer; PaddingChar: Char = '0'): string; overload; static;
+
+    class function Capitalize(const s: string): string; static;
 
     class function RemoveTrailingPathDelimiter(Dir: string): string; static;
 
@@ -61,6 +65,11 @@ type
     {$ENDIF}
     class function SplitStr(const InStr: string; out LeftStr, RightStr: string; const Separator: string): Boolean; static;
 
+    // The SplitStrToArrayEx procedure uses the initial allocation of the size of the array and incrementing its size by the ArrDeltaSize value
+    // to avoid increasing the size of the array repeatedly by 1.
+    class procedure SplitStrToArrayEx(s: string; var Arr: TStringDynArray; const EndLineStr: string = sLineBreak; ArrDeltaSize: WORD = 100); static;
+
+    class function EnsureBounds(const s: string; LeftBound: string = '['; RightBound: string = ']'): string; static;
     class function AddBounds(const s: string; LeftBound: string = '['; RightBound: string = ']'): string; static;
     class function TrimBounds(s: string; LeftBound: string = '['; RightBound: string = ']'): string; static;
     class function IsBoundedWith(const s: string; LeftBound: string = '['; RightBound: string = ']'; IgnoreCase: Boolean = False): Boolean; static;
@@ -92,6 +101,7 @@ type
 
     class function TrimFromEnd(const s: string; const StringToCut: string): string; static;
     class function TrimFromStart(const s: string; const StringToCut: string): string; static;
+    class function TrimENDL(const s: string): string; static;
 
     class function CharCount(const s: string; const AChar: Char): integer; static;
     class function FirstCharPos(const s: string; const AChar: Char): integer; static;
@@ -205,6 +215,11 @@ begin
   JPL.Strings.SplitStrToArray(s, Arr, EndLineStr);
 end;
 
+class procedure TStr.SplitStrToArrayEx(s: string; var Arr: TStringDynArray; const EndLineStr: string = sLineBreak; ArrDeltaSize: WORD = 100);
+begin
+  JPL.Strings.SplitStrToArrayEx(s, Arr, EndLineStr, ArrDeltaSize);
+end;
+
 class function TStr.SplitStr(const InStr: string; out LeftStr, RightStr: string; const Separator: string): Boolean;
 begin
   Result := JPL.Strings.SplitStr(InStr, LeftStr, RightStr, Separator);
@@ -218,6 +233,11 @@ end;
 class function TStr.TrimBounds(s: string; LeftBound: string = '['; RightBound: string = ']'): string;
 begin
   Result := JPL.Strings.TrimBounds(s, LeftBound, RightBound);
+end;
+
+class function TStr.TrimENDL(const s: string): string;
+begin
+  Result := JPL.Strings.TrimENDL(s);
 end;
 
 class function TStr.IsBoundedWith(const s: string; LeftBound: string = '['; RightBound: string = ']'; IgnoreCase: Boolean = False): Boolean;
@@ -328,6 +348,11 @@ begin
   else Result := TStr.EndsStr(SubStr, s);
 end;
 
+class function TStr.EnsureBounds(const s: string; LeftBound, RightBound: string): string;
+begin
+  Result := JPL.Strings.EnsureBounds(s, LeftBound, RightBound);
+end;
+
 class function TStr.TrimFromEnd(const s: string; const StringToCut: string): string;
 begin
   Result := JPL.Strings.TrimFromEnd(s, StringToCut);
@@ -336,6 +361,11 @@ end;
 class function TStr.TrimFromStart(const s: string; const StringToCut: string): string;
 begin
   Result := JPL.Strings.TrimFromStart(s, StringToCut);
+end;
+
+class function TStr.Capitalize(const s: string): string;
+begin
+  Result := JPL.Strings.Capitalize(s);
 end;
 
 class function TStr.CharCount(const s: string; const AChar: Char): integer;
