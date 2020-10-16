@@ -154,7 +154,6 @@ type
     function ExpandAppVars(const StrWithVars: string): string;
 
     {$IFDEF MSWINDOWS}
-    procedure GoToUrl(const URL: string);
     procedure SetTrimExtFromExeShortName(AValue: Boolean);
     {$ENDIF}
 
@@ -189,6 +188,7 @@ type
     procedure DisplayTaggedText(const TaggedText: string);
 
     {$IFDEF MSWINDOWS}
+    procedure GoToUrl(const URL: string);
     procedure GoToHomePage;
     procedure GoToHelpPage;
     {$ENDIF}
