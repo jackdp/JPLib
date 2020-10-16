@@ -821,6 +821,11 @@ begin
 
     else if (sTextColor = 'YELLOW') or (sTextColor = 'LIGHTYELLOW') then TextColor := TConsole.clLightYellowText
     else if (sTextColor = 'DARKYELLOW') then TextColor := TConsole.clDarkYellowText
+
+    else if sTextColor = 'PURPLE' then TextColor := TConsole.clDarkMagentaText
+    else if sTextColor = 'FUCHSIA' then TextColor := TConsole.clLightMagentaText
+    else if sTextColor = 'AQUA' then TextColor := TConsole.clLightCyanText
+    else if sTextColor = 'LIME' then TextColor := TConsole.clLightGreenText
     ;
 
   if sBgColor <> '' then
@@ -847,6 +852,11 @@ begin
 
     else if (sBgColor = 'YELLOW') or (sBgColor = 'LIGHTYELLOW') then BgColor := TConsole.clLightYellowBg
     else if (sBgColor = 'DARKYELLOW') then BgColor := TConsole.clDarkYellowBg
+
+    else if sBgColor = 'PURPLE' then BgColor := TConsole.clDarkMagentaBg
+    else if sBgColor = 'FUCHSIA' then BgColor := TConsole.clLightMagentaBg
+    else if sBgColor = 'AQUA' then BgColor := TConsole.clLightCyanBg
+    else if sBgColor = 'LIME' then BgColor := TConsole.clLightGreenBg
     ;
 
 end;
