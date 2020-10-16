@@ -455,6 +455,7 @@ procedure ConWriteColoredTextLineEx(const cce: TConsoleColorEx);
 
 procedure ConGetColorsFromStr(const sColors: string; out TextColor, BgColor: Byte);
 function ConColorToStr(const Color: Byte {$IFDEF UNIX}; AddFgBgSuffix: Boolean = False{$ENDIF}): string;
+function ConColorToStrID(const Color: Byte; const sInvalidColor: string = 'none'): string;
 
 procedure ConWriteTaggedText(s: string);
 procedure ConWriteTaggedTextLine(s: string);
@@ -891,9 +892,9 @@ begin
     TConsole.clLightBlueText: Result := 'Light Blue';
 
     TConsole.clBlackText: Result := 'Black';
-    TConsole.clLightBlackText: Result := 'Light Black (Dark Gray)';
+    TConsole.clLightBlackText: Result := 'Light Black'; // Dark Gray
 
-    TConsole.clDarkWhiteText: Result := 'Dark White (Light Gray)';
+    TConsole.clDarkWhiteText: Result := 'Dark White'; // Light Gray
     TConsole.clWhiteText: Result := 'White';
 
     TConsole.clDarkCyanText: Result := 'Dark Cyan';
@@ -953,7 +954,15 @@ begin
   end;
   {$ENDIF}
 end;
+
 {$endregion ConColorToStr}
+
+function ConColorToStrID(const Color: Byte; const sInvalidColor: string = 'none'): string;
+begin
+  Result := ConColorToStr(Color);
+  Result := RemoveAll(Result, ' ');
+  if UpperCase(Result) = 'UNKNOWNCOLOR' then Result := sInvalidColor;
+end;
 
 {$region '                  ConWriteTaggedText & Line                     '}
 procedure ConWriteTaggedText(s: string);
