@@ -115,8 +115,8 @@ type
     procedure ClearResult;
 
     // The text to be highlighted.
-    procedure AddHighlightedText(const Text: string; const TextColor, BgColor: Byte; const CaseSensitive: TConParCaseSensitiveMode = csmDefault);
-    procedure AddHighlightedText(const Text: string; const Colors: string; const CaseSensitive: TConParCaseSensitiveMode = csmDefault);
+    procedure AddHighlightedText(const Text: string; const TextColor, BgColor: Byte; const CaseSensitive: TConParCaseSensitiveMode = csmDefault); overload;
+    procedure AddHighlightedText(const Text: string; const Colors: string; const CaseSensitive: TConParCaseSensitiveMode = csmDefault); overload;
 
     // Main procedure
     procedure Parse;
