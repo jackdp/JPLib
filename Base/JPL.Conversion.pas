@@ -471,6 +471,7 @@ begin
   Result := sr;
 end;
 
+
 function IsValidInteger(const s: string): Boolean;
 begin
   try
@@ -1046,8 +1047,8 @@ function StrToBool(s: string): Boolean;
 begin
   s := UpperCase(Trim(s));
   Result :=
-    (s = '1') or (s = 'TRUE') or (s = 'YES') or (s = 'TAK') or (s = 'PRAWDA') or
-    (s = 'ON') or (s = 'ENABLED') or (s = 'T');
+    (s = '1') or (s = 'TRUE') or (s = 'YES') or //(s = 'TAK') or (s = 'PRAWDA') or
+    (s = 'ON') or (s = 'ENABLED'); // or (s = 'T');
 end;
 {$hints on}
 
