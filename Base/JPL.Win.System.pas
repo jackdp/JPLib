@@ -9,7 +9,7 @@ interface
 
 
 uses
-  Windows, SysUtils, Classes, Messages, ShellApi,
+  Windows, SysUtils, Classes, Messages, ShellApi, Graphics,
   JPL.Strings;
 
 
@@ -31,6 +31,7 @@ function ScreenWidth: integer;
 function ScreenHeight: integer;
 function SetWindowOnTop(const WinHandle: HWND; const OnTop: Boolean): Boolean;
 function ShowFileInExplorer(const FileName: string; Handle: HWND = 0): Boolean;
+function GetFileIcon(const FileName: string; SmallIcon: Boolean = True): TIcon;
 
 
 const
@@ -44,6 +45,23 @@ implementation
 
 
 {$IFDEF MSWINDOWS}
+
+
+function GetFileIcon(const FileName: string; SmallIcon: Boolean = True): TIcon;
+var
+  Flags: UINT;
+  SHFileInfo: TSHFileInfo;
+begin
+  Result := nil;
+  if SmallIcon then Flags := SHGFI_SMALLICON or SHGFI_ICON else Flags := SHGFI_LARGEICON or SHGFI_ICON;
+  ShGetFileInfo(PChar(FileName), 0, SHFileInfo, SizeOf(TSHFileInfo), Flags);
+  if SHFileInfo.hIcon > 0 then
+  begin
+    Result := TIcon.Create;
+    Result.Handle := SHFileInfo.hIcon;
+  end;
+end;
+
 
 function ShowFileInExplorer(const FileName: string; Handle: HWND = 0): Boolean;
 var
