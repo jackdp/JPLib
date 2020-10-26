@@ -41,6 +41,7 @@ function InRange(const Value, Min, Max: integer): Boolean;
 
 function RandomInt(const Min, Max: integer; ErrorValue: integer = -1): integer;
 function RandomByte(Min: Byte = 0; Max: Byte = 255; ErrorValue: Byte = 0): Byte;
+function RandomBool: Boolean;
 
 
 implementation
@@ -59,6 +60,11 @@ begin
   if Min > Max then Exit(ErrorValue);
   if Min = Max then Exit(Min);
   Result := Random((Max - Min) + 1) + Min;
+end;
+
+function RandomBool: Boolean;
+begin
+  Result := RandomByte(0, 1) = 1;
 end;
 
 
