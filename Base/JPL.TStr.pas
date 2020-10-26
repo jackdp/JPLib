@@ -38,15 +38,18 @@ type
 
     class function Pad(Text: string; Len: integer; PaddingChar: Char = ' '): string; overload; static;
     class function Pad(const x: integer; Len: integer; PaddingChar: Char = '0'): string; overload; static;
+    class function Pad(const x: Int64; Len: integer; PaddingChar: Char = '0'): string; overload; static;
     class function PadRight(Text: string; Len: integer; PaddingChar: Char = ' '): string; overload; static;
     class function PadRight(const x: integer; Len: integer; PaddingChar: Char = '0'): string; overload; static;
+    class function PadRight(const x: Int64; Len: integer; PaddingChar: Char = '0'): string; overload; static;
 
     class function Capitalize(const s: string): string; static;
 
     class function RemoveTrailingPathDelimiter(Dir: string): string; static;
 
     class function RemoveSpaces(const s: string): string; static;
-    class function RemoveAll(const Text, ToRemove: string; IgnoreCase: Boolean = False): string; static;
+    class function RemoveAll(const Text, ToRemove: string; IgnoreCase: Boolean = False): string; overload; static;
+    class function RemoveAll(const Text: string; const StringsToRemove: array of string; IgnoreCase: Boolean = False): string; overload; static;
     class function RemoveNonDecimals(const SrcStr: string): string; static;
     class function RemoveChars(const SrcStr, CharsToRemove: string; IgnoreCase: Boolean = False): string; overload; static;
     class function RemoveChars(const SrcStr: string; Chars: array of Char; IgnoreCase: Boolean = False): string; overload; static;
@@ -136,12 +139,22 @@ begin
   Result := JPL.Strings.Pad(x, Len, PaddingChar);
 end;
 
+class function TStr.Pad(const x: Int64; Len: integer; PaddingChar: Char = '0'): string;
+begin
+  Result := JPL.Strings.Pad(x, Len, PaddingChar);
+end;
+
 class function TStr.PadRight(Text: string; Len: integer; PaddingChar: Char = ' '): string;
 begin
   Result := JPL.Strings.PadRight(Text, Len, PaddingChar);
 end;
 
 class function TStr.PadRight(const x: integer; Len: integer; PaddingChar: Char = '0'): string;
+begin
+  Result := JPL.Strings.PadRight(x, Len, PaddingChar);
+end;
+
+class function TStr.PadRight(const x: Int64; Len: integer; PaddingChar: Char = '0'): string;
 begin
   Result := JPL.Strings.PadRight(x, Len, PaddingChar);
 end;
@@ -159,6 +172,11 @@ end;
 class function TStr.RemoveAll(const Text, ToRemove: string; IgnoreCase: Boolean = False): string;
 begin
   Result := JPL.Strings.RemoveAll(Text, ToRemove, IgnoreCase);
+end;
+
+class function TStr.RemoveAll(const Text: string; const StringsToRemove: array of string; IgnoreCase: Boolean = False): string;
+begin
+  Result := JPL.Strings.RemoveAll(Text, StringsToRemove, IgnoreCase);
 end;
 
 class function TStr.RemoveNonDecimals(const SrcStr: string): string;
