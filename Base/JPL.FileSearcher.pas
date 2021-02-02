@@ -2,7 +2,7 @@
 
 {
   Jacek Pazera
-  http://www.pazera-software.com
+  https://www.pazera-software.com
 
   A class that allows you to search for files in many specified locations (local HDD, UNC paths) and for different file masks.
   Long file names (over 255 characters) are not a problem.
@@ -13,6 +13,7 @@
          Eg.: AddInput('C:\Windows', ['*.ini', '*.exe']);
               AddInput('\\nas\shared_music\', ['*.mp3', '*.flac', '*.ape', '*.mpc', '*.ogg']);  // UNC paths are OK!
               AddInput('\\192.168.0.184\web\public_html\', ['.htaccess']);
+              AddInput('C:\SomeDir\*.txt');
   3. Call Search method.
   4. You can get a list of found files using GetFileList(TStrings) OR GetFirstFile + GetNextFile OR Items[Index].Results
      OutputCount - the number of found files
@@ -118,7 +119,6 @@ type
     FItems: TFSItems;
     FOnFoundDirectory: TJPEnumDirsProcObj;
     FOnFoundFile: TJPEnumFilesProcObj;
-    FRecurseDepth: WORD;
     FSearchRec: TFSSearchRec;
     FStats: TFSStats;
     function GetInputCount: integer;
@@ -131,7 +131,6 @@ type
     procedure SetFileInfoMode(AValue: TFSFileInfoMode);
     procedure SetOnFoundDirectory(AValue: TJPEnumDirsProcObj);
     procedure SetOnFoundFile(AValue: TJPEnumFilesProcObj);
-    procedure SetRecurseDepth(AValue: WORD);
   public
 
     constructor Create;
@@ -147,9 +146,10 @@ type
     // Dir - Directory to search.
     // FileMasks - An array with file masks.
     // Returns the index of the newly added item in the FItems dictionary (map).
-    function AddInput(const Dir: string; FileMasks: array of string; RecurseDepth: integer = FS_DEAFULT_RECURSE_DEPTH): integer;
+    function AddInput(const Dir: string; FileMasks: array of string; RecurseDepth: integer = FS_DEAFULT_RECURSE_DEPTH): integer; overload;
     function AddInputWithTag(const Dir: string; FileMasks: array of string; RecurseDepth: integer = FS_DEAFULT_RECURSE_DEPTH; Tag: integer = -1;
       TagStr: string = ''): integer;
+    function AddInput(const FileNameOrMask: string; RecurseDepth: integer = FS_DEAFULT_RECURSE_DEPTH): integer; overload;
 
     // An attempt to retrieve an FSInputItem element with the given index.
     function TryGetInputItem(const Index: integer; out FSInputItem: TFSItem): Boolean;
@@ -176,9 +176,6 @@ type
     // fimOnlyFileNames - only the file names are collected during the search.
     // fimFull - fimOnlyFileNames + additional information (size, dates).
     property FileInfoMode: TFSFileInfoMode read FFileInfoMode write SetFileInfoMode;
-
-    // Default recurse depth if not specified in the AddInput function.
-    property RecurseDepth: WORD read FRecurseDepth write SetRecurseDepth;
 
     // Iteration of all elements:  (or GetFirstFile + GetNextFile, but only for file names)
     // for i := 0 to FileSearcher.OutputCount - 1 do Writeln(FileSearcher[i].FileName); ...
@@ -248,7 +245,6 @@ procedure TJPFileSearcher.ClearAll;
 var
   i: integer;
 begin
-  FRecurseDepth := FS_DEAFULT_RECURSE_DEPTH;
   FFileInfoMode := FS_DEFAULT_FILE_INFO_MODE;
   FFileCountLimit := 0;
 
@@ -265,13 +261,11 @@ end;
 
 procedure TJPFileSearcher.SetOnFoundDirectory(AValue: TJPEnumDirsProcObj);
 begin
-  //if FOnFoundDirectory = AValue then Exit;
   FOnFoundDirectory := AValue;
 end;
 
 procedure TJPFileSearcher.SetOnFoundFile(AValue: TJPEnumFilesProcObj);
 begin
-  //if FOnFoundFile = AValue then Exit;
   FOnFoundFile := AValue;
 end;
 
@@ -396,6 +390,15 @@ begin
   FItems.AddOrSetValue(FItems.Count, ii);
   {$ENDIF}
   Result := FItems.Count - 1;
+end;
+
+function TJPFileSearcher.AddInput(const FileNameOrMask: string; RecurseDepth: integer): integer;
+var
+  Mask, Dir: string;
+begin
+  Mask := ExtractFileName(FileNameOrMask);
+  Dir := ExtractFileDir(FileNameOrMask);
+  Result := AddInput(Dir, Mask, RecurseDepth);
 end;
 
 function TJPFileSearcher.TryGetInputItem(const Index: integer; out FSInputItem: TFSItem): Boolean;
@@ -611,12 +614,6 @@ end;
 
 
 
-
-procedure TJPFileSearcher.SetRecurseDepth(AValue: WORD);
-begin
-  if FRecurseDepth = AValue then Exit;
-  FRecurseDepth := AValue;
-end;
 
 
 
