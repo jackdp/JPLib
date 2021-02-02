@@ -188,14 +188,14 @@
   W każdym innym przypadku RemoveDuplicates jest bardzo wolne.
 }
 
-{ TODO: BOM - LoadFromFile, SaveToFile }
 { TODO: dodać pełną obsługę Name / Value. Na razie dodałem tylko proc. GetNameValue. }
 
 
 {$I .\..\jp.inc}
 
 {$IFDEF FPC}
-  {$mode objfpc}{$H+}
+  //{$mode objfpc}{$H+}
+  {$mode delphi}
   {$WARN 6058 off : Call to subroutine "$1" marked as inline is not inlined}
 {$ENDIF}
 
@@ -404,7 +404,7 @@ type
 
 
     procedure LoadFromFile(const FileName: string);
-    procedure SaveToFile(const FileName: string);
+    function SaveToFile(const FileName: string): Boolean;
 
     procedure LoadFromArray(const Arr: TStringArray);
     procedure SaveToArray(var Arr: TStringArray);    // Copies all strings to Arr array.
@@ -580,7 +580,7 @@ var
 begin
   if FCount < 2 then Exit;
 
-  SetLength(Arr, 0);
+  SetLength(Arr{%H-}, 0);
   SaveToArray(Arr);
   ClearAll;
 
@@ -609,7 +609,7 @@ var
 begin
   if FCount < 2 then Exit;
 
-  SetLength(Arr, 0);
+  SetLength(Arr{%H-}, 0);
   SaveToArray(Arr);
   ClearAll;
 
@@ -714,6 +714,9 @@ end;
 
 
 {$region '                  Load & Save  (file / array)                   '}
+{
+  TODO: Use LoadStringFromFile and SaveStringToFile from JPL.Strings
+}
 procedure TJPStrList.LoadFromFile(const FileName: string);
 var
   f: TextFile;
@@ -730,22 +733,29 @@ begin
   CloseFile(f);
 end;
 
-procedure TJPStrList.SaveToFile(const FileName: string);
+function TJPStrList.SaveToFile(const FileName: string): Boolean;
 var
   PItem: PSLItem;
   f: TextFile;
 begin
   AssignFile(f, FileName);
+  {$I-}
   Rewrite(f);
+  {$I+}
 
-  PItem := First;
-  while PItem <> nil do
+  if IOResult = 0 then
   begin
-    Writeln(f, PItem^.Str);
-    PItem := PItem^.Next;
-  end;
-
-  CloseFile(f);
+    PItem := First;
+    while PItem <> nil do
+    begin
+      Writeln(f, PItem^.Str);
+      PItem := PItem^.Next;
+    end;
+    CloseFile(f);
+    Result := True;
+  end
+  else
+    Result := False;
 end;
 
 procedure TJPStrList.LoadFromArray(const Arr: TStringArray);
@@ -779,7 +789,8 @@ var
   PItem: PSLItem;
 begin
   Result := nil;
-  if not IsValidIndex(Index) then raise EStrListException.Create('Exception! ' + ClassName + '.Insert: Index out of range');
+  if not IsValidIndex(Index) then raise EStrListException.Create('Exception! ' + ClassName +
+    '.Insert: Index out of range (' + IntToStr(Index) + ')');
 
   PItem := GetItemByIndex(Index);
   if not Assigned(PItem) then Exit;
@@ -864,7 +875,8 @@ var
   PItem, PNewItem, PNext: PSLItem;
 begin
   Result := nil;
-  if not IsValidIndex(Index) then raise EStrListException.Create('Exception! ' + ClassName + '.Extract: Index out of range');
+  if not IsValidIndex(Index) then raise EStrListException.Create('Exception! ' + ClassName +
+    '.Extract: Index out of range (Index = ' + IntToStr(Index) + ', Count = ' + IntToStr(Count) + ')');
   PItem := GetItemByIndex(Index);
   if PItem = nil then Exit;
 
@@ -1001,10 +1013,11 @@ begin
   Result := '';
   PItem := nil;
 
-  if not IsValidIndex(Index) then raise EStrListException.Create('Exception! ' + ClassName + '.GetItems: Index out of range');
+  if not IsValidIndex(Index) then raise EStrListException.Create('Exception! ' + ClassName +
+    '.GetItems: Index out of range (' + IntToStr(Index) + ')');
 
   // przyspieszanie iteracji sekwencyjnej for i := 0 to/downto...
-  if Assigned(FForLastItem) then
+  if Assigned(FForLastItem) and IsValidIndex(FForLastItem^.Index) then
   begin
 
     // for Items[0] to ....
@@ -1040,7 +1053,8 @@ procedure TJPStrList.SetItems(Index: integer; AValue: string);
 var
   PItem: PSLItem;
 begin
-  if not IsValidIndex(Index) then raise EStrListException.Create('Exception! ' + ClassName + '.SetItems: Index out of range');
+  if not IsValidIndex(Index) then raise EStrListException.Create('Exception! ' + ClassName +
+    '.SetItems: Index out of range (' + IntToStr(Index) + ')');
   PItem := GetItemByIndex(Index);
   if not Assigned(PItem) then Exit;
   PItem^.Str := AValue;
@@ -1355,7 +1369,7 @@ var
 begin
   Result := nil;
   if not Assigned(PItem) then Exit;
-
+  FForLastItem := nil;
   Prev := PItem^.Prev;
   Next := PItem^.Next;
   if PItem = FFirst then FFirst := Next;
