@@ -14,7 +14,7 @@
       </SearchPaths>
     </CompilerOptions>
     <Description Value="JPLib"/>
-    <Files Count="40">
+    <Files Count="42">
       <Item1>
         <Filename Value="..\..\Base\JPL.CmdLineParser.pas"/>
         <UnitName Value="JPL.CmdLineParser"/>
@@ -175,6 +175,14 @@
         <Filename Value="..\..\Base\JPL.Rects.pas"/>
         <UnitName Value="JPL.Rects"/>
       </Item40>
+      <Item41>
+        <Filename Value="..\..\Base\JPL.ArrayIniFile.pas"/>
+        <UnitName Value="JPL.ArrayIniFile"/>
+      </Item41>
+      <Item42>
+        <Filename Value="..\..\Base\JPL.Bytes.pas"/>
+        <UnitName Value="JPL.Bytes"/>
+      </Item42>
     </Files>
     <RequiredPkgs Count="3">
       <Item1>

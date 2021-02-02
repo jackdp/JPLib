@@ -116,6 +116,7 @@
         <DCCReference Include="..\..\Base\JPL.TStr.pas"/>
         <DCCReference Include="..\..\Base\JPL.Units.pas"/>
         <DCCReference Include="..\..\Base\JPL.Utils.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Rects.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.Dialogs.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.FileSystem.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.Processes.pas"/>
