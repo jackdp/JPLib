@@ -478,6 +478,7 @@ function OutputIsCharacterDevice(ResultIfStatFailed: Boolean = True): Boolean;
 function OutputIsNamedPipe(ResultIfStatFailed: Boolean = True): Boolean;
 function OutputIsRegularFile(ResultIfStatFailed: Boolean = True): Boolean;
 {$ENDIF}
+function StripColorTags(s: string): string;
 
 var
 
@@ -1592,6 +1593,67 @@ begin
   ConStdOut := GetStdHandle(STD_OUTPUT_HANDLE);
 end;
 {$ENDIF}
+
+function StripColorTags(s: string): string;
+var
+  x, xpe: integer;
+  sn, sInTag: string;
+  sr: string;
+begin
+  sr := '';
+
+  x := Pos('<color=', s);
+
+  if x <= 0 then
+  begin
+    Result := s;
+    Exit;
+  end;
+
+  while x > 0 do
+  begin
+
+    x := Pos('<color=', s);
+
+    if x = 0 then
+    begin
+      sr := sr + s;
+      Break;
+    end;
+
+    sn := Copy(s, 1, x - 1);
+    if sn <> '' then sr := sr + sn;
+
+    s := Copy(s, x + Length('<color='), Length(s));
+
+    xpe := Pos('>', s);
+
+    if xpe > 0 then
+    begin
+      s := Copy(s, xpe + 1, Length(s));
+
+      xpe := Pos('</color>', s);
+
+      if xpe > 0 then
+      begin
+        sInTag := Copy(s, 1, xpe - 1);
+        sr := sr + sInTag;
+        s := Copy(s, xpe + Length('</color>'), Length(s));
+      end;
+    end
+
+    else
+
+    begin
+      sr := sr + s;
+      Break; // niedomknięty znacznik
+    end;
+
+  end; // while
+
+  Result := sr;
+
+end;
 
 
 procedure ConInit;
