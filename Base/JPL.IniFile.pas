@@ -2,13 +2,49 @@
 
 {
   Jacek Pazera
-  http://www.pazera-software.com
+  https://www.pazera-software.com
   First version: 06.2015
 
   TJPIniFile - INI file with comments support
 
-  // Co mnie napadło, żeby to zrobić na Kolekcjach?!
+  // Co mnie napadło, żeby to zrobić na Kolekcjach?!!!
+
+
+  HINTS
+
+  1.
+    If you want to perform large number of operations, do it on the TJPIniSection (or TJPIniSectionItems) object, not TJPIniFile.
+    It's much faster this way.
+
+    var
+      Section: TJPIniSection;
+    ...
+      Section := Ini.GetSection('SectionName');
+      Section.WriteInteger...
+      Section.ReadString....
+
+  2.
+    The first Section (Index = 0, Name = '') stores the INI file comment(s). It's not a real INI file section!
+
+  3.
+    WriteIniComment adds one line to the end of the current INI file comment (Section 0).
+
+  4.
+    WriteComment(Section... - adds one line to the Section comment (at the beginning or the end of the given Section).
+
+  5.
+    INI_NO_GRAPHICS
+    Define this condition if you don't want to use the Graphics unit and its dependencies.
+    This can significantly reduce the size of the executable, especially for console applications.
+
+
+
+  TODO
+  Add support for the Key comment
+
 }
+
+               //{$define INI_NO_GRAPHICS}
 
 {$I .\..\jp.inc}
 {$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
@@ -17,8 +53,8 @@ interface
 
 
 uses
-  SysUtils, Classes, {Generics.Collections,} Graphics, StrUtils,
-  JPL.Strings, JPL.Conversion, JPL.Colors;
+  SysUtils, Classes, StrUtils, {$IFNDEF INI_NO_GRAPHICS}Graphics, JPL.Colors,{$ENDIF}
+  JPL.Strings, JPL.Conversion;
 
 
 type
@@ -57,6 +93,7 @@ type
     procedure SetItem(Index: Integer; const Value: TJPIniItem);
   protected
     function GetKeyIndex(Key: string): integer;
+    function GetNewSectionCommentItem: TJPIniItem;
   public
     constructor Create({%H-}AItemClass: TCollectionItemClass);
     function GetItem(Index: Integer): TJPIniItem; overload;
@@ -75,9 +112,11 @@ type
     function ReadDateTime(const Key: string; Default: TDateTime): TDateTime;
     function ReadTime(const Key: string; Default: TDateTime): TDateTime;
     function ReadBinaryStream(const Key: string; Value: TStream): integer;
+    {$IFNDEF INI_NO_GRAPHICS}
     function ReadColor(const Key: string; Default: TColor): TColor;
     function ReadHtmlColor(const Key: string; const Default: TColor): TColor;
     function ReadFontStyle(const Key: string; Default: TFontStyles): TFontStyles;
+    {$ENDIF}
 
     procedure WriteString(const Key, Value: string);
     procedure WriteInteger(const Key: string; const Value: integer);
@@ -88,16 +127,21 @@ type
     procedure WriteTime(const Key: string; const Value: TDateTime);
     procedure WriteBinaryStream(const Key: string; Value: TStream);
 
+    {$IFNDEF INI_NO_GRAPHICS}
     procedure WriteColor(const Key: string; const Value: TColor);
     procedure WriteHtmlColor(const Key: string; const Value: TColor);
     procedure WriteFontStyle(const Key: string; const Value: TFontStyles);
+    {$ENDIF}
 
-    procedure WriteComment(const Value: string); overload;
-    procedure WriteComment(Strings: TStrings); overload;
+    procedure WriteComment(const Value: string; bAddToTop: Boolean); overload;
+    procedure WriteComment(Strings: TStrings; bAddToTop: Boolean); overload;
+    function RemoveSectionComment(bFromTop: Boolean): Boolean;
     procedure WriteTextLine(const Value: string);
 
     function DeletKey(const Key: string): Boolean;
+    function RenameKey(const OldKeyName, NewKeyName: string): Boolean;
     function KeyExists(const Key: string): Boolean;
+    procedure RemoveAllComments;
 
     property Items[Index: Integer]: TJPIniItem read GetItem write SetItem; default;
   end;
@@ -124,9 +168,11 @@ type
     function ReadDateTime(const Key: string; Default: TDateTime): TDateTime;
     function ReadTime(const Key: string; Default: TDateTime): TDateTime;
     function ReadBinaryStream(const Key: string; Value: TStream): integer;
+    {$IFNDEF INI_NO_GRAPHICS}
     function ReadColor(const Key: string; Default: TColor): TColor;
     function ReadHtmlColor(const Key: string; const Default: TColor): TColor;
     function ReadFontStyle(const Key: string; Default: TFontStyles): TFontStyles;
+    {$ENDIF}
 
     procedure WriteString(const Key, Value: string);
     procedure WriteInteger(const Key: string; const Value: integer);
@@ -137,16 +183,21 @@ type
     procedure WriteTime(const Key: string; const Value: TDateTime);
     procedure WriteBinaryStream(const Key: string; Value: TStream);
 
+    {$IFNDEF INI_NO_GRAPHICS}
     procedure WriteColor(const Key: string; const Value: TColor);
     procedure WriteHtmlColor(const Key: string; const Value: TColor);
     procedure WriteFontStyle(const Key: string; const Value: TFontStyles);
+    {$ENDIF}
 
-    procedure WriteComment(const Value: string); overload;
-    procedure WriteComment(Strings: TStrings); overload;
+    procedure WriteComment(const Value: string; bAddToTop: Boolean); overload;
+    procedure WriteComment(Strings: TStrings; bAddToTop: Boolean); overload;
+    function RemoveSectionComment(bFromTop: Boolean): Boolean;
     procedure WriteTextLine(const Value: string);
 
     function DeletKey(const Key: string): Boolean;
+    function RenameKey(const OldKeyName, NewKeyName: string): Boolean;
     function KeyExists(const Key: string): Boolean;
+    procedure RemoveAllComments;
 
     property SectionItems: TJPIniSectionItems read FSectionItems write SetSectionItems;
     property Name: string read FName write SetName;
@@ -180,8 +231,10 @@ type
     function ReadDateTime(const SectionName, Key: string; Default: TDateTime): TDateTime;
     function ReadTime(const SectionName, Key: string; Default: TDateTime): TDateTime;
     function ReadBinaryStream(const SectionName, Key: string; Value: TStream): integer;
+    {$IFNDEF INI_NO_GRAPHICS}
     function ReadColor(const SectionName, Key: string; Default: TColor): TColor;
     function ReadFontStyle(const SectionName, Key: string; Default: TFontStyles): TFontStyles;
+    {$ENDIF}
 
 
     procedure WriteString(const SectionName, Key, Value: string);
@@ -193,14 +246,17 @@ type
     procedure WriteTime(const SectionName, Key: string; const Value: TDateTime);
     procedure WriteBinaryStream(const SectionName, Key: string; Value: TStream);
 
+    {$IFNDEF INI_NO_GRAPHICS}
     procedure WriteColor(const SectionName, Key: string; const Value: TColor);
     procedure WriteFontStyle(const SectionName, Key: string; const Value: TFontStyles);
+    {$ENDIF}
 
-    procedure WriteComment(const SectionName, Value: string); overload;
-    procedure WriteComment(const SectionName: string; Strings: TStrings); overload;
+    procedure WriteComment(const SectionName, Value: string; bAddToTop: Boolean); overload;
+    procedure WriteComment(const SectionName: string; Strings: TStrings; bAddToTop: Boolean); overload;
     procedure WriteTextLine(const SectionName, Value: string);
 
     function DeletKey(const SectionName, Key: string): Boolean;
+    function RenameKey(const SectionName, OldKeyName, NewKeyName: string): Boolean;
     function KeyExists(const SectionName, Key: string): Boolean;
 
     property Items[Index: Integer]: TJPIniSection read GetItem write SetItem; default;
@@ -218,6 +274,7 @@ type
     FEncoding: TEncoding;
     FUpdateFileOnExit: Boolean;
     FIgnoreExceptionsOnSave: Boolean;
+    {$IFDEF HAS_TSTRINGS_WRITEBOM}FWriteBOM: Boolean;{$ENDIF}
     procedure LoadFile;
     procedure ParseText(Source: string);
     procedure SetSectionsSeparator(const Value: string);
@@ -227,6 +284,7 @@ type
     procedure SetEncoding(const Value: TEncoding);
     procedure SetUpdateFileOnExit(const Value: Boolean);
     procedure SetIgnoreExceptionsOnSave(const Value: Boolean);
+    {$IFDEF HAS_TSTRINGS_WRITEBOM}procedure SetWriteBOM(AValue: Boolean);{$ENDIF}
   public
     constructor Create(const FileName: string); overload;
     constructor Create(const FileName: string; Encoding: TEncoding); overload;
@@ -240,7 +298,7 @@ type
     function GetSectionItems(const SectionName: string): TJPIniSectionItems; // returns reference to TJPIniSectionItems or nil
     function GetSection(const SectionName: string; CreateIfNotExists: Boolean): TJPIniSection; // returns reference to TJPIniSection or nil
     procedure ClearSection(const SectionName: string); // Clears section, but does not remove
-    procedure ClearSectionComments(const SectionName: string);
+    procedure ClearSectionComments(const SectionName: string); // Removes all comments from the given section
     procedure ClearSectionKeys(const SectionName: string);
 
     function ReadString(const SectionName, Key, Default: string): string; overload;
@@ -259,10 +317,12 @@ type
     function ReadTime(const Key: string; Default: TDateTime): TDateTime; overload;
     function ReadBinaryStream(const SectionName, Key: string; Value: TStream): integer; overload;
     function ReadBinaryStream(const Key: string; Value: TStream): integer; overload;
+    {$IFNDEF INI_NO_GRAPHICS}
     function ReadColor(const SectionName, Key: string; Default: TColor): TColor; overload;
     function ReadColor(const Key: string; Default: TColor): TColor; overload;
     function ReadFontStyle(const SectionName, Key: string; Default: TFontStyles): TFontStyles; overload;
     function ReadFontStyle(const Key: string; Default: TFontStyles): TFontStyles; overload;
+    {$ENDIF}
 
     procedure WriteString(const SectionName, Key, Value: string); overload;
     procedure WriteString(const Key, Value: string); overload;
@@ -280,15 +340,21 @@ type
     procedure WriteTime(const Key: string; const Value: TDateTime); overload;
     procedure WriteBinaryStream(const SectionName, Key: string; Value: TStream); overload;
     procedure WriteBinaryStream(const Key: string; Value: TStream); overload;
+    {$IFNDEF INI_NO_GRAPHICS}
     procedure WriteColor(const SectionName, Key: string; const Value: TColor); overload;
     procedure WriteColor(const Key: string; const Value: TColor); overload;
     procedure WriteFontStyle(const SectionName, Key: string; const Value: TFontStyles); overload;
     procedure WriteFontStyle(const Key: string; const Value: TFontStyles); overload;
+    {$ENDIF}
 
-    procedure WriteComment(const SectionName, Value: string); overload;
-    procedure WriteComment(const Value: string); overload;
-    procedure WriteComment(const SectionName: string; Strings: TStrings); overload;
-    procedure WriteComment(Strings: TStrings); overload;
+    // bAddToTop
+    //   If True, the comment will be added at the TOP of the Section
+    //   If False, the omment will be added at the END of the section
+    procedure WriteComment(const SectionName, Value: string; bAddToTop: Boolean); overload;
+    procedure WriteComment(const Value: string; bAddToTop: Boolean); overload; // writes comment to the CurrentSection
+    procedure WriteComment(const SectionName: string; Strings: TStrings; bAddToTop: Boolean); overload;
+    procedure WriteComment(Strings: TStrings; bAddToTop: Boolean); overload;
+    function RemoveSectionComment(const SectionName: string; bFromTop: Boolean): Boolean;
     procedure WriteTextLine(const SectionName, Value: string); overload;
     procedure WriteTextLine(const Value: string); overload;
 
@@ -307,6 +373,7 @@ type
     procedure ReadSectionComments(const SectionName: string; Strings: TStrings);
     procedure EraseSection(const SectionName: string); // Clears and removes section
     function DeleteKey(const SectionName, Key: string): Boolean;
+    function RenameKeyKey(const SectionName, OldKeyName, NewKeyName: string): Boolean;
     function KeyExists(const SectionName, Key: string): Boolean;
     function ValueExists(const SectionName, Key: string): Boolean; // = KeyExists; Added for compatibility with TIniFile
     function SectionExists(const SectionName: string): Boolean;
@@ -339,19 +406,25 @@ type
     property Encoding: TEncoding read FEncoding write SetEncoding;
     property UpdateFileOnExit: Boolean read FUpdateFileOnExit write SetUpdateFileOnExit; // if True, FileName will be saved on Destroy. Default True
     property IgnoreExceptionsOnSave: Boolean read FIgnoreExceptionsOnSave write SetIgnoreExceptionsOnSave;
+    {$IFDEF HAS_TSTRINGS_WRITEBOM}
+    property WriteBOM: Boolean read FWriteBOM write SetWriteBOM;
+    {$ENDIF}
   end;
-  {$endregion}
+  {$endregion TJPIniFile}
 
 
 
 
+{$IFNDEF INI_NO_GRAPHICS}
 function FontStylesToStr(FontStyles: TFontStyles): string;
 function StrToFontStyles(s: string): TFontStyles;
+{$ENDIF}
 
 
 implementation
 
 {$region ' ------- helpers ---------- '}
+{$IFNDEF INI_NO_GRAPHICS}
 function FontStylesToStr(FontStyles: TFontStyles): string;
 var
   s: string;
@@ -361,7 +434,7 @@ begin
   if fsItalic in FontStyles then s := s + ',Italic';
   if fsUnderline in FontStyles then s := s + ',Underline';
   if fsStrikeOut in FontStyles then s := s + ',StrikeOut';
-  if Copy(s, 1, 1) = ',' then Delete(s, 1, 1);
+  s := TrimFromStart(s, ',');
   Result := s;
 end;
 
@@ -374,6 +447,7 @@ begin
   if Pos('UNDERLINE', s) > 0 then Result := Result + [fsUnderline];
   if Pos('STRIKEOUT', s) > 0 then Result := Result + [fsStrikeOut];
 end;
+{$ENDIF}
 {$endregion helpers}
 
 
@@ -383,6 +457,7 @@ constructor TJPIniFile.Create(const FileName: string; Encoding: TEncoding; bIgno
 begin
   inherited Create;
   FEncoding := Encoding;
+  {$IFDEF HAS_TSTRINGS_WRITEBOM}FWriteBOM := True;{$ENDIF}
   FFileName := FileName;
   FSectionsSeparator := ENDL; //#13#10
   FSections := TJPIniSections.Create(TJPIniSection);
@@ -464,21 +539,17 @@ begin
       if Line = '' then Continue;
 
       // ------------ section -----------------
-      //if (Line.Chars[0] = '[') and (Line.Chars[Line.Length - 1] = ']') then
       if IsBoundedWith(Line, '[', ']') then
       begin
         Section := Sections.Add;
-        //Section.Name := Line.Substring(1, Line.Length - 2).Trim;
         Section.Name := Trim(TrimBounds(Line, '[', ']'));
       end
 
       // ---------- comment --------------
-      //else if Line.Chars[0] = ';' then
       else if Line[1] = ';' then
       begin
         IniItem := Section.SectionItems.Add;
         IniItem.ItemType := iitComment;
-        //IniItem.Value := Line.Substring(1, Line.Length - 1);
         IniItem.Value := Copy(Line, 2, Length(Line) - 1);
       end
 
@@ -486,16 +557,12 @@ begin
 
       begin
         IniItem := Section.SectionItems.Add;
-        //x := Line.IndexOf('=');
         x := Pos('=', Line);
         // -------------- key=value ---------------
-        //if x >= 0 then
         if x > 0 then
         begin
           IniItem.ItemType := iitNormal;
-          //IniItem.Key := Line.Substring(0, x).Trim;
           IniItem.Key := Copy(Line, 1, x - 1);
-          //IniItem.Value := Line.Substring(x + 1).Trim;
           IniItem.Value := Copy(Line, x + 1, Length(Line));
         end
         else
@@ -532,12 +599,10 @@ end;
 procedure TJPIniFile.ClearSectionComments(const SectionName: string);
 var
   Items: TJPIniSectionItems;
-  i: integer;
 begin
   Items := GetSectionItems(SectionName);
   if Items = nil then Exit;
-  for i := Items.Count - 1 downto 0 do
-    if Items[i].ItemType = iitComment then Items.Delete(i);
+  Items.RemoveAllComments;
 end;
 
 procedure TJPIniFile.ClearSectionKeys(const SectionName: string);
@@ -573,6 +638,11 @@ end;
 function TJPIniFile.DeleteKey(const SectionName, Key: string): Boolean;
 begin
   Result := Sections.DeletKey(SectionName, Key);
+end;
+
+function TJPIniFile.RenameKeyKey(const SectionName, OldKeyName, NewKeyName: string): Boolean;
+begin
+  Result := Sections.RenameKey(SectionName, OldKeyName, NewKeyName);
 end;
 
 function TJPIniFile.GetSection(const SectionName: string; CreateIfNotExists: Boolean): TJPIniSection;
@@ -774,6 +844,13 @@ begin
   FIgnoreExceptionsOnSave := Value;
 end;
 
+{$IFDEF HAS_TSTRINGS_WRITEBOM}
+procedure TJPIniFile.SetWriteBOM(AValue: Boolean);
+begin
+  FWriteBOM := AValue;
+end;
+{$ENDIF}
+
 procedure TJPIniFile.SetSectionsSeparator(const Value: string);
 begin
   FSectionsSeparator := Value;
@@ -816,6 +893,7 @@ begin
   if Trim(FileName) = '' then Exit;
   sl := TStringList.Create;
   try
+    {$IFDEF HAS_TSTRINGS_WRITEBOM}sl.WriteBOM := FWriteBOM;{$ENDIF}
 
     {$IFDEF DCC}
     sl.Text := Text;
@@ -834,7 +912,7 @@ begin
       end
     else {$IFDEF HAS_INIFILE_WITH_ENCODING}sl.SaveToFile(FileName, FEncoding);{$ELSE}sl.SaveToFile(FileName);{$ENDIF}
     {$ENDIF}
-    
+
   finally
     sl.Free;
   end;
@@ -866,20 +944,22 @@ begin
   Result := ReadBool(FCurrentSection, Key, Default);
 end;
 
-function TJPIniFile.ReadColor(const Key: string; Default: TColor): TColor;
-begin
-  Result := ReadColor(FCurrentSection, Key, Default);
-end;
-
 function TJPIniFile.ReadBool(const SectionName, Key: string; Default: Boolean): Boolean;
 begin
   Result := Sections.ReadBool(SectionName, Key, Default);
+end;
+
+{$IFNDEF INI_NO_GRAPHICS}
+function TJPIniFile.ReadColor(const Key: string; Default: TColor): TColor;
+begin
+  Result := ReadColor(FCurrentSection, Key, Default);
 end;
 
 function TJPIniFile.ReadColor(const SectionName, Key: string; Default: TColor): TColor;
 begin
   Result := Sections.ReadColor(SectionName, Key, Default);
 end;
+{$ENDIF}
 
 function TJPIniFile.ReadDate(const SectionName, Key: string; Default: TDateTime): TDateTime;
 begin
@@ -911,6 +991,7 @@ begin
   Result := ReadFloat(FCurrentSection, Key, Default);
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 function TJPIniFile.ReadFontStyle(const Key: string; Default: TFontStyles): TFontStyles;
 begin
   Result := ReadFontStyle(FCurrentSection, Key, Default);
@@ -920,6 +1001,7 @@ function TJPIniFile.ReadFontStyle(const SectionName, Key: string; Default: TFont
 begin
   Result := Sections.ReadFontStyle(SectionName, Key, Default);
 end;
+{$ENDIF}
 
 procedure TJPIniFile.ReadIniComment(Strings: TStrings);
 var
@@ -1048,6 +1130,7 @@ begin
   FCurrentSection := SectionName;
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 procedure TJPIniFile.WriteColor(const SectionName, Key: string; const Value: TColor);
 begin
   Sections.WriteColor(SectionName, Key, Value);
@@ -1058,26 +1141,37 @@ procedure TJPIniFile.WriteColor(const Key: string; const Value: TColor);
 begin
   WriteColor(FCurrentSection, Key, Value);
 end;
+{$ENDIF}
 
-procedure TJPIniFile.WriteComment(const SectionName: string; Strings: TStrings);
+procedure TJPIniFile.WriteComment(const SectionName: string; Strings: TStrings; bAddToTop: Boolean);
 begin
-  Sections.WriteComment(SectionName, Strings);
+  Sections.WriteComment(SectionName, Strings, bAddToTop);
   FCurrentSection := SectionName;
 end;
 
-procedure TJPIniFile.WriteComment(Strings: TStrings);
+procedure TJPIniFile.WriteComment(Strings: TStrings; bAddToTop: Boolean);
 begin
-  WriteComment(FCurrentSection, Strings);
+  WriteComment(FCurrentSection, Strings, bAddToTop);
 end;
 
-procedure TJPIniFile.WriteComment(const Value: string);
+function TJPIniFile.RemoveSectionComment(const SectionName: string; bFromTop: Boolean): Boolean;
+var
+  Section: TJPIniSection;
 begin
-  WriteComment(FCurrentSection, Value);
+  Result := False;
+  Section := GetSection(SectionName, False);
+  if not Assigned(Section) then Exit;
+  Result := Section.RemoveSectionComment(bFromTop);
 end;
 
-procedure TJPIniFile.WriteComment(const SectionName, Value: string);
+procedure TJPIniFile.WriteComment(const Value: string; bAddToTop: Boolean);
 begin
-  Sections.WriteComment(SectionName, Value);
+  WriteComment(FCurrentSection, Value, bAddToTop);
+end;
+
+procedure TJPIniFile.WriteComment(const SectionName, Value: string; bAddToTop: Boolean);
+begin
+  Sections.WriteComment(SectionName, Value, bAddToTop);
   FCurrentSection := SectionName;
 end;
 
@@ -1114,6 +1208,7 @@ begin
   WriteFloat(FCurrentSection, Key, Value);
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 procedure TJPIniFile.WriteFontStyle(const Key: string; const Value: TFontStyles);
 begin
   WriteFontStyle(FCurrentSection, Key, Value);
@@ -1124,15 +1219,16 @@ begin
   Sections.WriteFontStyle(SectionName, Key, Value);
   FCurrentSection := SectionName;
 end;
+{$ENDIF}
 
 procedure TJPIniFile.WriteIniComment(Strings: TStrings);
 begin
-  WriteComment('', Strings);
+  WriteComment('', Strings, True);
 end;
 
 procedure TJPIniFile.WriteIniComment(const Value: string);
 begin
-  WriteComment('', Value);
+  WriteComment('', Value, True);
 end;
 
 procedure TJPIniFile.WriteInteger(const Key: string; const Value: integer);
@@ -1251,6 +1347,14 @@ begin
   Result := GetKeyIndex(Key) >= 0;
 end;
 
+procedure TJPIniSectionItems.RemoveAllComments;
+var
+  i: integer;
+begin
+  for i := Count - 1 downto 0 do
+    if Items[i].ItemType = iitComment then Delete(i);
+end;
+
 function TJPIniSectionItems.AsString: string;
 var
   i: integer;
@@ -1283,6 +1387,19 @@ begin
   end;
 end;
 
+function TJPIniSectionItems.RenameKey(const OldKeyName, NewKeyName: string): Boolean;
+var
+  Item: TJPIniItem;
+begin
+  Result := False;
+  if not KeyExists(OldKeyName) then Exit;
+  if KeyExists(NewKeyName) then Exit;
+  Item := GetItem(OldKeyName, False);
+  if not Assigned(Item) then Exit;
+  Item.Key := NewKeyName;
+  Result := True;
+end;
+
 function TJPIniSectionItems.GetItem(Index: Integer): TJPIniItem;
 begin
   Result := TJPIniItem(inherited GetItem(Index));
@@ -1312,6 +1429,8 @@ begin
       Break;
     end;
 end;
+
+
 
 procedure TJPIniSectionItems.SetItem(Index: Integer; const Value: TJPIniItem);
 begin
@@ -1426,6 +1545,7 @@ begin
   Result := s = '1';
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 function TJPIniSectionItems.ReadColor(const Key: string; Default: TColor): TColor;
 var
   sColor: string;
@@ -1450,6 +1570,7 @@ begin
   if s = '' then Exit(Default);
   if not TryHtmlStrToColor(s, Result) then Result := Default;
 end;
+{$ENDIF}
 
 function TJPIniSectionItems.ReadDate(const Key: string; Default: TDateTime): TDateTime;
 var
@@ -1493,6 +1614,7 @@ begin
   end;
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 function TJPIniSectionItems.ReadFontStyle(const Key: string; Default: TFontStyles): TFontStyles;
 var
   s: string;
@@ -1501,6 +1623,7 @@ begin
   s := ReadString(Key, s);
   Result := StrToFontStyles(s);
 end;
+{$ENDIF}
 
 function TJPIniSectionItems.ReadInteger(const Key: string; Default: integer): integer;
 var
@@ -1646,23 +1769,96 @@ begin
   if Value then WriteString(Key, '1') else WriteString(Key, '0');
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 procedure TJPIniSectionItems.WriteColor(const Key: string; const Value: TColor);
 begin
   WriteString(Key, ColorToString(Value));
 end;
+{$ENDIF}
 
-procedure TJPIniSectionItems.WriteComment(Strings: TStrings);
+function TJPIniSectionItems.GetNewSectionCommentItem: TJPIniItem;
+var
+  i: integer;
+  Item: TJPIniItem;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+  begin
+    Item := Items[i];
+    if Item.ItemType = iitNormal then
+    begin
+      Result := Insert(Item.Index);
+      Break;
+    end;
+  end; // for
+
+  if not Assigned(Result) then Result := Add;
+  Result.ItemType := iitComment;
+end;
+
+procedure TJPIniSectionItems.WriteComment(Strings: TStrings; bAddToTop: Boolean);
 var
   i: integer;
 begin
-  for i := 0 to Strings.Count - 1 do WriteComment(Strings[i]);
+  for i := 0 to Strings.Count - 1 do WriteComment(Strings[i], bAddToTop);
 end;
 
-procedure TJPIniSectionItems.WriteComment(const Value: string);
+function TJPIniSectionItems.RemoveSectionComment(bFromTop: Boolean): Boolean;
+var
+  i, x: integer;
+begin
+  Result := False;
+  x := -1;
+
+  // Usuwanie kmentarza z początku sekcji
+  if bFromTop then
+  begin
+    for i := 0 to Count - 1 do
+      if Items[i].ItemType = iitNormal then
+      begin
+        x := i - 1;
+        Break;
+      end;
+
+    if x < 0 then Exit;
+
+    for i := x downto 0 do
+      if Items[i].ItemType = iitComment then
+      begin
+        Delete(i);
+        Result := True;
+      end;
+  end
+
+  else
+
+  // Usuwanie komentarza na końcu sekcji
+  begin
+    for i := Count - 1 downto 0 do
+      if Items[i].ItemType = iitNormal then
+      begin
+        x := i + 1;
+        Break;
+      end;
+
+    if x < 0 then Exit;
+    if x = Count - 1 then Exit; //<-- na końcu sekcji brak komentarza
+
+    for i := Count - 1 downto x do
+      if Items[i].ItemType = iitComment then
+      begin
+        Delete(i);
+        Result := True;
+      end;
+  end;
+end;
+
+procedure TJPIniSectionItems.WriteComment(const Value: string; bAddToTop: Boolean);
 var
   IniItem: TJPIniItem;
 begin
-  IniItem := Add;
+  if bAddToTop then IniItem := GetNewSectionCommentItem
+  else IniItem := Add;
   IniItem.ItemType := iitComment;
   IniItem.Value := Value;
 end;
@@ -1686,6 +1882,7 @@ begin
   WriteString(Key, s);
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 procedure TJPIniSectionItems.WriteFontStyle(const Key: string; const Value: TFontStyles);
 begin
   WriteString(Key, FontStylesToStr(Value));
@@ -1695,8 +1892,9 @@ procedure TJPIniSectionItems.WriteHtmlColor(const Key: string; const Value: TCol
 begin
   WriteString(Key, ColorToHtmlColorStr(Value, '#', True));
 end;
+{$ENDIF}
 
-procedure TJPIniSectionItems.WriteInteger(const Key: string; const Value: Integer);
+procedure TJPIniSectionItems.WriteInteger(const Key: string; const Value: integer);
 begin
   WriteString(Key, itos(Value));
 end;
@@ -1749,6 +1947,11 @@ begin
   Result := SectionItems.KeyExists(Key);
 end;
 
+procedure TJPIniSection.RemoveAllComments;
+begin
+  SectionItems.RemoveAllComments;
+end;
+
 procedure TJPIniSection.SetName(const Value: string);
 begin
   FName := Value;
@@ -1762,6 +1965,11 @@ end;
 function TJPIniSection.DeletKey(const Key: string): Boolean;
 begin
   Result := SectionItems.DeletKey(Key);
+end;
+
+function TJPIniSection.RenameKey(const OldKeyName, NewKeyName: string): Boolean;
+begin
+  Result := SectionItems.RenameKey(OldKeyName, NewKeyName);
 end;
 
 function TJPIniSection.AsString: string;
@@ -1780,6 +1988,7 @@ begin
   Result := SectionItems.ReadBool(Key, Default);
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 function TJPIniSection.ReadColor(const Key: string; Default: TColor): TColor;
 begin
   Result := SectionItems.ReadColor(Key, Default);
@@ -1789,6 +1998,7 @@ function TJPIniSection.ReadHtmlColor(const Key: string; const Default: TColor): 
 begin
   Result := SectionItems.ReadHtmlColor(Key, Default);
 end;
+{$ENDIF}
 
 function TJPIniSection.ReadDate(const Key: string; Default: TDateTime): TDateTime;
 begin
@@ -1805,10 +2015,12 @@ begin
   Result := SectionItems.ReadFloat(Key, Default);
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 function TJPIniSection.ReadFontStyle(const Key: string; Default: TFontStyles): TFontStyles;
 begin
   Result := SectionItems.ReadFontStyle(Key, Default);
 end;
+{$ENDIF}
 
 function TJPIniSection.ReadInteger(const Key: string; Default: integer): integer;
 begin
@@ -1830,7 +2042,8 @@ begin
   Result := SectionItems.ReadTime(Key, Default);
 end;
 
-  {$region ' -------- Write XXX ------- '}
+
+{$region ' -------- Write XXX ------- '}
 procedure TJPIniSection.WriteBinaryStream(const Key: string; Value: TStream);
 begin
   SectionItems.WriteBinaryStream(Key, Value);
@@ -1841,19 +2054,26 @@ begin
   SectionItems.WriteBool(Key, Value);
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 procedure TJPIniSection.WriteColor(const Key: string; const Value: TColor);
 begin
   SectionItems.WriteColor(Key, Value);
 end;
+{$ENDIF}
 
-procedure TJPIniSection.WriteComment(Strings: TStrings);
+procedure TJPIniSection.WriteComment(Strings: TStrings; bAddToTop: Boolean);
 begin
-  SectionItems.WriteComment(Strings);
+  SectionItems.WriteComment(Strings, bAddToTop);
 end;
 
-procedure TJPIniSection.WriteComment(const Value: string);
+function TJPIniSection.RemoveSectionComment(bFromTop: Boolean): Boolean;
 begin
-  SectionItems.WriteComment(Value);
+  Result := SectionItems.RemoveSectionComment(bFromTop);
+end;
+
+procedure TJPIniSection.WriteComment(const Value: string; bAddToTop: Boolean);
+begin
+  SectionItems.WriteComment(Value, bAddToTop);
 end;
 
 procedure TJPIniSection.WriteDate(const Key: string; const Value: TDateTime);
@@ -1871,6 +2091,7 @@ begin
   SectionItems.WriteFloat(Key, Value);
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 procedure TJPIniSection.WriteFontStyle(const Key: string; const Value: TFontStyles);
 begin
   SectionItems.WriteFontStyle(Key, Value);
@@ -1880,8 +2101,9 @@ procedure TJPIniSection.WriteHtmlColor(const Key: string; const Value: TColor);
 begin
   SectionItems.WriteHtmlColor(Key, Value);
 end;
+{$ENDIF}
 
-procedure TJPIniSection.WriteInteger(const Key: string; const Value: Integer);
+procedure TJPIniSection.WriteInteger(const Key: string; const Value: integer);
 begin
   SectionItems.WriteInteger(Key, Value);
 end;
@@ -1955,6 +2177,15 @@ begin
   if Section <> nil then Result := Section.DeletKey(Key);
 end;
 
+function TJPIniSections.RenameKey(const SectionName, OldKeyName, NewKeyName: string): Boolean;
+var
+  Section: TJPIniSection;
+begin
+  Result := False;
+  Section := GetSection(SectionName, False);
+  if Section <> nil then Result := Section.RenameKey(OldKeyName, NewKeyName);
+end;
+
 function TJPIniSections.GetItem(Index: Integer): TJPIniSection;
 begin
   Result := TJPIniSection(inherited GetItem(Index));
@@ -2022,6 +2253,7 @@ begin
   else Result := Default;
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 function TJPIniSections.ReadColor(const SectionName, Key: string; Default: TColor): TColor;
 var
   Section: TJPIniSection;
@@ -2030,6 +2262,7 @@ begin
   if Section <> nil then Result := Section.ReadColor(Key, Default)
   else Result := Default;
 end;
+{$ENDIF}
 
 function TJPIniSections.ReadDate(const SectionName, Key: string; Default: TDateTime): TDateTime;
 var
@@ -2058,6 +2291,7 @@ begin
   else Result := Default;
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 function TJPIniSections.ReadFontStyle(const SectionName, Key: string; Default: TFontStyles): TFontStyles;
 var
   Section: TJPIniSection;
@@ -2066,6 +2300,7 @@ begin
   if Section <> nil then Result := Section.ReadFontStyle(Key, Default)
   else Result := Default;
 end;
+{$ENDIF}
 
 function TJPIniSections.ReadInteger(const SectionName, Key: string; Default: integer): integer;
 var
@@ -2105,19 +2340,21 @@ begin
   GetSection(SectionName, True).WriteBool(Key, Value);
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 procedure TJPIniSections.WriteColor(const SectionName, Key: string; const Value: TColor);
 begin
   GetSection(SectionName, True).WriteColor(Key, Value);
 end;
+{$ENDIF}
 
-procedure TJPIniSections.WriteComment(const SectionName: string; Strings: TStrings);
+procedure TJPIniSections.WriteComment(const SectionName: string; Strings: TStrings; bAddToTop: Boolean);
 begin
-  GetSection(SectionName, True).WriteComment(Strings);
+  GetSection(SectionName, True).WriteComment(Strings, bAddToTop);
 end;
 
-procedure TJPIniSections.WriteComment(const SectionName, Value: string);
+procedure TJPIniSections.WriteComment(const SectionName, Value: string; bAddToTop: Boolean);
 begin
-  GetSection(SectionName, True).WriteComment(Value);
+  GetSection(SectionName, True).WriteComment(Value, bAddToTop);
 end;
 
 procedure TJPIniSections.WriteDate(const SectionName, Key: string; const Value: TDateTime);
@@ -2135,10 +2372,12 @@ begin
   GetSection(SectionName, True).WriteFloat(Key, Value);
 end;
 
+{$IFNDEF INI_NO_GRAPHICS}
 procedure TJPIniSections.WriteFontStyle(const SectionName, Key: string; const Value: TFontStyles);
 begin
   GetSection(SectionName, True).WriteFontStyle(Key, Value);
 end;
+{$ENDIF}
 
 procedure TJPIniSections.WriteInteger(const SectionName, Key: string; const Value: integer);
 begin
