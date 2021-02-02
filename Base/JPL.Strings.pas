@@ -17,7 +17,7 @@
 interface
 
 uses
-  SysUtils, Types;
+  SysUtils, Types, JPL.Bytes;
 
 const
   CR = #13;
@@ -162,9 +162,107 @@ function PathIsAbsolute(const FileName: string): Boolean;
 
 function GetDecimalSeparator: Char;
 
+function SaveStringToFile(const FileName, Content: string; Encoding: TEncoding; const WriteBOM: Boolean = True):Boolean; overload;
+function SaveStringToFile(const FileName, Content: string): Boolean; overload;
+function LoadStringFromFile(const FileName: string; var s: string; Encoding: TEncoding): Boolean; overload;
+function LoadStringFromFile(const FileName: string; var s: string): Boolean; overload;
+
 
 implementation
 
+
+{$IFDEF FPC}
+function SaveStringToFile(const FileName, Content: string; Encoding: TEncoding; const WriteBOM: Boolean = True): Boolean; overload;
+var
+  BOM: TBytes = nil;
+  ByteContent: TBytes = nil;
+begin
+  SetLength(BOM, 0);
+  if WriteBOM then BOM := Encoding.GetPreamble;
+
+  SetLength(ByteContent, 0);
+  {$IFDEF FPC320_OR_ABOVE}
+  if Length(BOM) > 0 then ConcatTBytes(BOM, Encoding.GetAnsiBytes(Content), ByteContent)
+  else ByteContent := Encoding.GetAnsiBytes(Content);
+  {$ELSE}
+  if Length(BOM) > 0 then ConcatTBytes(BOM, Encoding.GetBytes(UnicodeString(Content)), ByteContent)
+  else ByteContent := Encoding.GetBytes(UnicodeString(Content));
+  {$ENDIF}
+
+  Result := SaveBytesToFile(FileName, ByteContent);
+end;
+{$ELSE}
+function SaveStringToFile(const FileName, Content: string; Encoding: TEncoding; const WriteBOM: Boolean = True): Boolean; overload;
+var
+  BOM: TBytes {$IFDEF FPC}= nil{$ENDIF};
+  ByteContent: TBytes {$IFDEF FPC}= nil{$ENDIF};
+begin
+  SetLength(BOM, 0);
+  if WriteBOM then BOM := Encoding.GetPreamble;
+
+  SetLength(ByteContent, 0);
+  if Length(BOM) > 0 then ConcatTBytes(BOM, Encoding.GetBytes(Content), ByteContent)
+  else ByteContent := Encoding.GetBytes(Content);
+
+  Result := SaveBytesToFile(FileName, ByteContent);
+end;
+{$ENDIF}
+
+function SaveStringToFile(const FileName, Content: string): Boolean; overload;
+begin
+  Result := SaveStringToFile(FileName, Content, TEncoding.Default);
+end;
+
+{$IFDEF FPC}
+function LoadStringFromFile(const FileName: string; var s: string; Encoding: TEncoding): Boolean; overload;
+var
+  Bytes: TBytes = nil;
+  xBomLen: integer;
+begin
+  Result := False;
+  if not FileExists(FileName) then Exit;
+  Result := GetFileContentAsBytes(FileName, Bytes);
+  if Result then
+  begin
+    Encoding := nil;
+    // http://docwiki.embarcadero.com/Libraries/Sydney/en/System.SysUtils.TEncoding.GetBufferEncoding
+    // https://www.freepascal.org/docs-html/rtl/sysutils/tencoding.getbufferencoding.html
+    // GetBufferEncoding detects encoding of Bytes, and assigns detected encoding to the Encoding param.
+    // So after GetBufferEncoding, the Encoding is NOT = nil
+    xBomLen := TEncoding.GetBufferEncoding(Bytes, Encoding, TEncoding.Default);
+    {$IFDEF FPC320_OR_ABOVE}
+    s := Encoding.GetAnsiString(Bytes, xBomLen, Length(Bytes) - xBomLen);
+    {$ELSE}
+    s := string(Encoding.GetString(Bytes, xBomLen, Length(Bytes) - xBomLen));
+    {$ENDIF}
+  end;
+end;
+{$ELSE}
+function LoadStringFromFile(const FileName: string; var s: string; Encoding: TEncoding): Boolean; overload;
+var
+  Bytes: TBytes;
+  xBomLen: integer;
+begin
+  Result := False;
+  if not FileExists(FileName) then Exit;
+  Result := GetFileContentAsBytes(FileName, Bytes);
+  if Result then
+  begin
+    Encoding := nil;
+    // http://docwiki.embarcadero.com/Libraries/Sydney/en/System.SysUtils.TEncoding.GetBufferEncoding
+    // https://www.freepascal.org/docs-html/rtl/sysutils/tencoding.getbufferencoding.html
+    // GetBufferEncoding detects encoding of Bytes, and assigns detected encoding to the Encoding param.
+    // So after GetBufferEncoding, the Encoding is NOT = nil
+    xBomLen := TEncoding.GetBufferEncoding(Bytes, Encoding {$IFDEF DELPHIXE_OR_ABOVE}, TEncoding.Default{$ENDIF});
+    s := Encoding.GetString(Bytes, xBomLen, Length(Bytes) - xBomLen);
+  end;
+end;
+{$ENDIF}
+
+function LoadStringFromFile(const FileName: string; var s: string): Boolean; overload;
+begin
+  Result := LoadStringFromFile(FileName, s, TEncoding.Default);
+end;
 
 function GetDecimalSeparator: Char;
 begin
@@ -435,7 +533,7 @@ end;
 
 function RemoveEmptyStrings(var Arr: TStringDynArray): integer;
 var
-  A: TStringDynArray;
+  A: TStringDynArray {$IFDEF FPC}= nil{$ENDIF};
   i, Len, Ind: integer;
 begin
   Result := 0;
