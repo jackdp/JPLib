@@ -27,6 +27,8 @@ function TryGetPropertyAsClass(const Obj: TObject; const PropertyName: string; o
 
 function SetPropertyText(Obj: TObject; PropertyName: string; Text: string): Boolean;
 function GetPropertyText(Obj: TObject; const PropertyName, Default: string): string;
+
+function GetRttiMethod(Obj: TObject; const MethodName: string): TRttiMethod;
 {$ENDIF}
 
   
@@ -183,6 +185,37 @@ function TryGetPropertyAsClass(const Obj: TObject; const PropertyName: string; o
 begin
   OutClass := GetPropertyAsClass(Obj, PropertyName);
   Result := OutClass <> nil;
+end;
+
+function GetRttiMethod(Obj: TObject; const MethodName: string): TRttiMethod;
+var
+  RContext: TRttiContext;
+  RType: TRttiType;
+  Method: TRttiMethod;
+  uName: string;
+begin
+  Result := nil;
+  if not Assigned(Obj) then Exit;
+
+  uName := UpperCase(MethodName);
+
+  RContext := TRttiContext.Create;
+  try
+
+    RType := RContext.GetType(Obj.ClassType);
+
+    for Method in RType.GetMethods do
+    begin
+      if UpperCase(Method.Name) = uName then
+      begin
+        Result := Method;
+        Break;
+      end;
+    end;
+
+  finally
+    RContext.Free;
+  end;
 end;
 
 {$ENDIF} // HAS_RTTI
