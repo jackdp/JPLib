@@ -39,6 +39,7 @@ requires
 contains
 
   // BASE
+  JPL.Bytes in '..\..\Base\JPL.Bytes.pas',
   JPL.CmdLineParser in '..\..\Base\JPL.CmdLineParser.pas',
   JPL.Console.ColorParser in '..\..\Base\JPL.Console.ColorParser.pas',
   JPL.Console in '..\..\Base\JPL.Console.pas',
