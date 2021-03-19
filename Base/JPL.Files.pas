@@ -27,6 +27,7 @@ const
   EMPTY_DATE = -127552;
   {$IFDEF FPC}
   INVALID_FILE_ATTRIBUTES  = DWORD(-1);
+  faInvalid = -1;
   {$ENDIF}
   UNC_PREFIX = '\\?\';
 
@@ -34,6 +35,7 @@ const
   faCompressed  = $00000800;
   faEncrypted   = $00004000;
   faVirtual     = $00010000;
+  faInvalid = -1;
   {$ENDIF}
 
 
@@ -72,7 +74,7 @@ type
     AnyFile: Boolean;
     function ReadFileAttributes(const FileName: string): Boolean;
     procedure Clear;
-    function AsString(Separator: string = ', '): string;
+    function AsString(Separator: string = ', '; LongNames: Boolean = True; IgnoreAnyFile: Boolean = False): string;
   end;
   {$ENDIF}
 
@@ -80,6 +82,7 @@ type
   TFileInfoRec = record
     FileNameRec: TFileNameRec;
     Exists: Boolean;
+    IsDirectory: Boolean;
 
     {$IFDEF LINUX}
     StatOK: Boolean;
@@ -113,6 +116,12 @@ function FileSizeInt(const FileName: string): int64;
 {$IFDEF MSWINDOWS}
 function FileGetCreationTime(const FileName: string): TDateTime;
 function FileGetTimes(const FileName: string; out CreationTime, LastAccessTime, LastWriteTime: TDateTime): Boolean;
+function FileSetAttributes(const FileName: string; bReadOnly, bHidden, bSystem, bArchive: Boolean): Boolean;
+function FileStripAttributes(const FileName: string; bStripReadOnly, bStripHidden, bStripSystem, bStripArchive: Boolean): Boolean;
+function FileSetAttribute_ReadOnly(const FileOrDirectoryName: string): Boolean;
+function FileHasAttribute_ReadOnly(const FileOrDirectoryName: string): Boolean;
+function FileHasAttribute_Hidden(const FileOrDirectoryName: string): Boolean;
+function FileHasAttribute_System(const FileOrDirectoryName: string): Boolean;
 {$ENDIF}
 
 function DelFile(const FileName: string): Boolean;
@@ -123,6 +132,7 @@ function GetFiles(const Directory: string; SearchPattern: string = '*'; RecurseD
 function GetDirectories(const StartDir: string; RecurseDepth: Word = 0; AcceptSymLinks: Boolean = True): TStringDynArray;
 function SubdirectoryCount(const Directory: string; RecurseDepth: Word = 0; AcceptSymLinks: Boolean = True): integer;
 
+function FileOrDirectoryExists(const FileOrDirectoryName: string): Boolean;
 function DirectoryExistsEx(const Dir: string; AcceptSymLinks: Boolean = True): Boolean;
 function AddUncPrefix(const FileOrDirectoryName: string): string;
 
@@ -137,6 +147,14 @@ begin
   if DirectoryExists(FileOrDirectoryName) then Result := fsitDirectory
   else if FileExists(FileOrDirectoryName) then Result := fsitFile
   else Result := fsitUnknown;
+end;
+
+function FileOrDirectoryExists(const FileOrDirectoryName: string): Boolean;
+var
+  fsit: TFileSystemItemType;
+begin
+  fsit := GetFileSystemItemType(FileOrDirectoryName);
+  Result := (fsit = fsitFile) or (fsit = fsitDirectory);
 end;
 
 function AddUncPrefix(const FileOrDirectoryName: string): string;
@@ -401,6 +419,80 @@ begin
   end
   else Result := False;
 end;
+
+function FileSetAttributes(const FileName: string; bReadOnly, bHidden, bSystem, bArchive: Boolean): Boolean;
+var
+  x: integer;
+begin
+  Result := False;
+  x := SysUtils.FileGetAttr(FileName);
+  if x = faInvalid then Exit;
+
+  if bReadOnly then x := x or faReadOnly else x := x and not faReadOnly;
+  if bHidden then x := x or faHidden else x := x and not faHidden;
+  if bSystem then x := x or faSysFile else x := x and not faSysFile;
+  if bArchive then x := x or faArchive else x := x and not faArchive;
+
+  Result := SysUtils.FileSetAttr(FileName, x) = 0;
+end;
+
+function FileStripAttributes(const FileName: string; bStripReadOnly, bStripHidden, bStripSystem, bStripArchive: Boolean): Boolean;
+var
+  x: integer;
+begin
+  Result := False;
+  x := SysUtils.FileGetAttr(FileName);
+  if x = faInvalid then Exit;
+
+  if bStripReadOnly then x := x and not faReadOnly;
+  if bStripHidden then x := x and not faHidden;
+  if bStripSystem then x := x and not faSysFile;
+  if bStripArchive then x := x and not faArchive;
+
+  Result := SysUtils.FileSetAttr(FileName, x) = 0;
+end;
+
+function FileSetAttribute_ReadOnly(const FileOrDirectoryName: string): Boolean;
+var
+  x: integer;
+begin
+  Result := False;
+  x := SysUtils.FileGetAttr(FileOrDirectoryName);
+  if x = faInvalid then Exit;
+  x := x or faReadOnly;
+  Result := SysUtils.FileSetAttr(FileOrDirectoryName, x) = 0;
+end;
+
+function FileHasAttribute_ReadOnly(const FileOrDirectoryName: string): Boolean;
+var
+  x: integer;
+begin
+  Result := False;
+  x := SysUtils.FileGetAttr(FileOrDirectoryName);
+  if x = faInvalid then Exit;
+  Result := x and faReadOnly <> 0;
+end;
+
+function FileHasAttribute_Hidden(const FileOrDirectoryName: string): Boolean;
+var
+  x: integer;
+begin
+  Result := False;
+  x := SysUtils.FileGetAttr(FileOrDirectoryName);
+  if x = faInvalid then Exit;
+  Result := x and faHidden <> 0;
+end;
+
+function FileHasAttribute_System(const FileOrDirectoryName: string): Boolean;
+var
+  x: integer;
+begin
+  Result := False;
+  x := SysUtils.FileGetAttr(FileOrDirectoryName);
+  if x = faInvalid then Exit;
+  Result := x and faSysFile <> 0;
+end;
+
 {$WARN SYMBOL_PLATFORM ON}
 {$ENDIF}
 
@@ -462,23 +554,45 @@ begin
   AnyFile := False;
 end;
 
-function TFileAttributesRec.AsString(Separator: string = ', '): string;
+function TFileAttributesRec.AsString(Separator: string = ', '; LongNames: Boolean = True; IgnoreAnyFile: Boolean = False): string;
 begin
   Result := '';
   if not ValidAttributes then Exit;
-  if ReadOnly then Result := Result + 'ReadOnly' + Separator;
-  if Hidden then Result := Result + 'Hidden' + Separator;
-  if SysFile then Result := Result + 'SysFile' + Separator;
-  if VolumeID then Result := Result + 'VolumeID' + Separator;
-  if Directory then Result := Result + 'Directory' + Separator;
-  if Archive then Result := Result + 'Archive' + Separator;
-  if Normal then Result := Result + 'Normal' + Separator;
-  if Temporary then Result := Result + 'Temporary' + Separator;
-  if SymLink then Result := Result + 'SymLink' + Separator;
-  if Compressed then Result := Result + 'Compressed' + Separator;
-  if Encrypted then Result := Result + 'Encrypted' + Separator;
-  if Virtual then Result := Result + 'Virtual' + Separator;
-  if AnyFile then Result := Result + 'AnyFile' + Separator;
+
+  if LongNames then
+  begin
+    if ReadOnly then Result := Result + 'ReadOnly' + Separator;
+    if Hidden then Result := Result + 'Hidden' + Separator;
+    if SysFile then Result := Result + 'SysFile' + Separator;
+    if VolumeID then Result := Result + 'VolumeID' + Separator;
+    if Directory then Result := Result + 'Directory' + Separator;
+    if Archive then Result := Result + 'Archive' + Separator;
+    if Normal then Result := Result + 'Normal' + Separator;
+    if Temporary then Result := Result + 'Temporary' + Separator;
+    if SymLink then Result := Result + 'SymLink' + Separator;
+    if Compressed then Result := Result + 'Compressed' + Separator;
+    if Encrypted then Result := Result + 'Encrypted' + Separator;
+    if Virtual then Result := Result + 'Virtual' + Separator;
+    if not IgnoreAnyFile then
+      if AnyFile then Result := Result + 'AnyFile' + Separator;
+  end
+  else
+  begin
+    if ReadOnly then Result := Result + 'R' + Separator;
+    if Hidden then Result := Result + 'H' + Separator;
+    if SysFile then Result := Result + 'S' + Separator;
+    if VolumeID then Result := Result + 'Vol' + Separator;
+    if Directory then Result := Result + 'D' + Separator;
+    if Archive then Result := Result + 'A' + Separator;
+    if Normal then Result := Result + 'N' + Separator;
+    if Temporary then Result := Result + 'T' + Separator;
+    if SymLink then Result := Result + 'L' + Separator;
+    if Compressed then Result := Result + 'C' + Separator;
+    if Encrypted then Result := Result + 'E' + Separator;
+    if Virtual then Result := Result + 'Virt' + Separator;
+    if not IgnoreAnyFile then
+      if AnyFile then Result := Result + 'Any' + Separator;
+  end;
 
   Result := TrimFromEnd(Result, Separator);
 end;
@@ -534,6 +648,8 @@ begin
   FileNameRec.Clear;
   Exists := False;
 
+  IsDirectory := False;
+
   {$IFDEF LINUX}
   StatOK := False;
   DeviceNo := 0;
@@ -574,8 +690,9 @@ begin
   {$ENDIF}
   FileNameRec.Clear;
 
-  if not FileExists(FileName) then Exit;
+  if not FileOrDirectoryExists(FileName) then Exit;
   Exists := True;
+  IsDirectory := GetFileSystemItemType(FileName) = fsitDirectory;
 
   FileNameRec.AssignFileName(FileName);
   FullName := FileNameRec.FullFileName;
