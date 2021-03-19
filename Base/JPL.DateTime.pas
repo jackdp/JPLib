@@ -2,7 +2,7 @@ unit JPL.DateTime;
 
 {
   Jacek Pazera
-  http://www.pazera-software.com
+  https://www.pazera-software.com
 }
 
 {$I .\..\jp.inc}
@@ -13,8 +13,7 @@ interface
 
 uses
   {$IFDEF DCC}Windows,{$ENDIF}
-  SysUtils,
-  //Classes,
+  SysUtils, Types,
   DateUtils,
   JPL.Strings, JPL.Conversion;
 
@@ -84,10 +83,24 @@ function MsToTimeStrEx(ms: Int64; RoundToSeconds: Boolean = False; DayStr: strin
 
 function GetTimestamp(dt: TDateTime; bShowMSec: Boolean = True; DateSeparator: string = '-'; TimeSeparator: string = ';'; DateTimeSeparator: string = '_';
   MSecSeparator: string = '.'): string;
-function JPDateToStr(dt: TDateTime; Separator: string = '-'): string;
-function JPTimeToStr(dt: TDateTime; ShowMSec: Boolean = True; TimeSep: string = ':'; MSecSep: string = '.'): string;
-function GetDateTime(const Year, Month, Day: Word; Hour: Word = 0; Min: Word = 0; Sec: Word = 0; MSec: Word = 0): TDateTime;
 
+
+// System independent date & time conversion routines
+function JPDateToStr(const dt: TDateTime; DateSep: string = '-'): string;
+function JPStrToDate(const DateStr: string; Default: TDateTime; DateSep: string = '-'): TDateTime;
+function JPTryStrToDate(const DateStr: string; out ADate: TDateTime; DateSep: string = '-'): Boolean;
+
+function JPTimeToStr(const dt: TDateTime; ShowMSec: Boolean = True; TimeSep: string = ':'; MSecSep: string = '.'): string;
+function JPStrToTime(const TimeStr: string; Default: TDateTime; TimeSep: string = ':'; MSecSep: string = '.'): TDateTime;
+function JPTryStrToTime(const TimeStr: string; out ATime: TDateTime; TimeSep: string = ':'; MSecSep: string = '.'): Boolean;
+
+function JPDateTimeToStr(const dt: TDateTime; UseMilliseconds: Boolean = False; DateSep: string = '-'; TimeSep: string = ':'; MSecSep: string = '.';
+  DateToTimeSep: string = ' '): string;
+function JPStrToDateTime(const DateTimeStr: string; Default: TDateTime; DateSep: string = '-'; TimeSep: string = ':'; MSecSep: string = '.';
+  DateToTimeSep: string = ' '): TDateTime;
+
+
+function GetDateTime(const Year, Month, Day: Word; Hour: Word = 0; Min: Word = 0; Sec: Word = 0; MSec: Word = 0): TDateTime;
 function GetDateTimeStr(dt: TDateTime; Format: string = '$Y.$M.$D-$H;$MIN;$S,$MS'): string;
 
 function SecToMs(const Sec: integer): integer;
@@ -99,6 +112,7 @@ function CurrentDate: TDateTime;
 
 
 implementation
+
 
 function CurrentDate: TDateTime;
 var
@@ -167,7 +181,10 @@ begin
   Result := EncodeDateTime(Year, Month, Day, Hour, Min, Sec, MSec);
 end;
 
-function JPTimeToStr(dt: TDateTime; ShowMSec: Boolean = True; TimeSep: string = ':'; MSecSep: string = '.'): string;
+
+
+
+function JPTimeToStr(const dt: TDateTime; ShowMSec: Boolean = True; TimeSep: string = ':'; MSecSep: string = '.'): string;
 var
   Hour, Min, Sec, Msec: WORD;
 begin
@@ -179,16 +196,108 @@ begin
   if ShowMSec then Result := Result + MSecSep + Pad(itos(MSec), 3, '0');
 end;
 
-function JPDateToStr(dt: TDateTime; Separator: string = '-'): string;
+function JPTryStrToTime(const TimeStr: string; out ATime: TDateTime; TimeSep: string = ':'; MSecSep: string = '.'): Boolean;
+var
+  Arr: TStringDynArray;
+  Hour, Min, Sec, MSec: Word;
+  xp: integer;
+  sSec, sMSec: string;
+begin
+  Result := False;
+
+  SplitStrToArrayEx(TimeStr, Arr, TimeSep);
+  if Length(Arr) < 3 then Exit;
+
+  if not TryStrToWord(Arr[0], Hour) then Exit;
+  if not TryStrToWord(Arr[1], Min) then Exit;
+
+  sSec := Arr[2];
+  xp := Pos(MSecSep, sSec);
+  if xp > 0 then
+  begin
+    sMSec := Copy(sSec, xp + Length(MSecSep), Length(sSec));
+    sSec := Copy(sSec, 1, xp - 1);
+    if not TryStrToWord(sSec, Sec) then Exit;
+    if not TryStrToWord(sMSec, MSec) then Exit;
+  end
+  else
+  begin
+    if not TryStrToWord(sSec, Sec) then Exit;
+    MSec := 0;
+  end;
+
+  ATime := EncodeTime(Hour, Min, Sec, MSec);
+  Result := True;
+end;
+
+function JPStrToTime(const TimeStr: string; Default: TDateTime; TimeSep: string = ':'; MSecSep: string = '.'): TDateTime;
+begin
+  if not JPTryStrToTime(TimeStr, Result, TimeSep, MSecSep) then Result := Default;
+end;
+
+function JPDateToStr(const dt: TDateTime; DateSep: string = '-'): string;
 var
   Year, Month, Day: WORD;
 begin
   DecodeDate(dt, Year, Month, Day);
   Result :=
-    itos(Year) + Separator +
-    Pad(itos(Month), 2, '0') + Separator +
+    itos(Year) + DateSep +
+    Pad(itos(Month), 2, '0') + DateSep +
     Pad(itos(Day), 2, '0');
 end;
+
+function JPTryStrToDate(const DateStr: string; out ADate: TDateTime; DateSep: string = '-'): Boolean;
+var
+  Arr: TStringDynArray;
+  Year, Month, Day: Word;
+begin
+  Result := False;
+  SplitStrToArrayEx(DateStr, Arr, DateSep);
+  if Length(Arr) <> 3 then Exit;
+  if not TryStrToWord(Arr[0], Year) then Exit;
+  if not TryStrToWord(Arr[1], Month) then Exit;
+  if not TryStrToWord(Arr[2], Day) then Exit;
+  ADate := EncodeDate(Year, Month, Day);
+  Result := True;
+end;
+
+function JPStrToDate(const DateStr: string; Default: TDateTime; DateSep: string = '-'): TDateTime;
+begin
+  if not JPTryStrToDate(DateStr, Result, DateSep) then Result := Default;
+end;
+
+function JPDateTimeToStr(const dt: TDateTime; UseMilliseconds: Boolean = False; DateSep: string = '-'; TimeSep: string = ':'; MSecSep: string = '.';
+  DateToTimeSep: string = ' '): string;
+begin
+  Result :=
+    JPDateToStr(dt, DateSep) +
+    DateToTimeSep +
+    JPTimeToStr(dt, UseMilliseconds, TimeSep, MSecSep);
+end;
+
+function JPStrToDateTime(const DateTimeStr: string; Default: TDateTime; DateSep: string = '-'; TimeSep: string = ':'; MSecSep: string = '.';
+  DateToTimeSep: string = ' '): TDateTime;
+var
+  xp: integer;
+  sDate, sTime: string;
+  dtDate, dtTime: TDateTime;
+begin
+  Result := Default;
+
+  xp := Pos(DateToTimeSep, DateTimeStr);
+  if xp = 0 then Exit;
+  sDate := Copy(DateTimeStr, 1, xp - 1);
+  sTime := Copy(DateTimeStr, xp + Length(DateToTimeSep), Length(DateTimeStr));
+
+  if not JPTryStrToDate(sDate, dtDate, DateSep) then Exit;
+  if not JPTryStrToTime(sTime, dtTime, TimeSep, MSecSep) then Exit;
+
+  Result := dtTime;
+  ReplaceDate(Result, dtDate);
+end;
+
+
+
 
 function GetTimestamp(dt: TDateTime; bShowMSec: Boolean = True; DateSeparator: string = '-'; TimeSeparator: string = ';'; DateTimeSeparator: string = '_';
   MSecSeparator: string = '.'): string;
@@ -297,8 +406,7 @@ begin
     //if bIsDST then xr := xr - 60 * MsMin;
     xr := xr + (DeltaMin * MsMin);
 
-    if (xr / MsInBeat) >= 1000 then
-      xr := 0
+    if (xr / MsInBeat) >= 1000 then xr := 0
     else
     begin
       xr := xr / MsInBeat;
