@@ -76,6 +76,7 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
+        <DCCReference Include="..\..\Base\JPL.Bytes.pas"/>
         <DCCReference Include="..\..\Base\JPL.CmdLineParser.pas"/>
         <DCCReference Include="..\..\Base\JPL.Console.ColorParser.pas"/>
         <DCCReference Include="..\..\Base\JPL.Console.pas"/>
