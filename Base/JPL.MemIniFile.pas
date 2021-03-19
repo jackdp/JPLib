@@ -2,9 +2,9 @@
 
 {
   Jacek Pazera
-  http://www.pazera-software.com
+  https://www.pazera-software.com
   https://github.com/jackdp
- }
+}
 
 {$I .\..\jp.inc}
 {$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
@@ -12,9 +12,9 @@
 interface
 
 uses
-  SysUtils, Classes, IniFiles, Graphics, Dialogs, StdCtrls, Forms,
+  SysUtils, Classes, IniFiles, Graphics, StdCtrls, Forms,
   {$IFDEF DCC}Zlib, JPL.Math,{$ENDIF}
-  JPL.Strings, JPL.Conversion, JPL.Colors;
+  JPL.Strings, JPL.Conversion, JPL.Colors, JPL.DateTime;
 
 
 type
@@ -30,6 +30,10 @@ type
     FRightStringBound: string;
     FCurrentSection: string;
     FFileName: string;
+    FDateSeparator: Char;
+    FTimeSeparator: Char;
+    FMSecSeparator: Char;
+    FDateToTimeSeparator: Char;
     procedure SetUpdateOnExit(const Value: Boolean);
     procedure SetLeftStringBound(const Value: string);
     procedure SetRightStringBound(const Value: string);
@@ -88,8 +92,8 @@ type
 
     procedure WriteFormPos(const Section: string; Form: TForm); overload;
     procedure WriteFormPos(Form: TForm); overload;
-    procedure ReadFormPos(const Section: string; Form: TForm); overload;
-    procedure ReadFormPos(Form: TForm); overload;
+    procedure ReadFormPos(const Section: string; Form: TForm; AllowMaximize: Boolean = True); overload;
+    procedure ReadFormPos(Form: TForm; AllowMaximize: Boolean = True); overload;
 
     procedure WriteString(const Section, Ident, Value: string); overload;
     procedure WriteString(Section: string; Cmp: TComponent; const Value: string); overload;
@@ -121,13 +125,13 @@ type
 
     function ReadDateTime(const Section, Ident: string; Default: TDateTime): TDateTime; overload;
     function ReadDateTime(const Ident: string; Default: TDateTime): TDateTime; overload;
-    procedure WriteDateTime(const Section, Ident: string; Value: TDateTime); overload;
-    procedure WriteDateTime(const Ident: string; Value: TDateTime); overload;
+    procedure WriteDateTime(const Section, Ident: string; Value: TDateTime; UseMilliseconds: Boolean = False); overload;
+    procedure WriteDateTime(const Ident: string; Value: TDateTime; UseMilliseconds: Boolean = False); overload;
 
     function ReadTime(const Section, Ident: string; Default: TDateTime): TDateTime; overload;
     function ReadTime(const Ident: string; Default: TDateTime): TDateTime; overload;
-    procedure WriteTime(const Section, Ident: string; Value: TDateTime); overload;
-    procedure WriteTime(const Ident: string; Value: TDateTime); overload;
+    procedure WriteTime(const Section, Ident: string; Value: TDateTime; UseMilliseconds: Boolean = False); overload;
+    procedure WriteTime(const Ident: string; Value: TDateTime; UseMilliseconds: Boolean = False); overload;
 
     function ReadFloat(const Section, Ident: string; Default: Double): Double; overload;
     function ReadFloat(const Ident: string; Default: Double): Double; overload;
@@ -268,6 +272,10 @@ begin
   FFileName := AFileName;
   FLeftStringBound := '[';
   FRightStringBound := ']';
+  FDateSeparator := '-';
+  FTimeSeparator := ':';
+  FMSecSeparator := '.';
+  FDateToTimeSeparator := ' ';
 end;
 
 destructor TJppMemIniFile.Destroy;
@@ -282,15 +290,11 @@ begin
   FIni.Clear;
 end;
 
-
-
 function TJppMemIniFile.GetCurrentSection: string;
 begin
   if Trim(FCurrentSection) = '' then FCurrentSection := DEFAULT_SECTION;
   Result := FCurrentSection;
 end;
-
-
 
 procedure TJppMemIniFile.SetCurrentSection(const Value: string);
 begin
@@ -475,7 +479,7 @@ begin
   WriteFormPos(CurrentSection, Form);
 end;
 
-procedure TJppMemIniFile.ReadFormPos(const Section: string; Form: TForm);
+procedure TJppMemIniFile.ReadFormPos(const Section: string; Form: TForm; AllowMaximize: Boolean = True);
 var
   x: integer;
 begin
@@ -494,11 +498,13 @@ begin
   x := ReadInteger(Section, Form.Name + '.Height', Form.Height);
   x := GetIntInRange(x, 50, Screen.Height);
   Form.Height := x;
+
+  if ReadBool(Section, Form.Name + '.Maximized', False) and AllowMaximize then Form.WindowState := wsMaximized;
 end;
 
-procedure TJppMemIniFile.ReadFormPos(Form: TForm);
+procedure TJppMemIniFile.ReadFormPos(Form: TForm; AllowMaximize: Boolean = True);
 begin
-  ReadFormPos(CurrentSection, Form);
+  ReadFormPos(CurrentSection, Form, AllowMaximize);
 end;
   {$endregion Form}
 
@@ -615,8 +621,12 @@ end;
 
   {$region '   Date   '}
 function TJppMemIniFile.ReadDate(const Section, Ident: string; Default: TDateTime): TDateTime;
+var
+  s: string;
 begin
-  Result := FIni.ReadDate(Section, Ident, Default);
+  //Result := FIni.ReadDate(Section, Ident, Default);
+  s := FIni.ReadString(Section, Ident, '');
+  Result := JPStrToDate(s, Default, FDateSeparator);
 end;
 
 function TJppMemIniFile.ReadDate(const Ident: string; Default: TDateTime): TDateTime;
@@ -626,7 +636,7 @@ end;
 
 procedure TJppMemIniFile.WriteDate(const Section, Ident: string; Value: TDateTime);
 begin
-  FIni.WriteDate(Section, Ident, Value);
+  WriteString(Section, Ident, JPDateToStr(Value, FDateSeparator));
 end;
 
 procedure TJppMemIniFile.WriteDate(const Ident: string; Value: TDateTime);
@@ -638,8 +648,12 @@ end;
 
   {$region '   DateTime   '}
 function TJppMemIniFile.ReadDateTime(const Section, Ident: string; Default: TDateTime): TDateTime;
+var
+  s: string;
 begin
-  Result := FIni.ReadDateTime(Section, Ident, Default);
+  //Result := FIni.ReadDateTime(Section, Ident, Default);
+  s := FIni.ReadString(Section, Ident, '');
+  Result := JPStrToDateTime(s, Default, FDateSeparator, FTimeSeparator, FMSecSeparator, FDateToTimeSeparator);
 end;
 
 function TJppMemIniFile.ReadDateTime(const Ident: string; Default: TDateTime): TDateTime;
@@ -647,22 +661,25 @@ begin
   Result := ReadDateTime(CurrentSection, Ident, Default);
 end;
 
-procedure TJppMemIniFile.WriteDateTime(const Section, Ident: string; Value: TDateTime);
+procedure TJppMemIniFile.WriteDateTime(const Section, Ident: string; Value: TDateTime; UseMilliseconds: Boolean = False);
 begin
-  FIni.WriteDateTime(Section, Ident, Value);
+  WriteString(Section, Ident, JPDateTimeToStr(Value, UseMilliseconds, FDateSeparator, FTimeSeparator, FMSecSeparator, FDateToTimeSeparator));
 end;
 
-procedure TJppMemIniFile.WriteDateTime(const Ident: string; Value: TDateTime);
+procedure TJppMemIniFile.WriteDateTime(const Ident: string; Value: TDateTime; UseMilliseconds: Boolean = False);
 begin
-  WriteDateTime(CurrentSection, Ident, Value);
+  WriteDateTime(CurrentSection, Ident, Value, UseMilliseconds);
 end;
   {$endregion DateTime}
 
 
   {$region '   Time   '}
 function TJppMemIniFile.ReadTime(const Section, Ident: string; Default: TDateTime): TDateTime;
+var
+  s: string;
 begin
-  Result := FIni.ReadTime(Section, Ident, Default);
+  s := FIni.ReadString(Section, Ident, '');
+  Result := JPStrToTime(s, Default, FTimeSeparator, FMSecSeparator);
 end;
 
 function TJppMemIniFile.ReadTime(const Ident: string; Default: TDateTime): TDateTime;
@@ -670,14 +687,15 @@ begin
   Result := ReadTime(CurrentSection, Ident, Default);
 end;
 
-procedure TJppMemIniFile.WriteTime(const Section, Ident: string; Value: TDateTime);
+procedure TJppMemIniFile.WriteTime(const Section, Ident: string; Value: TDateTime; UseMilliseconds: Boolean = False);
 begin
-  FIni.WriteTime(Section, Ident, Value);
+  //WriteString(Section, Ident, GetTimeString(Value, UseMilliseconds));
+  WriteString(Section, Ident, JPTimeToStr(Value, UseMilliseconds, FTimeSeparator, FMSecSeparator));
 end;
 
-procedure TJppMemIniFile.WriteTime(const Ident: string; Value: TDateTime);
+procedure TJppMemIniFile.WriteTime(const Ident: string; Value: TDateTime; UseMilliseconds: Boolean = False);
 begin
-  WriteTime(CurrentSection, Ident, Value);
+  WriteTime(CurrentSection, Ident, Value, UseMilliseconds);
 end;
   {$endregion Time}
 
