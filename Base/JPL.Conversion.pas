@@ -13,6 +13,7 @@
 
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
+  {$WARN 5091 off : Local variable "$1" of a managed type does not seem to be initialized}
 {$ENDIF}
 
 interface
@@ -68,6 +69,11 @@ function StrToUInt(const NumStr: string): UInt32;
 function TryStrToUInt(const NumStr: string; out xResult: UInt32): Boolean;
 function StrToUInt64(const NumStr: string): UInt64;
 function TryStrToUInt64(const NumStr: string; out xResult: UInt64): Boolean;
+function StrToWord(const NumStr: string): Word;
+function TryStrToWord(const NumStr: string; out xResult: Word): Boolean;
+
+function StrToDWord(const NumStr: string): DWORD;
+function TryStrToDWord(const NumStr: string; out xResult: DWORD): Boolean;
 
 function ByteToHex(B: byte): string;
 
@@ -1004,6 +1010,46 @@ function TryStrToUInt64(const NumStr: string; out xResult: UInt64): Boolean;
 begin
   try
     xResult := StrToUInt64(NumStr);
+    Result := True;
+  except
+    Result := False;
+  end;
+end;
+
+function StrToWord(const NumStr: string): Word;
+var
+  s2: string;
+  code: integer;
+begin
+  s2 := RemoveSpaces(NumStr);
+  Val(s2, Result, code);
+  if code <> 0 then raise EConvertError.Create('StrToWord: Cannot convert "' + NumStr + '" to WORD');
+end;
+
+function TryStrToWord(const NumStr: string; out xResult: Word): Boolean;
+begin
+  try
+    xResult := StrToWord(NumStr);
+    Result := True;
+  except
+    Result := False;
+  end;
+end;
+
+function StrToDWord(const NumStr: string): DWORD;
+var
+  s2: string;
+  code: integer;
+begin
+  s2 := RemoveSpaces(NumStr);
+  Val(s2, Result, code);
+  if code <> 0 then raise EConvertError.Create('StrToWord: Cannot convert "' + NumStr + '" to WORD');
+end;
+
+function TryStrToDWord(const NumStr: string; out xResult: DWORD): Boolean;
+begin
+  try
+    xResult := StrToDWord(NumStr);
     Result := True;
   except
     Result := False;
