@@ -550,7 +550,7 @@ begin
   if (Milliseconds <> INFINITE) and (Milliseconds > 0) then tmEnd := GetTickCount + Milliseconds;
 
   // FPC: initialize
-  ir.Reserved := 0;
+  {$IFDEF FPC}ir.Reserved := 0;{$ENDIF}
   dwEvents := 0;
 
   while True do
