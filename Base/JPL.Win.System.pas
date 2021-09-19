@@ -157,7 +157,7 @@ begin
       end;
 end;
 
-function SearchPathForFile(const ShortFileName: string; DefResult: string; PathToSearch: string): string;
+function SearchPathForFile(const ShortFileName: string; DefResult: string = ''; PathToSearch: string = ''): string;
 var
   Buffer: array[0..511] of Char;
   lpFilePart: PChar;
