@@ -14,7 +14,7 @@
       </SearchPaths>
     </CompilerOptions>
     <Description Value="JPLib"/>
-    <Files Count="42">
+    <Files Count="43">
       <Item1>
         <Filename Value="..\..\Base\JPL.CmdLineParser.pas"/>
         <UnitName Value="JPL.CmdLineParser"/>
@@ -183,6 +183,10 @@
         <Filename Value="..\..\Base\JPL.Bytes.pas"/>
         <UnitName Value="JPL.Bytes"/>
       </Item42>
+      <Item43>
+        <Filename Value="..\..\Base\JPL.Win.Registry.pas"/>
+        <UnitName Value="JPL.Win.Registry"/>
+      </Item43>
     </Files>
     <RequiredPkgs Count="3">
       <Item1>

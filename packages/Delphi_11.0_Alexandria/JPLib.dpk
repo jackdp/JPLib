@@ -9,15 +9,15 @@ package JPLib;
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
-{$LOCALSYMBOLS OFF}
+{$LOCALSYMBOLS ON}
 {$LONGSTRINGS ON}
 {$OPENSTRINGS ON}
-{$OPTIMIZATION ON}
+{$OPTIMIZATION OFF}
 {$OVERFLOWCHECKS OFF}
 {$RANGECHECKS OFF}
-{$REFERENCEINFO OFF}
+{$REFERENCEINFO ON}
 {$SAFEDIVIDE OFF}
-{$STACKFRAMES OFF}
+{$STACKFRAMES ON}
 {$TYPEDADDRESS OFF}
 {$VARSTRINGCHECKS ON}
 {$WRITEABLECONST OFF}
@@ -26,15 +26,19 @@ package JPLib;
 {$DEFINE RELEASE}
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'JPLib Runtime Package'}
-{$LIBSUFFIX 'Sydney'}
+{$LIBSUFFIX 'Alexandria'}
 {$RUNONLY}
 {$IMPLICITBUILD ON}
+
+{$WARN SYMBOL_PLATFORM OFF}
 
 requires
   rtl,
   vcl;
 
 contains
+
+  // BASE
   JPL.Bytes in '..\..\Base\JPL.Bytes.pas',
   JPL.CmdLineParser in '..\..\Base\JPL.CmdLineParser.pas',
   JPL.Console.ColorParser in '..\..\Base\JPL.Console.ColorParser.pas',
@@ -65,6 +69,8 @@ contains
   JPL.Win.System in '..\..\Base\JPL.Win.System.pas',
   JPL.Win.VersionInfo in '..\..\Base\JPL.Win.VersionInfo.pas',
   JPL.Win.SimpleTimer in '..\..\Base\JPL.Win.SimpleTimer.pas',
+
+  // Binary
   JPL.Binary.Elf in '..\..\Binary\JPL.Binary.Elf.pas',
   JPL.Binary.Mach.Types in '..\..\Binary\JPL.Binary.Mach.Types.pas',
   JPL.Binary.MachFat in '..\..\Binary\JPL.Binary.MachFat.pas',
@@ -74,13 +80,21 @@ contains
   JPL.Binary.Procs in '..\..\Binary\JPL.Binary.Procs.pas',
   JPL.Binary.Types in '..\..\Binary\JPL.Binary.Types.pas',
   JPL.UPX in '..\..\Binary\JPL.UPX.pas',
+
+  // Containers
   JPL.Win.FileIcons in '..\..\Containers\JPL.Win.FileIcons.pas',
   JPL.StrList in '..\..\Containers\JPL.StrList.pas',
+
+  // Graphics
   JPL.ColorArrays in '..\..\Graphics\JPL.ColorArrays.pas',
   JPL.Colors.ColorClass in '..\..\Graphics\JPL.Colors.ColorClass.pas',
   JPL.Colors.List in '..\..\Graphics\JPL.Colors.List.pas',
   JPL.Colors in '..\..\Graphics\JPL.Colors.pas',
+
+
+  // Logging
   JPL.SimpleLogger in '..\..\Logging\JPL.SimpleLogger.pas',
   JPL.TimeLogger in '..\..\Logging\JPL.TimeLogger.pas';
+
 
 end.

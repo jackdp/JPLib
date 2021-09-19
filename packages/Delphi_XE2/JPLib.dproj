@@ -1,183 +1,184 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <PropertyGroup>
-        <Base>True</Base>
-        <AppType>Package</AppType>
-        <Config Condition="'$(Config)'==''">Release</Config>
-        <FrameworkType>VCL</FrameworkType>
-        <MainSource>JPLib.dpk</MainSource>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
-        <ProjectGuid>{F9B79570-0262-4209-BC0A-208B50F42092}</ProjectGuid>
-        <ProjectVersion>13.4</ProjectVersion>
-        <TargetedPlatforms>3</TargetedPlatforms>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
-        <Base>true</Base>
-    </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
-        <Base>true</Base>
-        <CfgParent>Base</CfgParent>
-        <Base_Win32>true</Base_Win32>
-    </PropertyGroup>
-    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Base)'=='true') or '$(Base_Win64)'!=''">
-        <Base>true</Base>
-        <CfgParent>Base</CfgParent>
-        <Base_Win64>true</Base_Win64>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_1)'!=''">
-        <Base>true</Base>
-        <CfgParent>Base</CfgParent>
-        <Cfg_1>true</Cfg_1>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
-        <Base>true</Base>
-        <CfgParent>Base</CfgParent>
-        <Cfg_2>true</Cfg_2>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Base)'!=''">
-        <DCC_Description>JPLib Runtime Package</DCC_Description>
-        <DCC_E>false</DCC_E>
-        <DCC_F>false</DCC_F>
-        <DCC_ImageBase>00400000</DCC_ImageBase>
-        <DCC_K>false</DCC_K>
-        <DCC_N>false</DCC_N>
-        <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
-        <DCC_S>false</DCC_S>
-        <DllSuffix>XE2</DllSuffix>
-        <GenDll>true</GenDll>
-        <GenPackage>true</GenPackage>
-        <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <VerInfo_Locale>1033</VerInfo_Locale>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
-        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <VerInfo_Locale>1033</VerInfo_Locale>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
-        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_1)'!=''">
-        <DCC_DebugInformation>false</DCC_DebugInformation>
-        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
-        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
-        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Cfg_2)'!=''">
-        <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
-        <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
-        <DCC_Optimize>false</DCC_Optimize>
-    </PropertyGroup>
-    <ItemGroup>
-        <DelphiCompile Include="$(MainSource)">
-            <MainSource>MainSource</MainSource>
-        </DelphiCompile>
-        <DCCReference Include="rtl.dcp"/>
-        <DCCReference Include="vcl.dcp"/>
-        <DCCReference Include="..\..\Base\JPL.Bytes.pas"/>
-        <DCCReference Include="..\..\Base\JPL.CmdLineParser.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Console.ColorParser.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Console.pas"/>
-        <DCCReference Include="..\..\Base\JPL.ConsoleApp.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Conversion.pas"/>
-        <DCCReference Include="..\..\Base\JPL.DateTime.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Dialogs.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Files.pas"/>
-        <DCCReference Include="..\..\Base\JPL.FileSearch.pas"/>
-        <DCCReference Include="..\..\Base\JPL.IniFile.pas"/>
-        <DCCReference Include="..\..\Base\JPL.LangMgr.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Language.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Math.pas"/>
-        <DCCReference Include="..\..\Base\JPL.MemIniFile.pas"/>
-        <DCCReference Include="..\..\Base\JPL.RTTI.pas"/>
-        <DCCReference Include="..\..\Base\JPL.StrHash.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Strings.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Strings.Ext.pas"/>
-        <DCCReference Include="..\..\Base\JPL.TStr.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Units.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Utils.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Rects.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Win.Dialogs.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Win.FileSystem.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Win.Processes.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Win.Shortcuts.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Win.System.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Win.VersionInfo.pas"/>
-        <DCCReference Include="..\..\Base\JPL.Win.SimpleTimer.pas"/>
-        <DCCReference Include="..\..\Binary\JPL.Binary.Elf.pas"/>
-        <DCCReference Include="..\..\Binary\JPL.Binary.Mach.Types.pas"/>
-        <DCCReference Include="..\..\Binary\JPL.Binary.MachFat.pas"/>
-        <DCCReference Include="..\..\Binary\JPL.Binary.MachO.pas"/>
-        <DCCReference Include="..\..\Binary\JPL.Binary.Misc.pas"/>
-        <DCCReference Include="..\..\Binary\JPL.Binary.Pe.pas"/>
-        <DCCReference Include="..\..\Binary\JPL.Binary.Procs.pas"/>
-        <DCCReference Include="..\..\Binary\JPL.Binary.Types.pas"/>
-        <DCCReference Include="..\..\Binary\JPL.UPX.pas"/>
-        <DCCReference Include="..\..\Containers\JPL.Win.FileIcons.pas"/>
-        <DCCReference Include="..\..\Containers\JPL.StrList.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.ColorArrays.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.Colors.List.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.Colors.pas"/>
-        <DCCReference Include="..\..\Logging\JPL.SimpleLogger.pas"/>
-        <DCCReference Include="..\..\Logging\JPL.TimeLogger.pas"/>
-        <BuildConfiguration Include="Base">
-            <Key>Base</Key>
-        </BuildConfiguration>
-        <BuildConfiguration Include="Release">
-            <Key>Cfg_1</Key>
-            <CfgParent>Base</CfgParent>
-        </BuildConfiguration>
-        <BuildConfiguration Include="Debug">
-            <Key>Cfg_2</Key>
-            <CfgParent>Base</CfgParent>
-        </BuildConfiguration>
-    </ItemGroup>
-    <ProjectExtensions>
-        <Borland.Personality>Delphi.Personality.12</Borland.Personality>
-        <Borland.ProjectType>Package</Borland.ProjectType>
-        <BorlandProject>
-            <Delphi.Personality>
-                <Source>
-                    <Source Name="MainSource">JPLib.dpk</Source>
-                </Source>
-                <VersionInfo>
-                    <VersionInfo Name="IncludeVerInfo">False</VersionInfo>
-                    <VersionInfo Name="AutoIncBuild">False</VersionInfo>
-                    <VersionInfo Name="MajorVer">1</VersionInfo>
-                    <VersionInfo Name="MinorVer">0</VersionInfo>
-                    <VersionInfo Name="Release">0</VersionInfo>
-                    <VersionInfo Name="Build">0</VersionInfo>
-                    <VersionInfo Name="Debug">False</VersionInfo>
-                    <VersionInfo Name="PreRelease">False</VersionInfo>
-                    <VersionInfo Name="Special">False</VersionInfo>
-                    <VersionInfo Name="Private">False</VersionInfo>
-                    <VersionInfo Name="DLL">False</VersionInfo>
-                    <VersionInfo Name="Locale">1033</VersionInfo>
-                    <VersionInfo Name="CodePage">1252</VersionInfo>
-                </VersionInfo>
-                <VersionInfoKeys>
-                    <VersionInfoKeys Name="CompanyName"/>
-                    <VersionInfoKeys Name="FileDescription"/>
-                    <VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
-                    <VersionInfoKeys Name="InternalName"/>
-                    <VersionInfoKeys Name="LegalCopyright"/>
-                    <VersionInfoKeys Name="LegalTrademarks"/>
-                    <VersionInfoKeys Name="OriginalFilename"/>
-                    <VersionInfoKeys Name="ProductName"/>
-                    <VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
-                    <VersionInfoKeys Name="Comments"/>
-                </VersionInfoKeys>
-            </Delphi.Personality>
-            <Platforms>
-                <Platform value="Win32">True</Platform>
-                <Platform value="Win64">True</Platform>
-            </Platforms>
-        </BorlandProject>
-        <ProjectFileVersion>12</ProjectFileVersion>
-    </ProjectExtensions>
-    <Import Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')" Project="$(BDS)\Bin\CodeGear.Delphi.Targets"/>
-    <Import Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')" Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj"/>
-</Project>
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<Base>True</Base>
+			<AppType>Package</AppType>
+			<Config Condition="'$(Config)'==''">Release</Config>
+			<FrameworkType>VCL</FrameworkType>
+			<MainSource>JPLib.dpk</MainSource>
+			<Platform Condition="'$(Platform)'==''">Win32</Platform>
+			<ProjectGuid>{F9B79570-0262-4209-BC0A-208B50F42092}</ProjectGuid>
+			<ProjectVersion>13.4</ProjectVersion>
+			<TargetedPlatforms>3</TargetedPlatforms>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Base)'=='true') or '$(Base_Win64)'!=''">
+			<Base_Win64>true</Base_Win64>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
+			<Base_Win32>true</Base_Win32>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_1)'!=''">
+			<Cfg_1>true</Cfg_1>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
+			<Cfg_2>true</Cfg_2>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_Description>JPLib Runtime Package</DCC_Description>
+			<DCC_E>false</DCC_E>
+			<DCC_F>false</DCC_F>
+			<DCC_ImageBase>00400000</DCC_ImageBase>
+			<DCC_K>false</DCC_K>
+			<DCC_N>false</DCC_N>
+			<DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
+			<DCC_S>false</DCC_S>
+			<DllSuffix>XE2</DllSuffix>
+			<GenDll>true</GenDll>
+			<GenPackage>true</GenPackage>
+			<RuntimeOnlyPackage>true</RuntimeOnlyPackage>
+			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+			<VerInfo_Locale>1033</VerInfo_Locale>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base_Win64)'!=''">
+			<DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
+			<VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base_Win32)'!=''">
+			<DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
+			<VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+			<VerInfo_Locale>1033</VerInfo_Locale>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_1)'!=''">
+			<DCC_DebugInformation>false</DCC_DebugInformation>
+			<DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+			<DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+			<DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_2)'!=''">
+			<DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
+			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
+			<DCC_Optimize>false</DCC_Optimize>
+		</PropertyGroup>
+		<ItemGroup>
+			<DelphiCompile Include="$(MainSource)">
+				<MainSource>MainSource</MainSource>
+			</DelphiCompile>
+			<DCCReference Include="rtl.dcp"/>
+			<DCCReference Include="vcl.dcp"/>
+			<DCCReference Include="..\..\Base\JPL.Bytes.pas"/>
+			<DCCReference Include="..\..\Base\JPL.CmdLineParser.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Console.ColorParser.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Console.pas"/>
+			<DCCReference Include="..\..\Base\JPL.ConsoleApp.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Conversion.pas"/>
+			<DCCReference Include="..\..\Base\JPL.DateTime.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Dialogs.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Files.pas"/>
+			<DCCReference Include="..\..\Base\JPL.FileSearch.pas"/>
+			<DCCReference Include="..\..\Base\JPL.IniFile.pas"/>
+			<DCCReference Include="..\..\Base\JPL.LangMgr.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Language.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Math.pas"/>
+			<DCCReference Include="..\..\Base\JPL.MemIniFile.pas"/>
+			<DCCReference Include="..\..\Base\JPL.RTTI.pas"/>
+			<DCCReference Include="..\..\Base\JPL.StrHash.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Strings.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Strings.Ext.pas"/>
+			<DCCReference Include="..\..\Base\JPL.TStr.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Units.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Utils.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Rects.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Win.Dialogs.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Win.FileSystem.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Win.Processes.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Win.Shortcuts.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Win.System.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Win.VersionInfo.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Win.SimpleTimer.pas"/>
+			<DCCReference Include="..\..\Binary\JPL.Binary.Elf.pas"/>
+			<DCCReference Include="..\..\Binary\JPL.Binary.Mach.Types.pas"/>
+			<DCCReference Include="..\..\Binary\JPL.Binary.MachFat.pas"/>
+			<DCCReference Include="..\..\Binary\JPL.Binary.MachO.pas"/>
+			<DCCReference Include="..\..\Binary\JPL.Binary.Misc.pas"/>
+			<DCCReference Include="..\..\Binary\JPL.Binary.Pe.pas"/>
+			<DCCReference Include="..\..\Binary\JPL.Binary.Procs.pas"/>
+			<DCCReference Include="..\..\Binary\JPL.Binary.Types.pas"/>
+			<DCCReference Include="..\..\Binary\JPL.UPX.pas"/>
+			<DCCReference Include="..\..\Containers\JPL.Win.FileIcons.pas"/>
+			<DCCReference Include="..\..\Containers\JPL.StrList.pas"/>
+			<DCCReference Include="..\..\Graphics\JPL.ColorArrays.pas"/>
+			<DCCReference Include="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
+			<DCCReference Include="..\..\Graphics\JPL.Colors.List.pas"/>
+			<DCCReference Include="..\..\Graphics\JPL.Colors.pas"/>
+			<DCCReference Include="..\..\Logging\JPL.SimpleLogger.pas"/>
+			<DCCReference Include="..\..\Logging\JPL.TimeLogger.pas"/>
+			<BuildConfiguration Include="Debug">
+				<Key>Cfg_2</Key>
+				<CfgParent>Base</CfgParent>
+			</BuildConfiguration>
+			<BuildConfiguration Include="Base">
+				<Key>Base</Key>
+			</BuildConfiguration>
+			<BuildConfiguration Include="Release">
+				<Key>Cfg_1</Key>
+				<CfgParent>Base</CfgParent>
+			</BuildConfiguration>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Delphi.Personality.12</Borland.Personality>
+			<Borland.ProjectType>Package</Borland.ProjectType>
+			<BorlandProject>
+				<Delphi.Personality>
+					<Source>
+						<Source Name="MainSource">JPLib.dpk</Source>
+					</Source>
+					<VersionInfo>
+						<VersionInfo Name="IncludeVerInfo">False</VersionInfo>
+						<VersionInfo Name="AutoIncBuild">False</VersionInfo>
+						<VersionInfo Name="MajorVer">1</VersionInfo>
+						<VersionInfo Name="MinorVer">0</VersionInfo>
+						<VersionInfo Name="Release">0</VersionInfo>
+						<VersionInfo Name="Build">0</VersionInfo>
+						<VersionInfo Name="Debug">False</VersionInfo>
+						<VersionInfo Name="PreRelease">False</VersionInfo>
+						<VersionInfo Name="Special">False</VersionInfo>
+						<VersionInfo Name="Private">False</VersionInfo>
+						<VersionInfo Name="DLL">False</VersionInfo>
+						<VersionInfo Name="Locale">1033</VersionInfo>
+						<VersionInfo Name="CodePage">1252</VersionInfo>
+					</VersionInfo>
+					<VersionInfoKeys>
+						<VersionInfoKeys Name="CompanyName"/>
+						<VersionInfoKeys Name="FileDescription"/>
+						<VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
+						<VersionInfoKeys Name="InternalName"/>
+						<VersionInfoKeys Name="LegalCopyright"/>
+						<VersionInfoKeys Name="LegalTrademarks"/>
+						<VersionInfoKeys Name="OriginalFilename"/>
+						<VersionInfoKeys Name="ProductName"/>
+						<VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
+						<VersionInfoKeys Name="Comments"/>
+					</VersionInfoKeys>
+				</Delphi.Personality>
+				<Platforms>
+					<Platform value="Win64">True</Platform>
+					<Platform value="Win32">True</Platform>
+				</Platforms>
+				<ModelSupport>False</ModelSupport>
+			</BorlandProject>
+			<ProjectFileVersion>12</ProjectFileVersion>
+		</ProjectExtensions>
+		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')" Project="$(BDS)\Bin\CodeGear.Delphi.Targets"/>
+		<Import Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')" Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj"/>
+	</Project>
