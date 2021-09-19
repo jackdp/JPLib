@@ -51,7 +51,7 @@ type
     FIconFlags: UINT;
     procedure SetMaxIconCount(const Value: integer);
   public
-    constructor Create(ImageList: TImageList; xMaxIconCount: integer = -1);
+    constructor Create(ImageList: TImageList; xMaxIconCount: integer = -1; AcceptNonExistentFiles: Boolean = False);
     destructor Destroy; override;
     procedure ClearAll;
     function GetFileIconIndex(const fName: string): integer;
@@ -73,7 +73,7 @@ implementation
 
 {$IFDEF MSWINDOWS}
 
-constructor TFileIcons.Create(ImageList: TImageList; xMaxIconCount: integer = -1);
+constructor TFileIcons.Create(ImageList: TImageList; xMaxIconCount: integer = -1; AcceptNonExistentFiles: Boolean = False);
 begin
   inherited Create;
   FIconList := TIconList.Create;
@@ -81,6 +81,7 @@ begin
   FMaxIconCount := xMaxIconCount;
   FSmallIcons := FImageList.Width <= 16;
   if FSmallIcons then FIconFlags := SHGFI_SMALLICON or SHGFI_ICON else FIconFlags := SHGFI_LARGEICON or SHGFI_ICON;
+  if AcceptNonExistentFiles then FIconFlags := FIconFlags or SHGFI_USEFILEATTRIBUTES;
 end;
 
 destructor TFileIcons.Destroy;
