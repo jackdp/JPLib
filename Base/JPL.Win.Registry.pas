@@ -8,6 +8,7 @@
 
 interface
 
+{$IFDEF MSWINDOWS}
 uses 
   Windows, ShellAPI, Messages, SysUtils, StrUtils, Classes, Registry, Types,      JPL.Console,
   JPL.Strings, JPL.TStr, JPL.Conversion;
@@ -49,6 +50,8 @@ type
   end;
 
   TReg = record
+    class function CreateKey(const RootKey: HKEY; const Key: string): Boolean; static;
+    class function TryCreateKey(const RootKey: HKEY; const Key: string): Boolean; static;
     class function ExpandRootKey(const Key: string): string; static;
     class function IsPredefinedKey(const Key: HKEY): Boolean; static;
     class function GetRootKeyFromStr(const Key: string): HKEY; static;
@@ -64,18 +67,49 @@ type
 
 
 
-
+{$ENDIF} // MSWINDOWS
 
 
 
 implementation
 
 
-
+{$IFDEF MSWINDOWS}
 
 
 
 {$Region '                           TReg                                 '}
+
+class function TReg.CreateKey(const RootKey: HKEY; const Key: string): Boolean;
+var
+  Reg: TRegistry;
+begin
+  Reg := TRegistry.Create(KEY_ALL_ACCESS);
+  try
+    Reg.RootKey := RootKey;
+    Reg.CreateKey(Key);
+    Result := Reg.KeyExists(Key);
+  finally
+    Reg.Free;
+  end;
+end;
+
+class function TReg.TryCreateKey(const RootKey: HKEY; const Key: string): Boolean;
+var
+  Reg: TRegistry;
+begin
+  Reg := TRegistry.Create(KEY_ALL_ACCESS);
+  try
+    Reg.RootKey := RootKey;
+    try
+      Reg.CreateKey(Key);
+    except
+    end;
+    Result := Reg.KeyExists(Key);
+  finally
+    Reg.Free;
+  end;
+end;
 
 class function TReg.ExpandRootKey(const Key: string): string;
 var
@@ -266,7 +300,7 @@ begin
       lpFile := PChar('regedit.exe');
       nShow := ShowCmd;
     end;
-    ShellExecuteEx(@sei);
+    ShellExecuteExW(@sei);
     WaitForInputIdle(sei.hProcess, 2000);
     hMainWindow := FindWindow(MAIN_WINDOW_CLASS, nil);
   end;
@@ -426,6 +460,8 @@ begin
   Key := '';
 end;
 
+
+{$ENDIF} // MSWINDOWS
 
 
 end.
