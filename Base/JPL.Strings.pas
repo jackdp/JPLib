@@ -36,7 +36,7 @@ type
 {$ENDIF}
 
 function Rbs(Dir: string): string; // removes path delimiter from end
-function Qs(const s: string): string;
+function Qs(const s: string): string; // adds " at the beginning and end of the input string
 function Capitalize(const s: string): string;
 function FixFileName(fName: string; s: string = '_'; ZamieniajCudzyslowy: Boolean = True): string;
 function IsValidShortFileName(const ShortFileName: string): Boolean;
@@ -143,6 +143,8 @@ function AddBounds(const s: string; LeftBound, RightBound: string): string; over
 function AddBounds(const s: string; StringToBoundSeparator: string = ' '; BoundChar: Char = '-'; BoundLen: Integer = 16): string; overload;
 
 function EnsureBounds(const s: string; LeftBound, RightBound: string): string;
+function EnsureLeftBound(const s, BoundStr: string): string;
+function EnsureRightBound(const s, BoundStr: string): string;
 
 function GetRandomHexStr(Bytes: integer = 4; ByteSeparator: string = ''; bLowerCase: Boolean = False): string;
 function GetRandomIntStr(Len: integer = 10): string;
@@ -150,6 +152,8 @@ function GetRandomIntStr(Len: integer = 10): string;
 // Case sensitive Pos
 function PosCS(const substr, s: string; bCaseSensitive: Boolean = False): integer;
 
+function TrimFromCharPosToEnd(const s: string; const AChar: Char): string;
+function TrimFromStrPosToEnd(const Src, AStr: string): string;
 function TrimFromEnd(const s: string; const StringToCut: string): string;
 function TrimFromStart(const s: string; const StringToCut: string): string;
 function TrimENDL(const s: string): string; // removes trailing sLineBreak (ENDL)
@@ -388,6 +392,24 @@ begin
   else Result := s;
 end;
 
+function TrimFromCharPosToEnd(const s: string; const AChar: Char): string;
+var
+  xp: integer;
+begin
+  xp := Pos(AChar, s);
+  if xp >= 1 then Result := Copy(s, 1, xp - 1)
+  else Result := s;
+end;
+
+function TrimFromStrPosToEnd(const Src, AStr: string): string;
+var
+  xp: integer;
+begin
+  xp := Pos(AStr, Src);
+  if xp >= 1 then Result := Copy(Src, 1, xp - 1)
+  else Result := Src;
+end;
+
 function PosCS(const substr, s: string; bCaseSensitive: Boolean = False): integer;
 begin
   if bCaseSensitive then Result := Pos(substr, s)
@@ -433,6 +455,21 @@ begin
   if Copy(Result, 1, Length(LeftBound)) <> LeftBound then Result := LeftBound + Result;
   x := Length(RightBound);
   if Copy(Result, Length(Result) - x + 1, x) <> RightBound then Result := Result + RightBound;
+end;
+
+function EnsureLeftBound(const s, BoundStr: string): string;
+begin
+  Result := s;
+  if Copy(Result, 1, Length(BoundStr)) <> BoundStr then Result := BoundStr + Result;
+end;
+
+function EnsureRightBound(const s, BoundStr: string): string;
+var
+  x: integer;
+begin
+  Result := s;
+  x := Length(BoundStr);
+  if Copy(Result, Length(Result) - x + 1, x) <> BoundStr then Result := Result + BoundStr;
 end;
 
 function AddBounds(const s: string; LeftBound, RightBound: Char): string;
