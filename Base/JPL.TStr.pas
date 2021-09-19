@@ -71,6 +71,7 @@ type
     // The SplitStrToArrayEx procedure uses the initial allocation of the size of the array and incrementing its size by the ArrDeltaSize value
     // to avoid increasing the size of the array repeatedly by 1.
     class procedure SplitStrToArrayEx(s: string; var Arr: TStringDynArray; const EndLineStr: string = sLineBreak; ArrDeltaSize: WORD = 100); static;
+    class procedure RemoveEmptyStrings(var Arr: TStringDynArray); static;
 
     class function EnsureBounds(const s: string; LeftBound: string = '['; RightBound: string = ']'): string; static;
     class function AddBounds(const s: string; LeftBound: string = '['; RightBound: string = ']'): string; static;
@@ -105,6 +106,8 @@ type
     class function TrimFromEnd(const s: string; const StringToCut: string): string; static;
     class function TrimFromStart(const s: string; const StringToCut: string): string; static;
     class function TrimENDL(const s: string): string; static;
+    class function TrimFromCharPosToEnd(const s: string; const AChar: Char): string; static;
+    class function TrimFromStrPosToEnd(const Src: string; const AStr: string): string; static;
 
     class function CharCount(const s: string; const AChar: Char): integer; static;
     class function FirstCharPos(const s: string; const AChar: Char): integer; static;
@@ -238,6 +241,11 @@ begin
   JPL.Strings.SplitStrToArrayEx(s, Arr, EndLineStr, ArrDeltaSize);
 end;
 
+class procedure TStr.RemoveEmptyStrings(var Arr: TStringDynArray);
+begin
+  JPL.Strings.RemoveEmptyStrings(Arr);
+end;
+
 class function TStr.SplitStr(const InStr: string; out LeftStr, RightStr: string; const Separator: string): Boolean;
 begin
   Result := JPL.Strings.SplitStr(InStr, LeftStr, RightStr, Separator);
@@ -369,6 +377,16 @@ end;
 class function TStr.EnsureBounds(const s: string; LeftBound, RightBound: string): string;
 begin
   Result := JPL.Strings.EnsureBounds(s, LeftBound, RightBound);
+end;
+
+class function TStr.TrimFromStrPosToEnd(const Src, AStr: string): string;
+begin
+  Result := JPL.Strings.TrimFromStrPosToEnd(Src, AStr);
+end;
+
+class function TStr.TrimFromCharPosToEnd(const s: string; const AChar: Char): string;
+begin
+  Result := JPL.Strings.TrimFromCharPosToEnd(s, AChar);
 end;
 
 class function TStr.TrimFromEnd(const s: string; const StringToCut: string): string;
