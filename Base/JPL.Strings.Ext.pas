@@ -16,6 +16,7 @@ uses
 
 procedure SplitStrToList(LineToParse: string; var List: TStringList; DataSeparator: string = ',');
 function SaveStringToFile(const FileName, FileContent: string; Encoding: TEncoding): Boolean;
+function GetStringFromFile(const FileName: string; Default: string = ''): string;
 function GetLineStartingWith(List: TStrings; const TextToFind: string; IgnoreCase: Boolean = True; StartIndex: integer = 0): string;
 procedure ReverseStrings(List: TStrings);
 
@@ -61,6 +62,21 @@ begin
     except
       Result := False;
     end;
+  finally
+    sl.Free;
+  end;
+end;
+
+function GetStringFromFile(const FileName: string; Default: string = ''): string;
+var
+  sl: TStringList;
+begin
+  Result := '';
+  if not FileExists(FileName) then Exit;
+  sl := TStringList.Create;
+  try
+    sl.LoadFromFile(FileName);
+    Result := sl.Text;
   finally
     sl.Free;
   end;
