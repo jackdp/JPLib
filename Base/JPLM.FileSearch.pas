@@ -169,26 +169,6 @@ begin
   {$ENDIF}
 end;
 
-//procedure AddMaskedFileToList(FileMask: string; FileList: TJPStrList);
-//var
-//  SR: TSearchRec;
-//  Dir: string;
-//begin
-//  Dir := ExtractFilePath(FileMask);
-//  if FindFirst(FileMask, faAnyFile, SR) = 0 then
-//  try
-//    {$IFDEF FPC}if not MatchesMask(SR.Name, FileMask, JPFileSearchCaseSensitive) then Exit;{$ENDIF}
-//    if IsFile(SR) then FileList.Add(Dir + SR.Name);
-//    while FindNext(SR) = 0 do
-//    begin
-//      {$IFDEF FPC}if not MatchesMask(SR.Name, FileMask, JPFileSearchCaseSensitive) then Continue;{$ENDIF}
-//      if IsFile(SR) then FileList.Add(Dir + SR.Name);
-//    end;
-//  finally
-//    FindClose(SR);
-//  end;
-//end;
-
 procedure FillFileList(LineToParse: string; const FileSeparator: string; FileList: TJPStrList);
 var
   x: integer;
@@ -220,31 +200,6 @@ begin
 
 end;
 
-
-//procedure StrToList(LineToParse: string; var List: THashedStringList; Separator: string = ',');
-//var
-//  xp: integer;
-//  s: string;
-//begin
-//  //if not Assigned(List) then Exit;
-//
-//  xp := Pos(Separator, LineToParse);
-//  while xp > 0 do
-//  begin
-//    s := Trim(Copy(LineToParse, 1, xp - 1));
-//    List.Add(s);
-//    Delete(LineToParse, 1, xp + Length(Separator) - 1);
-//    LineToParse := Trim(LineToParse);
-//    xp := Pos(Separator, LineToParse);
-//  end;
-//
-//  if LineToParse <> '' then
-//  begin
-//    LineToParse := Trim(LineToParse);
-//    if LineToParse <> '' then List.Add(LineToParse);
-//  end;
-//
-//end;
 {$endregion}
 
 
@@ -312,24 +267,6 @@ begin
 
   {$ENDIF}
 end;
-
-//procedure FindFiles(FileMask, StartDir: string; var List: TJPStrList; AcceptSymLinks: Boolean = True);
-//var
-//  SR: TSearchRec;
-//begin
-//  if FindFirst(StartDir + PathDelim + FileMask, faAnyFile, SR) = 0 then
-//  try
-//    {$IFDEF FPC}if not MatchesMask(SR.Name, FileMask, JPFileSearchCaseSensitive) then Exit;{$ENDIF}
-//    if IsFile(SR, AcceptSymLinks) then List.Add(StartDir + PathDelim + SR.Name);
-//    while FindNext(SR) = 0 do
-//    begin
-//      {$IFDEF FPC}if not MatchesMask(SR.Name, FileMask, JPFileSearchCaseSensitive) then Continue;{$ENDIF}
-//      if IsFile(SR, AcceptSymLinks) then List.Add(StartDir + PathDelim + SR.Name);
-//    end;
-//  finally
-//    FindClose(SR);
-//  end;
-//end;
 
 procedure FindDirs(StartDir: string; var List: TJPStrList; AcceptSymLinks: Boolean = True; SimpleEnumProc: TJPSimpleEnumProc = nil);
 var
@@ -431,6 +368,7 @@ begin
 
     SubdirsList.Free;
     TempList.Free;
+    Last.Free;
   end;
 end;
 {$endregion}
