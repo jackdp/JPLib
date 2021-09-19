@@ -456,6 +456,7 @@ begin
 
     SubdirsList.Free;
     TempList.Free;
+    Last.Free;
   end;
 end;
 {$endregion}
