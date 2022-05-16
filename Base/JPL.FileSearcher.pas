@@ -397,7 +397,8 @@ var
   Mask, Dir: string;
 begin
   Mask := ExtractFileName(FileNameOrMask);
-  Dir := ExtractFileDir(FileNameOrMask);
+  //Dir := ExtractFileDir(FileNameOrMask);
+  Dir := ExtractFileDir(ExpandFileName(FileNameOrMask));
   Result := AddInput(Dir, Mask, RecurseDepth);
 end;
 
