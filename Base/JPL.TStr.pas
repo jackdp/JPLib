@@ -2,7 +2,7 @@
 
 {
   Jacek Pazera
-  http://www.pazera-software.com
+  https://www.pazera-software.com
   https://github.com/jackdp
 }
 
@@ -34,6 +34,33 @@ type
     class function GetTimeSeparator: Char; static;
     class procedure SetTimeSeparator(const Value: Char); static;
   public
+    const CharTab = TSpecialChars.Tab;
+    const CharEuro = TSpecialChars.Euro;
+    const CharCopyright = TSpecialChars.Copyright;
+    const CharReg = TSpecialChars.Reg;
+    const CharParagraph = TSpecialChars.Paragraph;
+    const CharSection = TSpecialChars.Section;
+    const CharDegree = TSpecialChars.Degree;
+    const CharSup2 = TSpecialChars.Sup2;
+    const CharSup3 = TSpecialChars.Sup3;
+    const CharIntegral = TSpecialChars.Integral;
+    const CharMicro = TSpecialChars.Micro;
+    const CharPlusMinus = TSpecialChars.PlusMinus;
+    const CharTimes = TSpecialChars.Times;
+    const CharDivide = TSpecialChars.Divide;
+    const CharOmegaBig = TSpecialChars.OmegaBig;
+    const CharAlphaSmall = TSpecialChars.AlphaSmall;
+    const CharBetaSmall = TSpecialChars.BetaSmall;
+    const CharGammaSmall = TSpecialChars.GammaSmall;
+    const CharDeltaSmall = TSpecialChars.DeltaSmall;
+    const CharDeltaBig = TSpecialChars.DeltaBig;
+    const CharPiSmall = TSpecialChars.PiSmall;
+    const CharPiBig = TSpecialChars.PiBig;
+    const CharSigmaBig = TSpecialChars.SigmaBig;
+    const CharBullet = TSpecialChars.Bullet;
+    const CharDashLong = TSpecialChars.DashLong;
+    const CharTrademark = TSpecialChars.Trademark;
+
     class function Empty(const s: string): Boolean; static;
 
     class function Pad(Text: string; Len: integer; PaddingChar: Char = ' '): string; overload; static;

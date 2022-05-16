@@ -2,7 +2,7 @@
 
 {
   Jacek Pazera
-  http://www.pazera-software.com
+  https://www.pazera-software.com
   https://github.com/jackdp
 
   To jest mój stary moduł z roku 2000 dla Borland Pascala 7.0
@@ -28,6 +28,36 @@ const
   TAB = #9;
   ENDL = sLineBreak;
   DEG = '°';
+
+type
+  TSpecialChars = record
+    const Tab = #9;
+    const Euro = '€';
+    const Copyright = '©';
+    const Reg = '®';
+    const Paragraph = '¶';
+    const Section = '§';
+    const Degree = '°';
+    const Sup2 = '²';
+    const Sup3 = '³';
+    const Integral = '∫';
+    const Micro = 'µ';
+    const PlusMinus = '±';
+    const Times = '×';
+    const Divide = '÷';
+    const OmegaBig = 'Ω';
+    const AlphaSmall = 'α';
+    const BetaSmall = 'β';
+    const GammaSmall = 'γ';
+    const DeltaSmall = 'δ';
+    const DeltaBig = 'Δ';
+    const PiSmall = 'π';
+    const PiBig = 'Π';
+    const SigmaBig = 'Σ';
+    const Bullet = '•';
+    const DashLong = '–';
+    const Trademark = '™';
+  end;
 
 
 {$IFDEF DELPHI2009_OR_BELOW}
