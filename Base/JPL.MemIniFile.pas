@@ -106,8 +106,10 @@ type
 
     procedure WriteBool(const Section, Ident: string; const Value: Boolean); overload;
     procedure WriteBool(const Ident: string; const Value: Boolean); overload;
+    procedure WriteBool(Cmp: TComponent; const Value: Boolean); overload;
     function ReadBool(const Section, Ident: string; const Default: Boolean): Boolean; overload;
     function ReadBool(const Ident: string; const Default: Boolean): Boolean; overload;
+    function ReadBool(Cmp: TComponent; const Default: Boolean): Boolean; overload;
 
     procedure WriteInteger(const Section, Ident: string; const Value: integer); overload;
     procedure WriteInteger(const Section: string; Cmp: TComponent; const Value: integer); overload;
@@ -564,6 +566,11 @@ begin
   WriteBool(CurrentSection, Ident, Value);
 end;
 
+procedure TJppMemIniFile.WriteBool(Cmp: TComponent; const Value: Boolean);
+begin
+  WriteBool(CurrentSection, Cmp.Name, Value);
+end;
+
 function TJppMemIniFile.ReadBool(const Section, Ident: string; const Default: Boolean): Boolean;
 begin
   Result := FIni.ReadBool(Section, Ident, Default);
@@ -572,6 +579,11 @@ end;
 function TJppMemIniFile.ReadBool(const Ident: string; const Default: Boolean): Boolean;
 begin
   Result := ReadBool(CurrentSection, Ident, Default);
+end;
+
+function TJppMemIniFile.ReadBool(Cmp: TComponent; const Default: Boolean): Boolean;
+begin
+  Result := ReadBool(CurrentSection, Cmp.Name, Default);
 end;
   {$endregion Bool}
 
