@@ -2,7 +2,7 @@
 
 {
   Jacek Pazera
-  http://www.pazera-software.com
+  https://www.pazera-software.com
   https://github.com/jackdp
 
   Links:
@@ -14,7 +14,7 @@
 {$I .\..\jp.inc}
 
 {$IFDEF FPC}
-  {$IFNDEF HAS_SPARTA_GENERICS}For FPC 3.0.4 or newer only!{$ENDIF}
+  {$IFNDEF HAS_RTL_GENERICS}For FPC 3.2.0 or newer only!{$ENDIF}
   {$MODE DELPHI}
 {$ENDIF}
 
