@@ -5,7 +5,7 @@ unit JPL.Colors;
   The most of the code is mine, but some routines are copied from other free units.
 
   Jacek Pazera
-  http://www.pazera-software.com
+  https://www.pazera-software.com
   ============================================================================
 
   Useful links:

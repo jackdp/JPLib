@@ -349,6 +349,7 @@ var
 begin
   Result := False;
   if IgnoreSpaces then IntStr := StrRemove(IntStr, ' ');
+  if IntStr = '' then Exit;
 
   xm := CharCount('-', IntStr);
   if xm > 1 then Exit;

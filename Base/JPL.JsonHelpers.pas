@@ -1,9 +1,20 @@
 unit JPL.JsonHelpers;
 
-{:<
-  JSON related helper class and routines
+{
+  JSON related helper class and routines for FPC.
+
+  Jacek Pazera
+  https://www.pazera-software.com
+  https://github.com/jackdp
+
+  Last mod: 2022.05
 }
-// Last mod: 2019.04
+
+{$IFNDEF FPC}
+  This unit is for FPC only!
+{$ENDIF}
+
+{$I .\..\jp.inc}
 
 {$mode objfpc}{$H+}
 
@@ -134,7 +145,6 @@ end;
 
 {$endregion TJsonDataHelper}
 
-//uses Dialogs; procedure Msg(s:string);begin ShowMessage(s);end;
 
 
 procedure TJsonObjectHelper.SaveToFile(const FileName: string; Formatted: Boolean = True);
@@ -145,7 +155,14 @@ begin
   try
     if Formatted then sl.Text := Self.FormatJSON
     else sl.Text := Self.AsJSON;
-    sl.SaveToFile(FileName);
+    {$IFDEF DCC}sl.SaveToFile(FileName, TEncoding.UTF8);{$ENDIF}
+    {$IFDEF FPC}
+      {$IFDEF HAS_SAVE_WITH_ENCODING}
+      sl.SaveToFile(FileName, TEncoding.UTF8);
+      {$ELSE}
+      sl.SaveToFile(FileName);
+      {$ENDIF}
+    {$ENDIF}
   finally
     sl.Free;
   end;
