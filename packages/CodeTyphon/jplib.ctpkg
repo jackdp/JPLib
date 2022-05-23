@@ -180,6 +180,18 @@
         <Filename Value="..\..\Base\JPL.Rects.pas"/>
         <UnitName Value="JPL.Rects"/>
       </Item>
+      <Item>
+        <Filename Value="..\..\Base\JPL.ArrayIniFile.pas"/>
+        <UnitName Value="JPL.ArrayIniFile"/>
+      </Item>
+      <Item>
+        <Filename Value="..\..\Base\JPL.Bytes.pas"/>
+        <UnitName Value="JPL.Bytes"/>
+      </Item>
+      <Item>
+        <Filename Value="..\..\Base\JPL.Win.Registry.pas"/>
+        <UnitName Value="JPL.Win.Registry"/>
+      </Item>
     </Files>
     <RequiredPkgs>
       <Item>
