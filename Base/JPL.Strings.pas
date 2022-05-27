@@ -191,6 +191,7 @@ function TrimExtDot(const FileExtension: string): string;
 function AddFileNameSuffix(const FileName, Suffix: string): string;
 function AddFileNamePrefix(const FileName, Prefix: string): string;
 function TrimFileExt(const FileName: string): string;
+function BaseFileName(const FileName: string): string; // returns file name without path and extension
 procedure SplitFileName(fName: string; out Dir, BaseFileName, Ext: string; bIncludePathDelimiter: Boolean = True; bRemoveDotFromExt: Boolean = False);
 function PathIsAbsolute(const FileName: string): Boolean;
 
@@ -398,6 +399,11 @@ end;
 function TrimFileExt(const FileName: string): string;
 begin
   Result := ChangeFileExt(FileName, '');
+end;
+
+function BaseFileName(const FileName: string): string;
+begin
+  Result := ExtractFileName(ChangeFileExt(FileName, ''));
 end;
 
 function TrimENDL(const s: string): string;
