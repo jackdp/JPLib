@@ -120,6 +120,7 @@
 
   {$IF CompilerVersion >= 21}
     {$DEFINE DELPHI2010_OR_ABOVE}
+    {$DEFINE HAS_RTTI}
   {$IFEND}
 
 
