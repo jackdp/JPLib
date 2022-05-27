@@ -7,7 +7,6 @@
   {$IFDEF DELPHI2009_OR_BELOW}
   Unit for Delphi 2010 or newer!
   {$ENDIF}
-  {$DEFINE HAS_RTTI}
 {$ENDIF}
 
 interface
@@ -58,10 +57,24 @@ begin
         if not RProperty.IsWritable then Exit;
         Kind := RProperty.GetValue(Obj).Kind;
 
-        // http://docwiki.embarcadero.com/Libraries/Rio/en/System.TypInfo.TTypeKinds
-        if (Kind = tkUString) or (Kind = tkString) or (Kind = tkLString) then RProperty.SetValue(Obj, Text)
-        else if Kind = tkWString then RProperty.SetValue(Obj, WideString(Text){%H-})
+        {$IFDEF FPC}
+        {
+          https://www.freepascal.org/docs-html/rtl/system/ttypekind.html
+            tkSString - short string
+            tkLString - long string
+            tkAString - ansi string
+            tkWString - wide string
+            tkUString - unicode string
+              typinfo.pp: tkString = tkSString
+        }
+        if Kind in [tkSString, tkLString, tkAString, tkUString, tkWString] then RProperty.SetValue(Obj, Text)
         else Exit;
+        {$ELSE}
+        // https://docwiki.embarcadero.com/Libraries/Alexandria/en/System.TypInfo.TTypeKinds
+        if (Kind = tkUString) or (Kind = tkString) or (Kind = tkLString) then RProperty.SetValue(Obj, Text)
+        else if Kind = tkWString then RProperty.SetValue(Obj, WideString(Text))
+        else Exit;
+        {$ENDIF}
 
         Result := True;
       end;
@@ -96,7 +109,11 @@ begin
       begin
         if not RProperty.IsReadable then Exit;
         Kind := RProperty.GetValue(Obj).Kind;
+        {$IFDEF FPC}
+        if Kind in [tkSString, tkLString, tkAString, tkUString, tkWString] then
+        {$ELSE}
         if (Kind = tkUString) or (Kind = tkString) or (Kind = tkLString) or (Kind = tkWString) then
+        {$ENDIF}
         begin
           Value := RProperty.GetValue(Obj);
           Result := Value.AsString;
