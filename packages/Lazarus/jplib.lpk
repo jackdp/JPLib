@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="4">
+  <Package Version="5">
     <PathDelim Value="\"/>
     <Name Value="jplib"/>
     <Type Value="RunAndDesignTime"/>
@@ -14,7 +14,7 @@
       </SearchPaths>
     </CompilerOptions>
     <Description Value="JPLib"/>
-    <Files Count="43">
+    <Files Count="44">
       <Item1>
         <Filename Value="..\..\Base\JPL.CmdLineParser.pas"/>
         <UnitName Value="JPL.CmdLineParser"/>
@@ -187,7 +187,12 @@
         <Filename Value="..\..\Base\JPL.Win.Registry.pas"/>
         <UnitName Value="JPL.Win.Registry"/>
       </Item43>
+      <Item44>
+        <Filename Value="..\..\Base\JPL.LangMgr.pas"/>
+        <UnitName Value="JPL.LangMgr"/>
+      </Item44>
     </Files>
+    <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="2">
       <Item1>
         <PackageName Value="LCLBase"/>
