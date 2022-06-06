@@ -21,7 +21,7 @@ interface
 
 uses
   SysUtils, Classes, Generics.Collections, IniFiles, Rtti, TypInfo,
-  StdCtrls, ExtCtrls, ActnList,
+  StdCtrls, ExtCtrls, ActnList, Menus,
   Dialogs,
   JPL.Strings, JPL.Conversion, JPL.IniFile, JPL.FileSearch, JPL.RTTI;
 
@@ -42,8 +42,6 @@ type
 
   {$region ' --- TLangIniList --- '}
   TLangIniList = class
-  type
-    //TLangIniListItems = TList<TLangIniListItem>;
   private
     FItems: TLangIniListItems;
     FIniInfoSectionName: string;
@@ -122,7 +120,8 @@ type
     procedure LoadFromIniSection(const Ini: TJPIniFile);
     procedure UpdateComponents;
 
-    procedure AddString(const KeyName, StrValue: string);
+    procedure AddString(const KeyName, StrValue: string); overload; // AddString('Key', 'Value);
+    procedure AddString(const KeyNameAndValue: string); overload;   // AddString('Key=Value');
     function GetString(const KeyName: string; Default: string = ''): string;
 
 
@@ -143,6 +142,8 @@ type
     function AddComponentWithCaptionAndHint(Component: TComponent): TLangComponentItem;
     function acch(Component: TComponent): TLangComponentItem; // calls AddComponentWithCaptionAndHint
 
+    function AddComponentWithBoundLabel(Component: TComponent): TLangComponentItem;
+
 
     function AddLabel(const ALabel: TCustomLabel; bCaption: Boolean = True; bHint: Boolean = False): TLangComponentItem;
     function AddStaticText(const StaticText: TStaticText; bCaption: Boolean = True; bHint: Boolean = False): TLangComponentItem;
@@ -151,6 +152,7 @@ type
     procedure AddCheckBoxArray(Arr: array of TCheckBox; bCaption: Boolean = True; bHint: Boolean = True);
     function AddRadioButton(const RadioButton: TRadioButton; bCaption: Boolean = True; bHint: Boolean = True): TLangComponentItem;
     function AddLabeledEdit(const LabeledEdit: TCustomLabeledEdit; bLabelCaption: Boolean = True; bEditText: Boolean = False): TLangComponentItem;
+    function AddMenuItem(MenuItem: TMenuItem): TLangComponentItem;
 
     function TryGetComponentItem(const KeyName: string; out Item: TLangComponentItem): Boolean;
     function GetComponentProperty(const ComponentName, PropertyName: string; Default: string = ''): string;
@@ -165,6 +167,8 @@ type
     property ComponentItemsCount: integer read GetComponentItemsCount;
     property AllItemsCount: integer read GetAllItemsCount;
     property ComponentNamePropertyNameSeparator: string read FComponentNamePropertyNameSeparator write SetComponentNamePropertyNameSeparator;
+
+    property StringItems: TLangStringItems read FLangStringItems;
   end;
   {$endregion TLangSection}
 
@@ -222,22 +226,29 @@ type
   {$endregion TLangMgr}
 
 
-function fixs(s: string; p1: string = ''; p2: string = ''): string;
+function fixs(SrcStr: string; SubStr1: string = ''; SubStr2: string = ''): string;
 
 
 implementation
 
 
-function fixs(s: string; p1: string = ''; p2: string = ''): string;
+function fixs(SrcStr: string; SubStr1: string = ''; SubStr2: string = ''): string;
 begin
-  s := StringReplace(s, '\n', ENDL, [rfReplaceAll]);
-  s := StringReplace(s, '\t', TAB, [rfReplaceAll]);
-  if p1 <> '' then
+  SrcStr := ReplaceAll(SrcStr, '\n', ENDL, True);
+  SrcStr := ReplaceAll(SrcStr, '\t', TAB, True);
+
+  //SrcStr := StringReplace(SrcStr, '\n', ENDL, [rfReplaceAll]);
+  //SrcStr := StringReplace(SrcStr, '\t', TAB, [rfReplaceAll]);
+
+  if SubStr1 <> '' then
   begin
-    s := StringReplace(s, '%s', p1, []);
-    if p2 <> '' then s := StringReplace(s, '%s', p2, []);
+    SrcStr := ReplaceFirst(SrcStr, '%s', SubStr1, True);
+    if SubStr2 <> '' then SrcStr := ReplaceFirst(SrcStr, '%s', SubStr2, True);
+
+    //SrcStr := StringReplace(SrcStr, '%s', SubStr1, []);
+    //if SubStr2 <> '' then SrcStr := StringReplace(SrcStr, '%s', SubStr2, []);
   end;
-  Result := s;
+  Result := SrcStr;
 end;
 
 
@@ -295,9 +306,18 @@ begin
   Result := Item.GetProperty(PropertyName, Default);
 end;
 
-function TLangSection.GetString(const KeyName: string; Default: string): string;
+function TLangSection.GetString(const KeyName: string; Default: string = ''): string;
+var
+  sKey, sDef: string;
 begin
-  if not FLangStringItems.TryGetValue(KeyName, Result) then Result := Default;
+  sDef := Default;
+  if SplitStr(KeyName, sKey, sDef, '=') then
+  begin
+    if not FLangStringItems.TryGetValue(sKey, Result) then Result := sDef;
+  end
+  else
+    if not FLangStringItems.TryGetValue(KeyName, Result) then Result := sDef;
+
   Result := fixs(Result);
 end;
 
@@ -364,6 +384,8 @@ var
   x: integer;
   Obj: TObject;
 begin
+  if FLangComponentItems.Count <= 0 then Exit;
+
   for Key in FLangComponentItems.Keys do
   begin
     lci := FLangComponentItems[Key];
@@ -377,11 +399,9 @@ begin
       PropValue := lci.Properties[PropName];
       PropValue := fixs(PropValue);
 
-      //if PropName.Contains('.') then
       x := Pos('.', PropName);
       if x > 0 then
       begin
-        //x := Pos('.', PropName);
         ObjName := Copy(PropName, 1, x - 1);
         PropName2 := Copy(PropName, x + 1, Length(PropName));
         if TryGetPropertyAsObject(lci.Component, ObjName, Obj) then SetPropertyText(Obj, PropName2, PropValue);
@@ -486,6 +506,16 @@ begin
   Result := AddComponentWithCaptionAndHint(Component);
 end;
 
+function TLangSection.AddComponentWithBoundLabel(Component: TComponent): TLangComponentItem;
+var
+  s: string;
+  BoundLabelObj: TObject;
+begin
+  if TryGetPropertyAsObject(Component, 'BoundLabel', BoundLabelObj) then s := GetPropertyText(BoundLabelObj, 'Caption', '')
+  else s := '';
+  Result := AddComponent(Component).AddProperty('BoundLabel.Caption', s);
+end;
+
   {$endregion Add component}
 
 
@@ -511,14 +541,20 @@ begin
   if bHint then Result.AddProperty('Hint', StaticText.Hint);
 end;
 
-function TLangSection.AddLabeledEdit(const LabeledEdit: TCustomLabeledEdit; bLabelCaption, bEditText: Boolean): TLangComponentItem;
+function TLangSection.AddLabeledEdit(const LabeledEdit: TCustomLabeledEdit; bLabelCaption: Boolean; bEditText: Boolean): TLangComponentItem;
 begin
   Result := AddComponent(LabeledEdit);
   if bLabelCaption then Result.AddProperty('EditLabel.Caption', LabeledEdit.EditLabel.Caption);
   if bEditText then Result.AddProperty('Text', LabeledEdit.Text);
 end;
 
-function TLangSection.AddRadioButton(const RadioButton: TRadioButton; bCaption, bHint: Boolean): TLangComponentItem;
+function TLangSection.AddMenuItem(MenuItem: TMenuItem): TLangComponentItem;
+begin
+  Result := AddComponent(MenuItem);
+  Result.AddProperty('Caption', MenuItem.Caption);
+end;
+
+function TLangSection.AddRadioButton(const RadioButton: TRadioButton; bCaption: Boolean; bHint: Boolean): TLangComponentItem;
 begin
   Result := AddComponent(RadioButton);
   if bCaption then Result.AddProperty('Caption', RadioButton.Caption);
@@ -551,6 +587,14 @@ end;
 procedure TLangSection.AddString(const KeyName, StrValue: string);
 begin
   FLangStringItems.AddOrSetValue(KeyName, StrValue);
+end;
+
+procedure TLangSection.AddString(const KeyNameAndValue: string);
+var
+  sKey, sValue: string;
+begin
+  if not SplitStr(KeyNameAndValue, sKey, sValue, '=') then Exit;
+  AddString(sKey, sValue);
 end;
 
 function TLangSection.AsInfoStr: string;
@@ -606,11 +650,24 @@ end;
 
 function TLangComponentItem.AddProperty(const PropertyName: string): TLangComponentItem;
 var
-  s: string;
+  s, SubComponentName, SubcomponentPropertyName: string;
+  SubComponentObj: TObject;
+  x: integer;
 begin
   Result := Self;
   if not Assigned(Self.Component) then Exit;
-  s := GetPropertyText(Self.Component, PropertyName, INVALID_COMPONENT_PROP_STR);
+
+  x := Pos('.', PropertyName);
+  if x > 0 then
+  begin
+    SubComponentName := Copy(PropertyName, 1, x - 1);
+    SubcomponentPropertyName := Copy(PropertyName, x + 1, Length(PropertyName));
+    if not TryGetPropertyAsObject(Self.Component, SubComponentName, SubComponentObj) then Exit;
+    s := GetPropertyText(SubComponentObj, SubcomponentPropertyName, INVALID_COMPONENT_PROP_STR);
+  end
+  else
+    s := GetPropertyText(Self.Component, PropertyName, INVALID_COMPONENT_PROP_STR);
+
   if s <> INVALID_COMPONENT_PROP_STR then Result := AddProperty(PropertyName, s);
 end;
 
@@ -766,8 +823,6 @@ begin
   Result := FLangIniList.Count;
 end;
 
-
-
 procedure TLangMgr.GetLanguageFileNames(const Strings: TStrings);
 begin
   FLangIniList.GetLanguageFileNames(Strings);
@@ -808,8 +863,6 @@ begin
     end;
 end;
 
-
-
 procedure TLangMgr.RemoveSection(LangSection: TLangSection);
 begin
   FLangSections.Remove(LangSection);
@@ -842,7 +895,7 @@ begin
     for Section in FLangSections do
     begin
       Section.LoadFromIniSection(Ini);
-      Section.UpdateComponents;      //ShowMessage(Section.SectionName + '    ' + IniFileName);
+      Section.UpdateComponents;
     end;
     Ini.UpdateFileOnExit := False;
   finally
@@ -915,8 +968,6 @@ end;
 
 
 {$endregion TLangMgr}
-
-
 
 
 
@@ -1080,10 +1131,6 @@ begin
 end;
 
 {$endregion TLangIniList}
-
-
-
-
 
 
 
