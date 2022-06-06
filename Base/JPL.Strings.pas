@@ -27,6 +27,9 @@ const
   CRLF = #13#10;
   TAB = #9;
   ENDL = sLineBreak;
+  ENDL2 = ENDL + ENDL;
+  ENDL3 = ENDL2 + ENDL;
+  ENDL4 = ENDL3 + ENDL;
   DEG = '°';
 
 type
