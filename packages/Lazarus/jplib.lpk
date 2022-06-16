@@ -14,7 +14,7 @@
       </SearchPaths>
     </CompilerOptions>
     <Description Value="JPLib"/>
-    <Files Count="44">
+    <Files Count="49">
       <Item1>
         <Filename Value="..\..\Base\JPL.CmdLineParser.pas"/>
         <UnitName Value="JPL.CmdLineParser"/>
@@ -191,15 +191,38 @@
         <Filename Value="..\..\Base\JPL.LangMgr.pas"/>
         <UnitName Value="JPL.LangMgr"/>
       </Item44>
+      <Item45>
+        <Filename Value="..\..\Base\JPL.SimpleZip.pas"/>
+        <UnitName Value="JPL.SimpleZip"/>
+      </Item45>
+      <Item46>
+        <Filename Value="..\..\Graphics\JPL.RoseDiag.BinDataList.pas"/>
+        <UnitName Value="JPL.RoseDiag.BinDataList"/>
+      </Item46>
+      <Item47>
+        <Filename Value="..\..\Graphics\JPL.RoseDiag.DataFile.pas"/>
+        <UnitName Value="JPL.RoseDiag.DataFile"/>
+      </Item47>
+      <Item48>
+        <Filename Value="..\..\Graphics\JPL.RoseDiag.Diagram.pas"/>
+        <UnitName Value="JPL.RoseDiag.Diagram"/>
+      </Item48>
+      <Item49>
+        <Filename Value="..\..\Graphics\JPL.PixelConv.pas"/>
+        <UnitName Value="JPL.PixelConv"/>
+      </Item49>
     </Files>
     <CompatibilityMode Value="True"/>
-    <RequiredPkgs Count="2">
+    <RequiredPkgs Count="3">
       <Item1>
-        <PackageName Value="LCLBase"/>
+        <PackageName Value="LazGDIPlus"/>
       </Item1>
       <Item2>
-        <PackageName Value="FCL"/>
+        <PackageName Value="LCLBase"/>
       </Item2>
+      <Item3>
+        <PackageName Value="FCL"/>
+      </Item3>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>

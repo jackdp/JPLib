@@ -69,6 +69,7 @@ contains
   JPL.Win.System in '..\..\Base\JPL.Win.System.pas',
   JPL.Win.VersionInfo in '..\..\Base\JPL.Win.VersionInfo.pas',
   JPL.Win.SimpleTimer in '..\..\Base\JPL.Win.SimpleTimer.pas',
+  JPL.SimpleZip in '..\..\Base\JPL.SimpleZip.pas',
 
   // Binary
   JPL.Binary.Elf in '..\..\Binary\JPL.Binary.Elf.pas',
@@ -90,7 +91,7 @@ contains
   JPL.Colors.ColorClass in '..\..\Graphics\JPL.Colors.ColorClass.pas',
   JPL.Colors.List in '..\..\Graphics\JPL.Colors.List.pas',
   JPL.Colors in '..\..\Graphics\JPL.Colors.pas',
-
+  JPL.PixelConv in '..\..\Graphics\JPL.PixelConv.pas',
 
   // Logging
   JPL.SimpleLogger in '..\..\Logging\JPL.SimpleLogger.pas',

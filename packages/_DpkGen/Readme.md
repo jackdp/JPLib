@@ -1,3 +1,10 @@
+# Units
+
+* JPL.LangMgr - Delphi 2010 or newer
+* JPL.RTTI - Delphi 2010 or newer
+* JPL.SimpleZip - Delphi XE2 or newer
+* JPL.RoseDiag.DataFile - Delphi XE3 or newer
+
 # Info
 
 To execute the `generate_packages.bat` file, you need:

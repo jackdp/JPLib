@@ -17,6 +17,13 @@ DpkGen -t %Template% -d %Desc% -o %BaseOutDir%_10.4_Sydney\%ShortDpkName% -s Syd
 DpkGen -t %Template% -d %Desc% -o %BaseOutDir%_11.0_Alexandria\%ShortDpkName% -s Alexandria
 
 
+::Delphi 2010 or newer
 StrRep.exe "..\Delphi_2009\%ShortDpkName%" "JPL.LangMgr" "//JPL.LangMgr" 0 true first
 StrRep.exe "..\Delphi_2009\%ShortDpkName%" "JPL.RTTI" "//JPL.RTTI" 0 true first
+
+::XE2 or newer
+StrRep.exe "..\Delphi_2009\%ShortDpkName%" "JPL.SimpleZip" "//JPL.SimpleZip" 0 true first
+StrRep.exe "..\Delphi_2010\%ShortDpkName%" "JPL.SimpleZip" "//JPL.SimpleZip" 0 true first
+StrRep.exe "..\Delphi_XE\%ShortDpkName%" "JPL.SimpleZip" "//JPL.SimpleZip" 0 true first
+
 
