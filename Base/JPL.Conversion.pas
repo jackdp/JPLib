@@ -537,7 +537,7 @@ end;
 
 function ftos(xr: Extended; RoundTo: integer = 2; DSep: string = ''): string;
 var
-  s, mask: string;
+  s, FormatMask: string;
   i: integer;
 begin
 
@@ -545,9 +545,9 @@ begin
     s := IntToStr(Round(xr))
   else
   begin
-    mask := StringOfChar('0', RoundTo);
-    mask := '0.' + mask;
-    s := FormatFloat(mask, xr);
+    if RoundTo <= 0 then FormatMask := ''
+    else FormatMask := '0.' + StringOfChar('0', RoundTo);
+    s := FormatFloat(FormatMask, xr);
     for i := Length(s) downto 1 do
     begin
       if s[i] <> '0' then Break;
