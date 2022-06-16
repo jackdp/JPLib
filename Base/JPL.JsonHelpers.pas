@@ -10,11 +10,11 @@ unit JPL.JsonHelpers;
   Last mod: 2022.05
 }
 
+{$I .\..\jp.inc}
+
 {$IFNDEF FPC}
   This unit is for FPC only!
 {$ENDIF}
-
-{$I .\..\jp.inc}
 
 {$mode objfpc}{$H+}
 

@@ -166,12 +166,13 @@ end;
 function DirectoryExistsEx(const Dir: string; AcceptSymLinks: Boolean = True): Boolean;
 var
   SR: SysUtils.TSearchRec;
-
+  {$WARN SYMBOL_PLATFORM OFF}
   function IsDirectory: Boolean;
   begin
     Result := ( (SR.Attr and faDirectory) <> 0 ) and (SR.Name <> '.') and (SR.Name <> '..');
     if Result and (not AcceptSymLinks) then Result := ( Result and ( (SR.Attr and faSymLink) = 0) );
   end;
+  {$WARN SYMBOL_PLATFORM ON}
 
 begin
   Result := False;
@@ -192,7 +193,7 @@ var
   sl: TStringList;
   i: integer;
 begin
-  SetLength(Result, 0);
+  SetLength(Result{%H-}, 0);
   sl := TStringList.Create;
   try
     JPGetFileList(SearchPattern, Directory, sl, RecurseDepth, AcceptSymLinks, AcceptSymLinks, nil, nil, nil);
@@ -212,7 +213,7 @@ var
   sl: TStringList;
   i: integer;
 begin
-  SetLength(Result, 0);
+  SetLength(Result{%H-}, 0);
   sl := TStringList.Create;
   try
     JPGetDirectoryList(StartDir, sl, AcceptSymLinks, RecurseDepth, nil);
