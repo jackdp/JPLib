@@ -5,7 +5,7 @@ interface
 {$IFDEF MSWINDOWS}
 
 {$I .\..\jp.inc}
-{$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
+{$IFDEF FPC}{$mode delphi}{$H+}{$ENDIF}
 
 uses
   Windows;
@@ -36,7 +36,12 @@ implementation
 
 function WinMsg(const Text, Caption: string; Handle: HWND = 0; MBType: DWORD = MB_OK or MB_ICONINFORMATION): integer;
 begin
+  {$IFDEF FPC}
+  // NOTE: Dlaczego w FPC bez takich kombinacji (PWideChar + UnicodeString) pojawiają się tutaj "krzaki"?
+  Result := MessageBoxW(Handle, PWideChar(UnicodeString(Text)), PWideChar(UnicodeString(Caption)), MBType);
+  {$ELSE}
   Result := MessageBox(Handle, PChar(Text), PChar(Caption), MBType);
+  {$ENDIF}
 end;
 
 procedure MB(const Text: string; Caption: string = 'Information'; Handle: HWND = 0);
