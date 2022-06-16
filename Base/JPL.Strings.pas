@@ -202,7 +202,7 @@ function GetDecimalSeparator: Char;
 
 function SaveStringToFile(const FileName, Content: string; Encoding: TEncoding; const WriteBOM: Boolean = True):Boolean; overload;
 function SaveStringToFile(const FileName, Content: string): Boolean; overload;
-function LoadStringFromFile(const FileName: string; var s: string; Encoding: TEncoding): Boolean; overload;
+function LoadStringFromFile(const FileName: string; var s: string; Encoding: TEncoding; ForceEncoding: Boolean = False): Boolean; overload;
 function LoadStringFromFile(const FileName: string; var s: string): Boolean; overload;
 
 
@@ -252,47 +252,53 @@ begin
 end;
 
 {$IFDEF FPC}
-function LoadStringFromFile(const FileName: string; var s: string; Encoding: TEncoding): Boolean; overload;
+function LoadStringFromFile(const FileName: string; var s: string; Encoding: TEncoding;ForceEncoding: Boolean = False): Boolean; overload;
 var
   Bytes: TBytes = nil;
   xBomLen: integer;
+  UserEncoding: TEncoding;
 begin
   Result := False;
   if not FileExists(FileName) then Exit;
   Result := GetFileContentAsBytes(FileName, Bytes);
   if Result then
   begin
+    UserEncoding := Encoding;
     Encoding := nil;
     // http://docwiki.embarcadero.com/Libraries/Sydney/en/System.SysUtils.TEncoding.GetBufferEncoding
     // https://www.freepascal.org/docs-html/rtl/sysutils/tencoding.getbufferencoding.html
     // GetBufferEncoding detects encoding of Bytes, and assigns detected encoding to the Encoding param.
     // So after GetBufferEncoding, the Encoding is NOT = nil
     xBomLen := TEncoding.GetBufferEncoding(Bytes, Encoding, TEncoding.Default);
-    {$IFDEF FPC320_OR_ABOVE}
-    s := Encoding.GetAnsiString(Bytes, xBomLen, Length(Bytes) - xBomLen);
-    {$ELSE}
-    s := string(Encoding.GetString(Bytes, xBomLen, Length(Bytes) - xBomLen));
-    {$ENDIF}
+
+    if ForceEncoding then s := UserEncoding.GetAnsiString(Bytes, xBomLen, Length(Bytes) - xBomLen)
+    else s := Encoding.GetAnsiString(Bytes, xBomLen, Length(Bytes) - xBomLen);
+
   end;
 end;
 {$ELSE}
-function LoadStringFromFile(const FileName: string; var s: string; Encoding: TEncoding): Boolean; overload;
+function LoadStringFromFile(const FileName: string; var s: string; Encoding: TEncoding; ForceEncoding: Boolean = False): Boolean; overload;
 var
   Bytes: TBytes;
   xBomLen: integer;
+  UserEncoding: TEncoding;
 begin
   Result := False;
   if not FileExists(FileName) then Exit;
   Result := GetFileContentAsBytes(FileName, Bytes);
   if Result then
   begin
+    UserEncoding := Encoding;
     Encoding := nil;
     // http://docwiki.embarcadero.com/Libraries/Sydney/en/System.SysUtils.TEncoding.GetBufferEncoding
     // https://www.freepascal.org/docs-html/rtl/sysutils/tencoding.getbufferencoding.html
     // GetBufferEncoding detects encoding of Bytes, and assigns detected encoding to the Encoding param.
     // So after GetBufferEncoding, the Encoding is NOT = nil
     xBomLen := TEncoding.GetBufferEncoding(Bytes, Encoding {$IFDEF DELPHIXE_OR_ABOVE}, TEncoding.Default{$ENDIF});
-    s := Encoding.GetString(Bytes, xBomLen, Length(Bytes) - xBomLen);
+
+    if ForceEncoding then s := UserEncoding.GetString(Bytes, xBomLen, Length(Bytes) - xBomLen)
+    else s := Encoding.GetString(Bytes, xBomLen, Length(Bytes) - xBomLen);
+
   end;
 end;
 {$ENDIF}
