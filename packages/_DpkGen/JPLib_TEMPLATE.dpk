@@ -69,6 +69,7 @@ contains
   JPL.Win.System in '..\..\Base\JPL.Win.System.pas',
   JPL.Win.VersionInfo in '..\..\Base\JPL.Win.VersionInfo.pas',
   JPL.Win.SimpleTimer in '..\..\Base\JPL.Win.SimpleTimer.pas',
+  JPL.Win.Mouse in '..\..\Base\JPL.Win.Mouse.pas',
   JPL.SimpleZip in '..\..\Base\JPL.SimpleZip.pas',
 
   // Binary

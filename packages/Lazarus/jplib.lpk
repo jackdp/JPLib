@@ -14,7 +14,7 @@
       </SearchPaths>
     </CompilerOptions>
     <Description Value="JPLib"/>
-    <Files Count="49">
+    <Files Count="50">
       <Item1>
         <Filename Value="..\..\Base\JPL.CmdLineParser.pas"/>
         <UnitName Value="JPL.CmdLineParser"/>
@@ -211,6 +211,10 @@
         <Filename Value="..\..\Graphics\JPL.PixelConv.pas"/>
         <UnitName Value="JPL.PixelConv"/>
       </Item49>
+      <Item50>
+        <Filename Value="..\..\Base\JPL.Win.Mouse.pas"/>
+        <UnitName Value="JPL.Win.Mouse"/>
+      </Item50>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">

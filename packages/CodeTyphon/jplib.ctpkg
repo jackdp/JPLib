@@ -192,6 +192,10 @@
         <Filename Value="..\..\Base\JPL.Win.Registry.pas"/>
         <UnitName Value="JPL.Win.Registry"/>
       </Item>
+      <Item>
+        <Filename Value="..\..\Base\JPL.Win.Mouse.pas"/>
+        <UnitName Value="JPL.Win.Mouse"/>
+      </Item>
     </Files>
     <RequiredPkgs>
       <Item>

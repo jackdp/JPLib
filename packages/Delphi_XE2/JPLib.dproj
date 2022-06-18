@@ -106,6 +106,7 @@
 			<DCCReference Include="..\..\Base\JPL.Win.System.pas"/>
 			<DCCReference Include="..\..\Base\JPL.Win.VersionInfo.pas"/>
 			<DCCReference Include="..\..\Base\JPL.Win.SimpleTimer.pas"/>
+			<DCCReference Include="..\..\Base\JPL.Win.Mouse.pas"/>
 			<DCCReference Include="..\..\Base\JPL.SimpleZip.pas"/>
 			<DCCReference Include="..\..\Binary\JPL.Binary.Elf.pas"/>
 			<DCCReference Include="..\..\Binary\JPL.Binary.Mach.Types.pas"/>
