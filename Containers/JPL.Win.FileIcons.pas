@@ -54,7 +54,7 @@ type
     constructor Create(ImageList: TImageList; xMaxIconCount: integer = -1; AcceptNonExistentFiles: Boolean = False);
     destructor Destroy; override;
     procedure ClearAll;
-    function GetFileIconIndex(const fName: string): integer;
+    function GetFileIconIndex(const fName: string; ForceAddToList: Boolean = False): integer;
     function GetBitmap(const Index: integer): TBitmap;
     function AddIcon(Ext: string; Icon: TIcon): integer;
     function IconCount: integer;
@@ -114,7 +114,7 @@ begin
   end;
 end;
 
-function TFileIcons.GetFileIconIndex(const fName: string): integer;
+function TFileIcons.GetFileIconIndex(const fName: string; ForceAddToList: Boolean = False): integer;
 var
   Ext: string;
   IconIndex: integer;
@@ -133,7 +133,7 @@ begin
     end;
 
 
-  bForceAdd := (Ext = 'EXE') or (Ext = 'ICO');
+  bForceAdd := ForceAddToList or (Ext = 'EXE') or (Ext = 'ICO');
   if bForceAdd then Ext := fName;
 
   if FIconList.TryGetValue(Ext, IconIndex) then Result := IconIndex
