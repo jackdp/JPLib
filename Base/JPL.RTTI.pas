@@ -12,7 +12,7 @@
 interface
 
 uses
-  SysUtils, Classes
+  SysUtils, Classes, Controls
   {$IFDEF HAS_RTTI}, {%H-}Rtti, TypInfo{$ENDIF}
   ;
 
@@ -27,10 +27,17 @@ function TryGetPropertyAsClass(const Obj: TObject; const PropertyName: string; o
 function SetPropertyText(Obj: TObject; PropertyName: string; Text: string): Boolean;
 function GetPropertyText(Obj: TObject; const PropertyName, Default: string): string;
 
+function SetPropertyIntValue(Obj: TObject; PropertyName: string; Value: integer): Boolean;
+function GetPropertyIntValue(Obj: TObject; const PropertyName: string; const Default: integer): integer;
+
+{$IFDEF DCC}
+function SetPropertyStyleElementsValue(Obj: TObject; const AValue: TStyleElements): Boolean;
+{$ENDIF}
+
 function GetRttiMethod(Obj: TObject; const MethodName: string): TRttiMethod;
 {$ENDIF}
 
-  
+
 implementation
 
 {$IFDEF HAS_RTTI}
@@ -127,6 +134,77 @@ begin
 
 end;
 
+function SetPropertyIntValue(Obj: TObject; PropertyName: string; Value: integer): Boolean;
+var
+  RContext: TRttiContext;
+  RType: TRttiType;
+  RProperty: TRttiProperty;
+  Kind: TTypeKind;
+  UPropName: string;
+begin
+  Result := False;
+  if not Assigned(Obj) then Exit;
+  UPropName := UpperCase(PropertyName);
+
+
+  RContext := TRttiContext.Create;
+  try
+    RType := RContext.GetType(Obj.ClassType);
+
+    for RProperty in RType.GetProperties do
+    begin
+      if UpperCase(RProperty.Name) = UPropName then
+      begin
+        if not RProperty.IsWritable then Exit;
+        Kind := RProperty.GetValue(Obj).Kind;
+        if Kind <> tkInteger then Exit;
+        RProperty.SetValue(Obj, Value);
+        Result := True;
+      end;
+    end;
+
+  finally
+    RContext.Free;
+  end;
+
+end;
+
+function GetPropertyIntValue(Obj: TObject; const PropertyName: string; const Default: integer): integer;
+var
+  RContext: TRttiContext;
+  RType: TRttiType;
+  RProperty: TRttiProperty;
+  Kind: TTypeKind;
+  UPropName: string;
+  Value: TValue;
+begin
+  Result := Default;
+  if not Assigned(Obj) then Exit;
+  UPropName := UpperCase(PropertyName);
+
+  RContext := TRttiContext.Create;
+  try
+    RType := RContext.GetType(Obj.ClassType);
+
+    for RProperty in RType.GetProperties do
+    begin
+      if UpperCase(RProperty.Name) = UPropName then
+      begin
+        if not RProperty.IsReadable then Exit;
+        Kind := RProperty.GetValue(Obj).Kind;
+        if (Kind = tkInteger) then
+        begin
+          Value := RProperty.GetValue(Obj);
+          Result := Value.AsInteger;
+        end;
+      end;
+    end;
+
+  finally
+    RContext.Free;
+  end;
+
+end;
 
 function GetPropertyAsObject(const Obj: TObject; const PropertyName: string): TObject;
 var
@@ -203,6 +281,54 @@ begin
   OutClass := GetPropertyAsClass(Obj, PropertyName);
   Result := OutClass <> nil;
 end;
+
+{$IFDEF DCC}
+function SetPropertyStyleElementsValue(Obj: TObject; const AValue: TStyleElements): Boolean;
+var
+  RContext: TRttiContext;
+  RType: TRttiType;
+  RProperty: TRttiProperty;
+  Kind: TTypeKind;
+  UPropName: string;
+  Value: TValue;
+begin
+  Result := False;
+  if not Assigned(Obj) then Exit;
+  UPropName := 'STYLEELEMENTS';
+
+
+  RContext := TRttiContext.Create;
+  try
+    RType := RContext.GetType(Obj.ClassType);
+
+    for RProperty in RType.GetProperties do
+    begin
+      if UpperCase(RProperty.Name) = UPropName then
+      begin
+        if not RProperty.IsWritable then Exit;
+
+        Kind := RProperty.GetValue(Obj).Kind;
+        if Kind <> tkSet then Exit;
+
+        Value := RProperty.GetValue(Obj);
+        Result := True;
+
+        try
+          TValue.Make(@AValue, TypeInfo(TStyleElements), Value);
+          RProperty.SetValue(Obj, Value);
+        except
+          Result := False;
+        end;
+
+      end;
+    end;
+
+  finally
+    RContext.Free;
+  end;
+
+end;
+{$ENDIF}
 
 function GetRttiMethod(Obj: TObject; const MethodName: string): TRttiMethod;
 var
