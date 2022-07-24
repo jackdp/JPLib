@@ -30,6 +30,7 @@ procedure ShowLastError(const Error: LongWord; MsgPrefix: string = ''; MsgTitle:
 function ScreenWidth: integer;
 function ScreenHeight: integer;
 function SetWindowOnTop(const WinHandle: HWND; const OnTop: Boolean): Boolean;
+function ExploreDirectory(const Directory: string; AHandle: HWND = 0): Boolean;
 function ShowFileInExplorer(const FileName: string; Handle: HWND = 0): Boolean;
 function GetFileIcon(const FileName: string; SmallIcon: Boolean = True): TIcon;
 
@@ -62,6 +63,12 @@ begin
   end;
 end;
 
+function ExploreDirectory(const Directory: string; AHandle: HWND = 0): Boolean;
+begin
+  Result := False;
+  if not DirectoryExists(Directory) then Exit;
+  Result := ShellExecute(AHandle, 'open', PChar(Directory), '', PChar(Directory), SW_SHOWNORMAL) > 32;
+end;
 
 function ShowFileInExplorer(const FileName: string; Handle: HWND = 0): Boolean;
 var
