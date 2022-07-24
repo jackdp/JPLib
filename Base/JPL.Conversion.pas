@@ -2,10 +2,10 @@
 
 {
   Jacek Pazera
-  http://www.pazera-software.com
+  https://www.pazera-software.com
+  https://github.com/jackdp
 
-  To jest mój stary moduł z roku 2000 dla Borland Pascala 7.0
-  W kolejnych latach rozbudowywany i dostosowywany do nowszych wersji Delphi i FPC.
+  Based on my old unit from 2000 for Borland Pascal 7.0
  }
 
 
@@ -25,13 +25,13 @@ uses
 
 
 
-function BoolToStr(b: Boolean; TrueStr: string = 'True'; FalseStr: string = 'False'): string;
+function BoolToStr(const b: Boolean; TrueStr: string = 'True'; FalseStr: string = 'False'): string;
 function BoolToStrYesNo(const Value: Boolean): string;
 function BoolToStrYN(const Value: Boolean): string;
 function BoolToStr10(const Value: Boolean): string;
 function BoolToStrOnOff(const Value: Boolean): string;
 function BoolToStrTF(const Value: Boolean): string;
-function StrToBool(s: string): Boolean;
+function StrToBool(const s: string): Boolean;
 function BoolToInt(const B: Boolean): integer;
 function BoolToByte(const B: Boolean): Byte;
 
@@ -1057,7 +1057,7 @@ begin
   end;
 end;
 
-function BoolToStr(b: Boolean; TrueStr: string = 'True'; FalseStr: string = 'False'): string;
+function BoolToStr(const b: Boolean; TrueStr: string = 'True'; FalseStr: string = 'False'): string;
 begin
   if b then Result := TrueStr
   else Result := FalseStr;
@@ -1088,16 +1088,10 @@ begin
   Result := BoolToStr(Value, 'True', 'False');
 end;
 
-
-{$hints off}
-function StrToBool(s: string): Boolean;
+function StrToBool(const s: string): Boolean;
 begin
-  s := UpperCase(Trim(s));
-  Result :=
-    (s = '1') or (s = 'TRUE') or (s = 'YES') or //(s = 'TAK') or (s = 'PRAWDA') or
-    (s = 'ON') or (s = 'ENABLED'); // or (s = 'T');
+  Result := StrInArray(s, ['1', 'True', 'Yes', 'On', 'Enabled'], True);
 end;
-{$hints on}
 
 function BoolToInt(const B: Boolean): integer;
 begin
