@@ -1,8 +1,18 @@
 ﻿unit JPL.Containers.MultiValueList;
 
+{
+  Jacek Pazera
+  https://www.pazera-software.com
+  https://github.com/jackdp
+
+  A simple class for managing a list of TMultiValue items (records).
+  Allows sorting on any field of the record (except Pointer).
+}
+
+{$I .\..\jp.inc}
 
 {$IFDEF FPC}
-  {$mode delphi}
+  {$mode delphi}{$H+}
 {$ENDIF}
 
 interface
@@ -10,8 +20,6 @@ interface
 uses
   SysUtils, Generics.Defaults, Generics.Collections,
   JPL.TStr;
-
-
 
 type
 
@@ -23,24 +31,24 @@ type
     IntValue: Int64;
     FloatValue: Double;
     BoolValue: Boolean;
-    P: Pointer;
+    PtrValue: Pointer;
     Tag: integer;
     procedure Clear;
+    procedure Assign(Src: TMultiValue);
   end;
 
   TMultiValueList = class(TList<TMultiValue>)
   private
     FSortCaseSensitive: Boolean;
     FSortAscending: Boolean;
-    function CompareNums(const Left, Right: TMultiValue): integer;
-    function CompareNames(const Left, Right: TMultiValue): integer;
-    function CompareDescriptions(const Left, Right: TMultiValue): integer;
-    function CompareStrValues(const Left, Right: TMultiValue): integer;
-    function CompareIntValues(const Left, Right: TMultiValue): integer;
-    function CompareFloatValues(const Left, Right: TMultiValue): integer;
-    function CompareBoolValues(const Left, Right: TMultiValue): integer;
-    function CompareTags(const Left, Right: TMultiValue): integer;
-
+    function CompareNums({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
+    function CompareNames({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
+    function CompareDescriptions({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
+    function CompareStrValues({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
+    function CompareIntValues({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
+    function CompareFloatValues({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
+    function CompareBoolValues({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
+    function CompareTags({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
   public
     function AddNoNameValue(const No: integer; const AName, StrValue: string): integer;
     function AddNameValue(const AName, StrValue: string; AutoNum: Boolean = True): integer;
@@ -189,40 +197,40 @@ end;
 
   {$region '                 Sorting                   '}
 
-function TMultiValueList.CompareNums(const Left, Right: TMultiValue): integer;
+function TMultiValueList.CompareNums({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
 begin
   Result := Left.No - Right.No;
   if not FSortAscending then Result := -Result;
 end;
 
-function TMultiValueList.CompareNames(const Left, Right: TMultiValue): integer;
+function TMultiValueList.CompareNames({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
 begin
   if FSortCaseSensitive then Result := CompareStr(Left.Name, Right.Name)
   else Result := CompareText(Left.Name, Right.Name);
   if not FSortAscending then Result := -Result;
 end;
 
-function TMultiValueList.CompareDescriptions(const Left, Right: TMultiValue): integer;
+function TMultiValueList.CompareDescriptions({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
 begin
   if FSortCaseSensitive then Result := CompareStr(Left.Description, Right.Description)
   else Result := CompareText(Left.Description, Right.Description);
   if not FSortAscending then Result := -Result;
 end;
 
-function TMultiValueList.CompareStrValues(const Left, Right: TMultiValue): integer;
+function TMultiValueList.CompareStrValues({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
 begin
   if FSortCaseSensitive then Result := CompareStr(Left.StrValue, Right.StrValue)
   else Result := CompareText(Left.StrValue, Right.StrValue);
   if not FSortAscending then Result := -Result;
 end;
 
-function TMultiValueList.CompareIntValues(const Left, Right: TMultiValue): integer;
+function TMultiValueList.CompareIntValues({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
 begin
   Result := Left.IntValue - Right.IntValue;
   if not FSortAscending then Result := -Result;
 end;
 
-function TMultiValueList.CompareFloatValues(const Left, Right: TMultiValue): integer;
+function TMultiValueList.CompareFloatValues({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
 var
   x: Extended;
 begin
@@ -233,7 +241,7 @@ begin
   if not FSortAscending then Result := -Result;
 end;
 
-function TMultiValueList.CompareBoolValues(const Left, Right: TMultiValue): integer;
+function TMultiValueList.CompareBoolValues({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
 begin
   if Left.BoolValue = Right.BoolValue then Result := 0
   else if Left.BoolValue = False then Result := -1
@@ -241,7 +249,7 @@ begin
   if not FSortAscending then Result := -Result;
 end;
 
-function TMultiValueList.CompareTags(const Left, Right: TMultiValue): integer;
+function TMultiValueList.CompareTags({$IFDEF FPC}constref{$ELSE}const{$ENDIF} Left, Right: TMultiValue): integer;
 begin
   Result := Left.Tag - Right.Tag;
   if not FSortAscending then Result := -Result;
@@ -317,9 +325,23 @@ begin
   IntValue := 0;
   FloatValue := 0;
   BoolValue := False;
-  P := nil;
+  PtrValue := nil;
   Tag := 0;
 end;
+
+procedure TMultiValue.Assign(Src: TMultiValue);
+begin
+  No := Src.No;
+  Name := Src.Name;
+  Description := Src.Description;
+  StrValue := Src.StrValue;
+  IntValue := Src.IntValue;
+  FloatValue := Src.FloatValue;
+  BoolValue := Src.BoolValue;
+  PtrValue := Src.PtrValue;
+  Tag := Src.Tag;
+end;
+
 {$endregion TMultiValue}
 
 
