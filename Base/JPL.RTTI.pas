@@ -30,7 +30,7 @@ function GetPropertyText(Obj: TObject; const PropertyName, Default: string): str
 function SetPropertyIntValue(Obj: TObject; PropertyName: string; Value: integer): Boolean;
 function GetPropertyIntValue(Obj: TObject; const PropertyName: string; const Default: integer): integer;
 
-{$IFDEF DCC}
+{$IFDEF DELPHIXE3_OR_ABOVE}
 function SetPropertyStyleElementsValue(Obj: TObject; const AValue: TStyleElements): Boolean;
 {$ENDIF}
 
@@ -282,7 +282,7 @@ begin
   Result := OutClass <> nil;
 end;
 
-{$IFDEF DCC}
+{$IFDEF DELPHIXE3_OR_ABOVE}
 function SetPropertyStyleElementsValue(Obj: TObject; const AValue: TStyleElements): Boolean;
 var
   RContext: TRttiContext;
