@@ -9,32 +9,39 @@
 
   `$RegSoft` = `HKEY_CURRENT_USER\Software`  OR  `HKEY_LOCAL_MACHINE\Software`
 
-  | Delphi           | BDS ver. | Product ver. | Compiler ver. | Registry path                     |
-  |:----------------:|:--------:|:------------:|:-------------:|:----------------------------------|
-  | 5                |          | 5            | N/A           | `$RegSoft`\Borland\Delphi\5.0     |
-  | 6                |          | 6            | 14.0          | `$RegSoft`\Borland\Delphi\6.0     |
-  | 7                |          | 7            | 15.0          | `$RegSoft`\Borland\Delphi\7.0     |
-  | 8 (.NET)         | 2.0      | 8            | 16.0          | `$RegSoft`\Borland\Delphi\8.0 (?) |
-  | 2005             | 3.0      | 9            | 17.0          | `$RegSoft`\Borland\BDS\3.0        |
-  | 2006             | 4.0      | 10           | 18.0          | `$RegSoft`\Borland\BDS\4.0        |
-  | 2007 (Win32)     | 5.0      | 11           | 18.5          | `$RegSoft`\Borland\BDS\5.0        |
-  | 2007 (.NET )     | 5.0      | 11           | 19.0          | `$RegSoft`\Borland\BDS\5.0        |
-  | 2009             | 6.0      | 12           | 20.0          | `$RegSoft`\CodeGear\BDS\6.0       |
-  | 2010             | 7.0      | 14           | 21.0          | `$RegSoft`\CodeGear\BDS\7.0       |
-  | XE               | 8.0      | 15           | 22.0          | `$RegSoft`\Embarcadero\BDS\8.0    |
-  | XE2              | 9.0      | 16           | 23.0          | `$RegSoft`\Embarcadero\BDS\9.0    |
-  | XE3              | 10.0     | 17           | 24.0          | `$RegSoft`\Embarcadero\BDS\10.0   |
-  | XE4              | 11.0     | 18           | 25.0          | `$RegSoft`\Embarcadero\BDS\11.0   |
-  | XE5              | 12.0     | 19           | 26.0          | `$RegSoft`\Embarcadero\BDS\12.0   |
-  | XE6              | 14.0     | 20           | 27.0          | `$RegSoft`\Embarcadero\BDS\14.0   |
-  | XE7              | 15.0     | 21           | 28.0          | `$RegSoft`\Embarcadero\BDS\15.0   |
-  | XE8              | 16.0     | 22           | 29.0          | `$RegSoft`\Embarcadero\BDS\16.0   |
-  | 10.0 Seattle     | 17.0     | 23           | 30.0          | `$RegSoft`\Embarcadero\BDS\17.0   |
-  | 10.1 Berlin      | 18.0     | 24           | 31.0          | `$RegSoft`\Embarcadero\BDS\18.0   |
-  | 10.2 Tokyo       | 19.0     | 25           | 32.0          | `$RegSoft`\Embarcadero\BDS\19.0   |
-  | 10.3 Rio         | 20.0     | 26           | 33.0          | `$RegSoft`\Embarcadero\BDS\20.0   |
-  | 10.4 Sydney      | 21.0     | 27           | 34.0          | `$RegSoft`\Embarcadero\BDS\21.0   |
-  | 11.0 Alexandria  | 22.0     | 28           | 35.0          | `$RegSoft`\Embarcadero\BDS\22.0   |
+| Delphi        | Year | BDS ver. | Product ver. | Compiler ver. | DPROJ ProjectVersion   | Registry path                     |
+| :------------ | ---- | :------: | :----------: | :-----------: | :--------------------- | :-------------------------------- |
+| 1             | 1995 |          |              |      N/A      |                        |                                   |
+| 2             | 1996 |          |              |      N/A      |                        |                                   |
+| 3             | 1997 |          |              |      N/A      |                        |                                   |
+| 4             | 1998 |          |              |      N/A      |                        |                                   |
+| 5             | 1999 |          |      5       |      N/A      |                        | `$RegSoft`\Borland\Delphi\5.0     |
+| 6             | 2001 |          |      6       |     14.0      |                        | `$RegSoft`\Borland\Delphi\6.0     |
+| 7             | 2002 |          |      7       |     15.0      |                        | `$RegSoft`\Borland\Delphi\7.0     |
+| 8 (.NET)      | 2003 |   2.0    |      8       |     16.0      |                        | `$RegSoft`\Borland\Delphi\8.0 (?) |
+| 2005          | 2005 |   3.0    |      9       |     17.0      |                        | `$RegSoft`\Borland\BDS\3.0        |
+| 2006          | 2005 |   4.0    |      10      |     18.0      |                        | `$RegSoft`\Borland\BDS\4.0        |
+| 2007 (Win32)  | 2007 |   5.0    |      11      |     18.5      |                        | `$RegSoft`\Borland\BDS\5.0        |
+| 2007 (.NET )  | 2007 |   5.0    |      11      |     19.0      |                        | `$RegSoft`\Borland\BDS\5.0        |
+| 2009          | 2009 |   6.0    |      12      |     20.0      | 12.0                   | `$RegSoft`\CodeGear\BDS\6.0       |
+| 2010          | 2009 |   7.0    |      14      |     21.0      | 12.0                   | `$RegSoft`\CodeGear\BDS\7.0       |
+| XE            | 2010 |   8.0    |      15      |     22.0      | 12.2, 12.3             | `$RegSoft`\Embarcadero\BDS\8.0    |
+| XE2           | 2011 |   9.0    |      16      |     23.0      | 13.4                   | `$RegSoft`\Embarcadero\BDS\9.0    |
+| XE3           | 2012 |   10.0   |      17      |     24.0      | 14.3, 14.4             | `$RegSoft`\Embarcadero\BDS\10.0   |
+| XE4           | 2013 |   11.0   |      18      |     25.0      | 14.4, 14.6             | `$RegSoft`\Embarcadero\BDS\11.0   |
+| XE5           | 2013 |   12.0   |      19      |     26.0      | 15.0 (?), 15.1, 15.3   | `$RegSoft`\Embarcadero\BDS\12.0   |
+| AppMethod     |      |   13.0   |      ?       |       ?       | 15.2                   | `$RegSoft`\Embarcadero\BDS\13.0   |
+| XE6           | 2014 |   14.0   |      20      |     27.0      | 15.4                   | `$RegSoft`\Embarcadero\BDS\14.0   |
+| XE7           | 2014 |   15.0   |      21      |     28.0      | 16.0, 16.1             | `$RegSoft`\Embarcadero\BDS\15.0   |
+| XE8           | 2015 |   16.0   |      22      |     29.0      | 17.0, 17.1, 17.2       | `$RegSoft`\Embarcadero\BDS\16.0   |
+| 10.0 Seattle  | 2015 |   17.0   |      23      |     30.0      | 18.0, 18.1             | `$RegSoft`\Embarcadero\BDS\17.0   |
+| 10.1 Berlin   | 2016 |   18.0   |      24      |     31.0      | 18.1, 18.2             | `$RegSoft`\Embarcadero\BDS\18.0   |
+| 10.2 Tokyo    | 2017 |   19.0   |      25      |     32.0      | 18.2, 18.3, 18.4       | `$RegSoft`\Embarcadero\BDS\19.0   |
+| 10.3 Rio      | 2018 |   20.0   |      26      |     33.0      | 18.5, 18.6, 18.7, 18.8 | `$RegSoft`\Embarcadero\BDS\20.0   |
+| 10.4 Sydney   | 2020 |   21.0   |      27      |     34.0      | 19.0, 19.1, 19.2       | `$RegSoft`\Embarcadero\BDS\21.0   |
+| 11 Alexandria | 2021 |   22.0   |      28      |     35.0      | 19.3, 19.4             | `$RegSoft`\Embarcadero\BDS\22.0   |
+
+  AppMethod (free plan) installed on 2022.07.01 - ProductVersion = 22 (???)
 
   BDS 1.0 - C# Builder
 
@@ -49,6 +56,8 @@
   http://docwiki.embarcadero.com/RADStudio/Sydney/en/Compiler_Versions
   http://docwiki.embarcadero.com/RADStudio/Sydney/en/Conditional_compilation_(Delphi)
   http://docwiki.embarcadero.com/RADStudio/Sydney/en/Delphi_Compiler_Directives_(List)_Index
+
+  https://delphi.fandom.com/wiki/How_to_find_out_which_Delphi_version_was_used_to_create_a_project%3F
 
   ---------------------------------------------------------------------------------------------
 
@@ -81,6 +90,14 @@
 }
 
 
+  // Done: DPROJ ProjectVersion
+  // TODO: Experts
+  // TODO: Closed Files
+  // TODO: Closed Projects
+  // TODO: save to INI
+
+
+
 
 {$I .\..\jp.inc}
 
@@ -91,19 +108,21 @@
 
 interface
 
+{$IFDEF MSWINDOWS} // Unit for Windows only!
+
 uses
   // WinAPI
   Windows, Registry,
 
   // System
-  SysUtils, Classes, Generics.Collections, IniFiles, Types,
+  SysUtils, Classes, Generics.Collections, IniFiles, Types, StrUtils,
 
   // VCL
   Graphics,
 
   // JPLib
   //JPL.Strings,
-  JPL.Tstr, JPL.Conversion, JPL.Containers.MultiValueList,
+  JPL.TStr, JPL.Conversion, JPL.Containers.MultiValueList,
   JPL.Win.System, JPL.Win.FileSystem,
   JPL.Win.Registry;
 
@@ -133,6 +152,26 @@ const
   REG_KEY_DISABLED_IDE_PACKAGES = 'Disabled IDE Packages';
   REG_KEY_PERSONALITIES = 'Personalities';
   REG_KEY_EDITOR_HIGHLIGHT = 'Editor\Highlight';
+
+
+  COMPILER_EXE_DELPHI_WIN32 = 'dcc32.exe';
+  COMPILER_EXE_DELPHI_WIN64 = 'dcc64.exe';
+  COMPILER_EXE_DELPHI_OSX32 = 'dccosx.exe';
+  COMPILER_EXE_DELPHI_OSX64 = 'dccosx64.exe';
+  COMPILER_EXE_DELPHI_LINUX64 = 'dcclinux64.exe';
+  COMPILER_EXE_DELPHI_IOS32 = 'dcciosarm.exe';
+  COMPILER_EXE_DELPHI_IOS64 = 'dcciosarm64.exe';
+  COMPILER_EXE_DELPHI_IOS_SIMULATOR32 = 'dccios32.exe';
+  COMPILER_EXE_DELPHI_ANDROID32 = 'dccaarm.exe';
+  COMPILER_EXE_DELPHI_ANDROID64 = 'dccaarm64.exe';
+
+  COMPILER_EXE_CPP_WIN32_CLANG = 'bcc32c.exe';
+  COMPILER_EXE_CPP_WIN32 = 'bcc32.exe';
+  COMPILER_EXE_CPP_WIN64 = 'bcc64.exe';
+  COMPILER_EXE_CPP_OSX32 = 'bccosx.exe';
+  COMPILER_EXE_CPP_IOS32 = 'bcciosarm.exe';
+  COMPILER_EXE_CPP_IOS64 = 'bcciosarm64.exe';
+  COMPILER_EXE_CPP_ANDROID32 = 'bccaarm.exe';
 
 
   ArrHighlightKeyNames: array[0..39] of string = (
@@ -181,6 +220,16 @@ type
     bdsv21, // 10.4 Sydney
     bdsv22  // 11.0 Alexandria
   );
+
+
+  TDelphiVersions = record
+    First: TDelphiVersion;
+    Second: TDelphiVersion;
+    procedure Clear;
+    function AsString(const UseLongNames: Boolean = False; const RemoveBrandName: Boolean = False): string;
+    function FirstAsString(const UseLongName: Boolean = False; const RemoveBrandName: Boolean = False): string;
+    class function DelphiVersionToStr(const dv: TDelphiVersion; const UseLongName: Boolean = False; const RemoveBrandName: Boolean = False): string; static;
+  end;
 
 
   TDelphiEditorHighlightFormat = (dehfIni, dehfJson, dehfXml, dehfReg);
@@ -378,12 +427,27 @@ type
     FLibraryPaths_Android32: TDelphiTargetLibraryPaths;
     FLibraryPaths_Android64: TDelphiTargetLibraryPaths;
 
-    FDelphiCompiler_Win32: string;
-    FDelphiCompiler_Win64: string;
+    FCompiler_Delphi_Win32: string;
+    FCompiler_Delphi_Win64: string;
+    FCompiler_Delphi_Linux64: string;
     FResourceCompiler: string;
     FCBuilderCompiler_Win32: string;
     FCBuilderCompiler_Win64: string;
     FRsVars_BAT: string;
+    FDprojProjectVersions: TStringDynArray;
+    FCompiler_Delphi_iOS64: string;
+    FCompiler_Delphi_Android32: string;
+    FCompiler_Delphi_Android64: string;
+    FCompiler_Delphi_iOS32: string;
+    FCompiler_Delphi_iOS_Simulator32: string;
+    FCompiler_Delphi_OSX32: string;
+    FCompiler_Delphi_OSX64: string;
+    FCBuilderCompiler_Win32_CLANG: string;
+    FCBuilderCompiler_OSX32: string;
+    FCBuilderCompiler_iOS32: string;
+    FCBuilderCompiler_iOS64: string;
+    FCBuilderCompiler_Android32: string;
+
     procedure GetUserVars;
     procedure GetGeneralInfo;
     procedure GetInstalledUpdates;
@@ -396,6 +460,7 @@ type
     procedure GetPersonalities;
     procedure GetEditorHighlighList;
     procedure GetEnvironmentProjFile;
+    procedure GetDprojProjectVersions;
     procedure ReadInfos;
     procedure PrepareEditorHighlightList;
     procedure FillMVList(const KeyName: string; const List: TMultiValueList; bClear: Boolean = True);
@@ -446,6 +511,15 @@ type
     property Edition: string read FEdition;
     property InstallLanguage: string read FInstallLanguage;
 
+    property Personalities: TMultiValueList read FPersonalities;
+
+    property EditorHighightList: TDelphiEditorHighlightList read FEditorHighlightList;
+    property EnvironmentProjFile: string read FEnvironmentProjFile;
+    property RsVars_BAT: string read FRsVars_BAT;
+    property DprojProjectVersions: TStringDynArray read FDprojProjectVersions;
+
+
+    // Packages
     property IDEPackages: TDelphiPackageList read FIDEPackages;
     property IDEDelphiPackages: TDelphiPackageList read FIDEDelphiPackages;
     property IDECBuilderPackages: TDelphiPackageList read FIDECBuilderPackages;
@@ -453,23 +527,34 @@ type
     property DisabledPackages: TDelphiPackageList read FDisabledPackages;
     property DisabledIDEPackages: TDelphiPackageList read FDisabledIDEPackages;
 
-    property Personalities: TMultiValueList read FPersonalities;
-
-    property EditorHighightList: TDelphiEditorHighlightList read FEditorHighlightList;
-    property EnvironmentProjFile: string read FEnvironmentProjFile;
-
+    // Library paths
     property LibraryPaths_Win32: TDelphiTargetLibraryPaths read FLibraryPaths_Win32;
     property LibraryPaths_Win64: TDelphiTargetLibraryPaths read FLibraryPaths_Win64;
-
     property LibraryPaths_Android32: TDelphiTargetLibraryPaths read FLibraryPaths_Android32;
     property LibraryPaths_Android64: TDelphiTargetLibraryPaths read FLibraryPaths_Android64;
 
-    property DelphiCompiler_Win32: string read FDelphiCompiler_Win32;        // dcc32.exe
-    property DelphiCompiler_Win64: string read FDelphiCompiler_Win64;        // dcc64.exe
+    // Compilers
+    // https://docwiki.embarcadero.com/RADStudio/Alexandria/en/Command-Line_Utilities_Index
+    property Compiler_Delphi_Win32: string read FCompiler_Delphi_Win32;          // dcc32.exe
+    property Compiler_Delphi_Win64: string read FCompiler_Delphi_Win64;          // dcc64.exe
+    property Compiler_Delphi_Linux64: string read FCompiler_Delphi_Linux64;      // dcclinux64
+    property Compiler_Delphi_iOS32: string read FCompiler_Delphi_iOS32;          // dcciosarm.exe
+    property Compiler_Delphi_iOS64: string read FCompiler_Delphi_iOS64;          // dcciosarm64.exe
+    property Compiler_Delphi_iOS_Simulator32: string read FCompiler_Delphi_iOS_Simulator32; // dccios32.exe
+    property Compiler_Delphi_OSX32: string read FCompiler_Delphi_OSX32;          // dccosx.exe
+    property Compiler_Delphi_OSX64: string read FCompiler_Delphi_OSX64;          // dccosx64.exe
+    property Compiler_Delphi_Android32: string read FCompiler_Delphi_Android32;  // dccarm.exe
+    property Compiler_Delphi_Android64: string read FCompiler_Delphi_Android64;  // dccarm64.exe
+
+    property CBuilderCompiler_Win32_CLANG: string read FCBuilderCompiler_Win32_CLANG; // bcc32c.exe
     property CBuilderCompiler_Win32: string read FCBuilderCompiler_Win32;    // bcc32.exe
     property CBuilderCompiler_Win64: string read FCBuilderCompiler_Win64;    // bcc64.exe
+    property CBuilderCompiler_OSX32: string read FCBuilderCompiler_OSX32;    // bccosx.exe
+    property CBuilderCompiler_iOS32: string read FCBuilderCompiler_iOS32;    // bcciosarm.exe
+    property CBuilderCompiler_iOS64: string read FCBuilderCompiler_iOS64;    // bcciosarm64.exe
+    property CBuilderCompiler_Android32: string read FCBuilderCompiler_Android32; // bccaarm.exe
+
     property ResourceCompiler: string read FResourceCompiler;                // brcc32.exe
-    property RsVars_BAT: string read FRsVars_BAT;
 
   end;
   {$endregion TDelphiInfo}
@@ -502,26 +587,17 @@ function ExpandDelphiVars(const Path: string; const VarList: TMultiValueList): s
 function TryStringToColorDef(const ColorStr: string; const Default: TColor): TColor;
 function IsDelphiVariable(const VarName: string): Boolean;
 
+function TryGetDelphiVersionsFromProjectVersion(const ProjectVersion: string; out DelphiVersions: TDelphiVersions): Boolean;
+
+
+{$ENDIF} // MSWINDOWS
 
 
 implementation
 
 
+{$IFDEF MSWINDOWS}
 
-function ExpandDelphiVar(const Path, VarName, VarValue: string): string;
-begin
-  Result := TStr.ReplaceAll(Path, TStr.EnsureBounds(VarName, '$(', ')'), VarValue, True);
-end;
-
-function ExpandDelphiVars(const Path: string; const VarList: TMultiValueList): string;
-var
-  mv: TMultiValue;
-begin
-  Result := Path;
-  if Pos('$(', Path) = 0 then Exit;
-  for mv in VarList do
-    Result := TStr.ReplaceAll(Result, TStr.EnsureBounds(mv.Name, '$(', ')'), mv.StrValue, True);
-end;
 
 
 
@@ -639,6 +715,7 @@ begin
   GetUserVars;
   GetEnvironmentProjFile;
   GetIDEVariables;
+  GetDprojProjectVersions;
 
   GetIDEPackages;
   GetIDEDelphiPackages;
@@ -706,23 +783,67 @@ begin
     Reg.Free;
   end;
 
-  s := FInstallDir + '\bin\dcc32.exe';
-  if FileExists(s) then FDelphiCompiler_Win32 := s else FDelphiCompiler_Win32 := '';
 
-  s := FInstallDir + '\bin\dcc64.exe';
-  if FileExists(s) then FDelphiCompiler_Win64 := s else FDelphiCompiler_Win64 := '';
+  // Delphi compilers
+  s := FInstallDir + '\bin\' + COMPILER_EXE_DELPHI_WIN32;
+  if not FileExists(s) then s := '';
+  FCompiler_Delphi_Win32 := s;
 
-  s := FInstallDir + '\bin\bcc32.exe';
-  if FileExists(s) then FCBuilderCompiler_Win32 := s else FCBuilderCompiler_Win32 := '';
+  s := FInstallDir + '\bin\' + COMPILER_EXE_DELPHI_WIN64;
+  if not FileExists(s) then s := '';
+  FCompiler_Delphi_Win64 := s;
 
-  s := FInstallDir + '\bin\bcc64.exe';
-  if FileExists(s) then FCBuilderCompiler_Win64 := s else FCBuilderCompiler_Win64 := '';
+  s := FInstallDir + '\bin\' + COMPILER_EXE_DELPHI_LINUX64;
+  if not FileExists(s) then s := '';
+  FCompiler_Delphi_Linux64 := s;
+
+  s := FInstallDir + '\bin\' + COMPILER_EXE_DELPHI_OSX32;
+  if not FileExists(s) then s := '';
+  FCompiler_Delphi_OSX32 := s;
+
+  s := FInstallDir + '\bin\' + COMPILER_EXE_DELPHI_OSX64;
+  if not FileExists(s) then s := '';
+  FCompiler_Delphi_OSX64 := s;
+
+  s := FInstallDir + '\bin\' + COMPILER_EXE_DELPHI_IOS32;
+  if not FileExists(s) then s := '';
+  FCompiler_Delphi_iOS32 := s;
+
+  s := FInstallDir + '\bin\' + COMPILER_EXE_DELPHI_IOS64;
+  if not FileExists(s) then s := '';
+  FCompiler_Delphi_iOS64 := s;
+
+  s := FInstallDir + '\bin\' + COMPILER_EXE_DELPHI_IOS_SIMULATOR32;
+  if not FileExists(s) then s := '';
+  FCompiler_Delphi_iOS_Simulator32 := s;
+
+  s := FInstallDir + '\bin\' + COMPILER_EXE_DELPHI_ANDROID32;
+  if not FileExists(s) then s := '';
+  FCompiler_Delphi_Android32 := s;
+
+  s := FInstallDir + '\bin\' + COMPILER_EXE_DELPHI_ANDROID64;
+  if not FileExists(s) then s := '';
+  FCompiler_Delphi_Android64 := s;
+
+
+  // CPP compilers
+  s := FInstallDir + '\bin\' + COMPILER_EXE_CPP_WIN32;
+  if not FileExists(s) then s := '';
+  FCBuilderCompiler_Win32 := s;
+
+  s := FInstallDir + '\bin\' + COMPILER_EXE_CPP_WIN64;
+  if not FileExists(s) then s := '';
+  FCBuilderCompiler_Win64 := s;
+
+
 
   s := FInstallDir + '\bin\brcc32.exe';
-  if FileExists(s) then FResourceCompiler := s else FResourceCompiler := '';
+  if not FileExists(s) then s := '';
+  FResourceCompiler := s;
 
   s := FInstallDir + '\bin\rsvars.bat';
-  if FileExists(s) then FRsVars_BAT := s else FRsVars_BAT := '';
+  if not FileExists(s) then s := '';
+  FRsVars_BAT := s;
 end;
 
 procedure TDelphiInfo.GetInstalledUpdates;
@@ -781,6 +902,40 @@ begin
   if not DirectoryExists(FConfigDir) then Exit;
   FEnvironmentProjFile := FConfigDir + '\environment.proj';
   if not FileExists(FEnvironmentProjFile) then FEnvironmentProjFile := '';
+end;
+
+procedure TDelphiInfo.GetDprojProjectVersions;
+
+  procedure SetValues(Values: array of string);
+  var
+    i: integer;
+  begin
+    SetLength(FDprojProjectVersions, Length(Values));
+    for i := 0 to High(Values) do
+      FDprojProjectVersions[i] := Values[i];
+  end;
+
+begin
+  SetLength(FDprojProjectVersions, 0);
+  case FDelphiVersion of
+    dv2009: SetValues(['12.0']);
+    dv2010: SetValues(['12.0']);
+    dvXE: SetValues(['12.2', '12.3']);
+    dvXE2: SetValues(['13.4']);
+    dvXE3: SetValues(['14.3', '14.4']);
+    dvXE4: SetValues(['14.4', '14.6']);
+    dvXE5: SetValues(['15.0', '15.1', '15.3']);
+    dvAppMethod: SetValues(['15.2']);
+    dvXE6: SetValues(['15.4']);
+    dvXE7: SetValues(['16.0', '16.1']);
+    dvXE8: SetValues(['17.0', '17.1', '17.2']);
+    dvSeattle: SetValues(['18.0', '18.1']);
+    dvBerlin: SetValues(['18.1', '18.2']);
+    dvTokyo: SetValues(['18.2', '18.3', '18.4']);
+    dvRio: SetValues(['18.5', '18.6', '18.7', '18.8']);
+    dvSydney: SetValues(['19.0', '19.1', '19.2']);
+    dvAlexandria: SetValues(['19.3', '19.4']);
+  end;
 end;
 
 procedure TDelphiInfo.GetIDEVariables;
@@ -1111,14 +1266,20 @@ begin
     'Install language: ' + FInstallLanguage + ENDL +
     'Install dir: ' + FInstallDir + ENDL +
     'BDS executable: ' + FBdsExecutable + ENDL +
-    'Delphi compiler Win32: ' + FDelphiCompiler_Win32 + ENDL +
-    'Delphi compiler Win64: ' + FDelphiCompiler_Win64 + ENDL +
+    'Delphi compiler Win32: ' + FCompiler_Delphi_Win32 + ENDL +
+    'Delphi compiler Win64: ' + FCompiler_Delphi_Win64 + ENDL +
+    'Delphi compiler Linux64: ' + FCompiler_Delphi_Linux64 + ENDL +
     'C++Builder compiler Win32: ' + FCBuilderCompiler_Win32 + ENDL +
     'C++Builder compiler Win64: ' + FCBuilderCompiler_Win64 + ENDL +
     'Resource compiler: ' + FResourceCompiler + ENDL +
-    //'%APPDATA%: ' + FAppDataDir + ENDL +
     'Config dir: ' + FConfigDir + ENDL +
-    'environment.proj file: ' + FEnvironmentProjFile;
+    'environment.proj file: ' + FEnvironmentProjFile + ENDL +
+    'BPL output directory Win32: ' + FLibraryPaths_Win32.PackageOutputDir.ExpandedPath + ENDL +
+    'BPL output directory Win64: ' + FLibraryPaths_Win64.PackageOutputDir.ExpandedPath + ENDL +
+    'DCP output directory Win32: ' + FLibraryPaths_Win32.DcpOutputDir.ExpandedPath + ENDL +
+    'DCP output directory Win64: ' + FLibraryPaths_Win64.DcpOutputDir.ExpandedPath + ENDL +
+    'DPROJ ProductVersion: ' + TSTr.StringArrayToStr(FDprojProjectVersions, ', ') +
+    ENDL;
 
   if bShowRegKeys then
   begin
@@ -1135,7 +1296,8 @@ begin
     '  Packages: ' + s2 + FRegPath_Packages + ENDL +
     '  Disabled Packages: ' + s2 + FRegPath_DisabledPackages + ENDL +
     '  Disabled IDE Packages: ' + s2 + FRegPath_DisabledIDEPackages + ENDL +
-    '  Personalities: ' + s2 + FRegPath_Personalities;
+    '  Personalities: ' + s2 + FRegPath_Personalities +
+    ENDL;
   end;
 
   s := s + ENDL + 'Personalities: ' + itos(FPersonalities.count);
@@ -1144,6 +1306,7 @@ begin
      begin
        s := s + ENDL + MVListToNameValueStr(FPersonalities, ' - ', '  ');
        s := TStr.TrimENDL(s);
+       s := s + ENDL;
      end;
 
   if bShowUserVars then
@@ -1151,6 +1314,7 @@ begin
     begin
       s := s + ENDL + 'User variables:' + ENDL + MVListToNameValueStr(FUserVariables, '=', '  ');
       s := TStr.TrimENDL(s);
+      s := s + ENDL;
     end;
 
   if bShowIDEVars then
@@ -1158,6 +1322,7 @@ begin
     begin
       s := s + ENDL + 'IDE variables:' + ENDL + MVListToNameValueStr(FIDEVariables, '=', '  ');
       s := TStr.TrimENDL(s);
+      s := s + ENDL;
     end;
 
   if bShowInstalledUpdates then
@@ -1165,6 +1330,7 @@ begin
     begin
       s := s + ENDL + 'Installed updates: ' + ENDL + MVListToNameValueStr(FInstalledUpdates, ' - ', '  ');
       s := TStr.TrimENDL(s);
+      s := s + ENDL;
     end;
 
   s := s + ENDL + 'IDE Packages: ' + itos(FIDEPackages.Count);
@@ -1173,6 +1339,7 @@ begin
     begin
       s := s + ENDL + PackageListToStr(FIDEPackages, '  ');
       s := TStr.TrimENDL(s);
+      s := s + ENDL;
     end;
 
   s := s + ENDL + 'IDE Delphi Packages: ' + itos(FIDEDelphiPackages.Count);
@@ -1181,6 +1348,7 @@ begin
     begin
       s := s + ENDL + PackageListToStr(FIDEDelphiPackages, '  ');
       s := TStr.TrimENDL(s);
+      s := s + ENDL;
     end;
 
   s := s + ENDL + 'IDE CBuilder Packages: ' + itos(FIDECBuilderPackages.Count);
@@ -1189,6 +1357,7 @@ begin
     begin
       s := s + ENDL + PackageListToStr(FIDECBuilderPackages, '  ');
       s := TStr.TrimENDL(s);
+      s := s + ENDL;
     end;
 
   s := s + ENDL + 'Packages: ' + itos(FPackages.Count);
@@ -1197,6 +1366,7 @@ begin
     begin
       s := s + ENDL + PackageListToStr(FPackages, '  ');
       s := TStr.TrimENDL(s);
+      s := s + ENDL;
     end;
 
   s := s + ENDL + 'Disabled Packages: ' + itos(FDisabledPackages.Count);
@@ -1205,6 +1375,7 @@ begin
     begin
       s := s + ENDL + PackageListToStr(FDisabledPackages, '  ');
       s := TStr.TrimENDL(s);
+      s := s + ENDL;
     end;
 
   s := s + ENDL + 'Disabled IDE Packages: ' + itos(FDisabledIDEPackages.Count);
@@ -1213,6 +1384,7 @@ begin
     begin
       s := s + ENDL + PackageListToStr(FDisabledIDEPackages, '  ');
       s := TStr.TrimENDL(s);
+      s := s + ENDL;
     end;
 
   Result := s;
@@ -1754,6 +1926,21 @@ end;
 {$region ' ----------- helpers ------------- '}
 
 
+function ExpandDelphiVar(const Path, VarName, VarValue: string): string;
+begin
+  Result := TStr.ReplaceAll(Path, TStr.EnsureBounds(VarName, '$(', ')'), VarValue, True);
+end;
+
+function ExpandDelphiVars(const Path: string; const VarList: TMultiValueList): string;
+var
+  mv: TMultiValue;
+begin
+  Result := Path;
+  if Pos('$(', Path) = 0 then Exit;
+  for mv in VarList do
+    Result := TStr.ReplaceAll(Result, TStr.EnsureBounds(mv.Name, '$(', ')'), mv.StrValue, True);
+end;
+
 function TryStringToColorDef(const ColorStr: string; const Default: TColor): TColor;
 var
   xColor: integer;
@@ -2125,9 +2312,112 @@ begin
     SameText(VarName, 'DEMOSDIR') or SameText(VarName, 'ProductVersion');
 end;
 
+function TryGetDelphiVersionsFromProjectVersion(const ProjectVersion: string; out DelphiVersions: TDelphiVersions): Boolean;
+begin
+  DelphiVersions.Clear;
+
+  if MatchText(ProjectVersion, ['12.0']) then
+  begin
+    DelphiVersions.First := dv2009;
+    DelphiVersions.Second := dv2010;
+  end
+  else if MatchText(ProjectVersion, ['12.2', '12.3']) then DelphiVersions.First := dvXE
+  else if MatchText(ProjectVersion, ['13.4']) then DelphiVersions.First := dvXE2
+  else if MatchText(ProjectVersion, ['14.3']) then DelphiVersions.First := dvXE3
+  else if MatchText(ProjectVersion, ['14.4']) then
+  begin
+    DelphiVersions.First := dvXE3;
+    DelphiVersions.Second := dvXE4;
+  end
+  else if MatchText(ProjectVersion, ['14.6']) then DelphiVersions.First := dvXE4
+  else if MatchText(ProjectVersion, ['15.0', '15.1', '15.3']) then begin DelphiVersions.First := dvXE5; {ShowMessage('XE5');} end
+  else if MatchText(ProjectVersion, ['15.2']) then DelphiVersions.First := dvAppMethod
+  else if MatchText(ProjectVersion, ['15.4']) then DelphiVersions.First := dvXE6
+  else if MatchText(ProjectVersion, ['16.0', '16.1']) then DelphiVersions.First := dvXE7
+  else if MatchText(ProjectVersion, ['17.0', '17.1', '17.2']) then DelphiVersions.First := dvXE8
+  else if MatchText(ProjectVersion, ['18.0']) then DelphiVersions.First := dvSeattle
+  else if MatchText(ProjectVersion, ['18.1']) then
+  begin
+    DelphiVersions.First := dvSeattle;
+    DelphiVersions.Second := dvBerlin;
+  end
+  else if MatchText(ProjectVersion, ['18.2']) then
+  begin
+    DelphiVersions.First := dvBerlin;
+    DelphiVersions.Second := dvTokyo;
+  end
+  else if MatchText(ProjectVersion, ['18.3', '18.4']) then DelphiVersions.First := dvTokyo
+  else if MatchText(ProjectVersion, ['18.5', '18.6', '18.7', '18.8']) then DelphiVersions.First := dvRio
+  else if MatchText(ProjectVersion, ['19.0', '19.1', '19.2']) then DelphiVersions.First := dvSydney
+  else if MatchText(ProjectVersion, ['19.3', '19.4']) then DelphiVersions.First := dvAlexandria;
+
+  Result := DelphiVersions.First <> dvUnknown;
+end;
+
 {$endregion helpers}
 
 
+
+
+{ TDelphiVersions }
+
+procedure TDelphiVersions.Clear;
+begin
+  Self.First := dvUnknown;
+  Self.Second := dvUnknown;
+end;
+
+function TDelphiVersions.AsString(const UseLongNames: Boolean = False; const RemoveBrandName: Boolean = False): string;
+begin
+  Result := '';
+  if First = dvUnknown then Exit;
+  if UseLongNames then
+  begin
+    Result := DelphiVersionToDelphiFullName(First);
+    if Second <> dvUnknown then Result := Result + ' or ' + DelphiVersionToDelphiFullName(Second);
+    if RemoveBrandName then
+    begin
+      Result := TStr.RemoveAll(Result, 'Borland ', True);
+      Result := TStr.RemoveAll(Result, 'CodeGear ', True);
+      Result := TStr.RemoveAll(Result, 'Embarcadero ', True);
+    end;
+  end
+  else
+  begin
+    Result := DelphiVersionToDelphiName(First);
+    if Second <> dvUnknown then Result := Result + ' or ' + DelphiVersionToDelphiName(Second);
+  end;
+end;
+
+function TDelphiVersions.FirstAsString(const UseLongName: Boolean = False; const RemoveBrandName: Boolean = False): string;
+begin
+  Result := DelphiVersionToStr(First, UseLongName, RemoveBrandName);
+end;
+
+
+
+class function TDelphiVersions.DelphiVersionToStr(const dv: TDelphiVersion; const UseLongName: Boolean = False; const RemoveBrandName: Boolean = False): string;
+begin
+  Result := '';
+  if dv = dvUnknown then Exit;
+
+  if UseLongName then
+  begin
+    Result := DelphiVersionToDelphiFullName(dv);
+    if RemoveBrandName then
+    begin
+      Result := TStr.RemoveAll(Result, 'Borland ', True);
+      Result := TStr.RemoveAll(Result, 'CodeGear ', True);
+      Result := TStr.RemoveAll(Result, 'Embarcadero ', True);
+    end;
+  end
+  else
+  begin
+    Result := DelphiVersionToDelphiName(dv);
+  end;
+end;
+
+{$ENDIF} // MSWINDOWS
 
 
 end.
