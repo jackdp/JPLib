@@ -9,12 +9,12 @@
       <PathDelim Value="\"/>
       <SearchPaths>
         <IncludeFiles Value="..\.."/>
-        <OtherUnitFiles Value="..\..\Base;..\..\Binary;..\..\Containers;..\..\Graphics;..\..\Logging"/>
+        <OtherUnitFiles Value="..\..\Base;..\..\Binary;..\..\Containers;..\..\Graphics;..\..\Logging;..\..\IDE"/>
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
     </CompilerOptions>
     <Description Value="JPLib"/>
-    <Files Count="50">
+    <Files Count="53">
       <Item1>
         <Filename Value="..\..\Base\JPL.CmdLineParser.pas"/>
         <UnitName Value="JPL.CmdLineParser"/>
@@ -124,97 +124,109 @@
         <UnitName Value="JPL.Win.VersionInfo"/>
       </Item27>
       <Item28>
-        <Filename Value="..\..\Containers\JPL.StrList.pas"/>
-        <UnitName Value="JPL.StrList"/>
-      </Item28>
-      <Item29>
-        <Filename Value="..\..\Containers\JPL.Win.FileIcons.pas"/>
-        <UnitName Value="JPL.Win.FileIcons"/>
-      </Item29>
-      <Item30>
-        <Filename Value="..\..\Graphics\JPL.ColorArrays.pas"/>
-        <UnitName Value="JPL.ColorArrays"/>
-      </Item30>
-      <Item31>
-        <Filename Value="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
-        <UnitName Value="JPL.Colors.ColorClass"/>
-      </Item31>
-      <Item32>
-        <Filename Value="..\..\Graphics\JPL.Colors.List.pas"/>
-        <UnitName Value="JPL.Colors.List"/>
-      </Item32>
-      <Item33>
-        <Filename Value="..\..\Graphics\JPL.Colors.pas"/>
-        <UnitName Value="JPL.Colors"/>
-      </Item33>
-      <Item34>
-        <Filename Value="..\..\Logging\JPL.SimpleLogger.pas"/>
-        <UnitName Value="JPL.SimpleLogger"/>
-      </Item34>
-      <Item35>
-        <Filename Value="..\..\Logging\JPL.TimeLogger.pas"/>
-        <UnitName Value="JPL.TimeLogger"/>
-      </Item35>
-      <Item36>
-        <Filename Value="..\..\jp.inc"/>
-        <Type Value="Include"/>
-      </Item36>
-      <Item37>
-        <Filename Value="..\..\Base\JPL.TStr.pas"/>
-        <UnitName Value="JPL.TStr"/>
-      </Item37>
-      <Item38>
-        <Filename Value="..\..\Base\JPL.TStringsHelper.pas"/>
-        <UnitName Value="JPL.TStringsHelper"/>
-      </Item38>
-      <Item39>
-        <Filename Value="..\..\Base\JPL.Win.SimpleTimer.pas"/>
-        <UnitName Value="JPL.Win.SimpleTimer"/>
-      </Item39>
-      <Item40>
-        <Filename Value="..\..\Base\JPL.Rects.pas"/>
-        <UnitName Value="JPL.Rects"/>
-      </Item40>
-      <Item41>
-        <Filename Value="..\..\Base\JPL.ArrayIniFile.pas"/>
-        <UnitName Value="JPL.ArrayIniFile"/>
-      </Item41>
-      <Item42>
-        <Filename Value="..\..\Base\JPL.Bytes.pas"/>
-        <UnitName Value="JPL.Bytes"/>
-      </Item42>
-      <Item43>
-        <Filename Value="..\..\Base\JPL.Win.Registry.pas"/>
-        <UnitName Value="JPL.Win.Registry"/>
-      </Item43>
-      <Item44>
-        <Filename Value="..\..\Base\JPL.LangMgr.pas"/>
-        <UnitName Value="JPL.LangMgr"/>
-      </Item44>
-      <Item45>
-        <Filename Value="..\..\Base\JPL.SimpleZip.pas"/>
-        <UnitName Value="JPL.SimpleZip"/>
-      </Item45>
-      <Item46>
-        <Filename Value="..\..\Graphics\JPL.RoseDiag.BinDataList.pas"/>
-        <UnitName Value="JPL.RoseDiag.BinDataList"/>
-      </Item46>
-      <Item47>
-        <Filename Value="..\..\Graphics\JPL.RoseDiag.DataFile.pas"/>
-        <UnitName Value="JPL.RoseDiag.DataFile"/>
-      </Item47>
-      <Item48>
-        <Filename Value="..\..\Graphics\JPL.RoseDiag.Diagram.pas"/>
-        <UnitName Value="JPL.RoseDiag.Diagram"/>
-      </Item48>
-      <Item49>
-        <Filename Value="..\..\Graphics\JPL.PixelConv.pas"/>
-        <UnitName Value="JPL.PixelConv"/>
-      </Item49>
-      <Item50>
         <Filename Value="..\..\Base\JPL.Win.Mouse.pas"/>
         <UnitName Value="JPL.Win.Mouse"/>
+      </Item28>
+      <Item29>
+        <Filename Value="..\..\Containers\JPL.Containers.MultiValueList.pas"/>
+        <UnitName Value="JPL.Containers.MultiValueList"/>
+      </Item29>
+      <Item30>
+        <Filename Value="..\..\Containers\JPL.DefinitionList.pas"/>
+        <UnitName Value="JPL.DefinitionList"/>
+      </Item30>
+      <Item31>
+        <Filename Value="..\..\Containers\JPL.StrList.pas"/>
+        <UnitName Value="JPL.StrList"/>
+      </Item31>
+      <Item32>
+        <Filename Value="..\..\Containers\JPL.Win.FileIcons.pas"/>
+        <UnitName Value="JPL.Win.FileIcons"/>
+      </Item32>
+      <Item33>
+        <Filename Value="..\..\Graphics\JPL.ColorArrays.pas"/>
+        <UnitName Value="JPL.ColorArrays"/>
+      </Item33>
+      <Item34>
+        <Filename Value="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
+        <UnitName Value="JPL.Colors.ColorClass"/>
+      </Item34>
+      <Item35>
+        <Filename Value="..\..\Graphics\JPL.Colors.List.pas"/>
+        <UnitName Value="JPL.Colors.List"/>
+      </Item35>
+      <Item36>
+        <Filename Value="..\..\Graphics\JPL.Colors.pas"/>
+        <UnitName Value="JPL.Colors"/>
+      </Item36>
+      <Item37>
+        <Filename Value="..\..\Logging\JPL.SimpleLogger.pas"/>
+        <UnitName Value="JPL.SimpleLogger"/>
+      </Item37>
+      <Item38>
+        <Filename Value="..\..\Logging\JPL.TimeLogger.pas"/>
+        <UnitName Value="JPL.TimeLogger"/>
+      </Item38>
+      <Item39>
+        <Filename Value="..\..\jp.inc"/>
+        <Type Value="Include"/>
+      </Item39>
+      <Item40>
+        <Filename Value="..\..\Base\JPL.TStr.pas"/>
+        <UnitName Value="JPL.TStr"/>
+      </Item40>
+      <Item41>
+        <Filename Value="..\..\Base\JPL.TStringsHelper.pas"/>
+        <UnitName Value="JPL.TStringsHelper"/>
+      </Item41>
+      <Item42>
+        <Filename Value="..\..\Base\JPL.Win.SimpleTimer.pas"/>
+        <UnitName Value="JPL.Win.SimpleTimer"/>
+      </Item42>
+      <Item43>
+        <Filename Value="..\..\Base\JPL.Rects.pas"/>
+        <UnitName Value="JPL.Rects"/>
+      </Item43>
+      <Item44>
+        <Filename Value="..\..\Base\JPL.ArrayIniFile.pas"/>
+        <UnitName Value="JPL.ArrayIniFile"/>
+      </Item44>
+      <Item45>
+        <Filename Value="..\..\Base\JPL.Bytes.pas"/>
+        <UnitName Value="JPL.Bytes"/>
+      </Item45>
+      <Item46>
+        <Filename Value="..\..\Base\JPL.Win.Registry.pas"/>
+        <UnitName Value="JPL.Win.Registry"/>
+      </Item46>
+      <Item47>
+        <Filename Value="..\..\Base\JPL.LangMgr.pas"/>
+        <UnitName Value="JPL.LangMgr"/>
+      </Item47>
+      <Item48>
+        <Filename Value="..\..\Base\JPL.SimpleZip.pas"/>
+        <UnitName Value="JPL.SimpleZip"/>
+      </Item48>
+      <Item49>
+        <Filename Value="..\..\Graphics\JPL.RoseDiag.BinDataList.pas"/>
+        <UnitName Value="JPL.RoseDiag.BinDataList"/>
+      </Item49>
+      <Item50>
+        <Filename Value="..\..\Graphics\JPL.RoseDiag.DataFile.pas"/>
+        <UnitName Value="JPL.RoseDiag.DataFile"/>
       </Item50>
+      <Item51>
+        <Filename Value="..\..\Graphics\JPL.RoseDiag.Diagram.pas"/>
+        <UnitName Value="JPL.RoseDiag.Diagram"/>
+      </Item51>
+      <Item52>
+        <Filename Value="..\..\Graphics\JPL.PixelConv.pas"/>
+        <UnitName Value="JPL.PixelConv"/>
+      </Item52>
+      <Item53>
+        <Filename Value="..\..\IDE\JPL.Delphi.Info.pas"/>
+        <UnitName Value="JPL.Delphi.Info"/>
+      </Item53>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
