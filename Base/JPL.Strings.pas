@@ -5,8 +5,7 @@
   https://www.pazera-software.com
   https://github.com/jackdp
 
-  To jest mój stary moduł z roku 2000 dla Borland Pascala 7.0
-  W kolejnych latach rozbudowywany i dostosowywany do nowszych wersji Delphi i FPC.
+  Based on my old unit from 2000 for Borland Pascal 7.0
  }
 
 
@@ -68,14 +67,15 @@ type
   TArray<T> = array of T;
 {$ENDIF}
 
-function Rbs(Dir: string): string; // removes path delimiter from end
-function Qs(const s: string): string; // adds " at the beginning and end of the input string
+function Rbs(const Directory: string): string; // Removes path delimiter from the end of directory name.
+function Qs(const s: string): string; // Adds " at the beginning and end of the input string. See also EnsureBounds, AddBounds
 function Capitalize(const s: string): string;
-function FixFileName(fName: string; s: string = '_'; ZamieniajCudzyslowy: Boolean = True): string;
+function FixFileName(const ShortFileName: string; ReplaceInvalidCharsWith: string = '_'; ReplaceQuotationMarks: Boolean = True): string;
 function IsValidShortFileName(const ShortFileName: string): Boolean;
 function IsValidLongFileName(const LongFileName: string): Boolean;
 function FixFileNameSlashes(const FileName: string): string; deprecated {$IFDEF DCC}{$IF CompilerVersion > 19}'Use FixPathDelimiters instead'{$IFEND}{$ENDIF};
 function FixPathDelimiters(const FileName: string): string;
+
 function PadString(Text: string; i: integer; znak: Char = ' '): string;
 function Pad(Text: string; Len: integer; PaddingChar: Char = ' '): string; overload;
 function Pad(const x: integer; Len: integer; PaddingChar: Char = '0'): string; overload;
@@ -83,6 +83,7 @@ function Pad(const x: Int64; Len: integer; PaddingChar: Char = '0'): string; ove
 function PadRight(Text: string; Len: integer; PaddingChar: Char = ' '): string; overload;
 function PadRight(const x: integer; Len: integer; PaddingChar: Char = ' '): string; overload;
 function PadRight(const x: Int64; Len: integer; PaddingChar: Char = ' '): string; overload;
+
 function UnquoteStr(s: string; bDoubleQuote: Boolean = True): string;
 function IntToStrEx(const x: int64; c: Char = ' '): string; overload;
 function IntToStrEx(const x: integer; c: Char = ' '): string; overload;
@@ -168,6 +169,8 @@ procedure SplitStrToArrayEx(s: string; var Arr: TStringDynArray; const EndLineSt
 function RemoveEmptyStrings(var Arr: TStringDynArray): integer; // Returns the number of removed empty strings
 function SplitStr(const InStr: string; out LeftStr, RightStr: string; const Separator: string): Boolean; overload;
 function SplitStr(const InStr: string; out LeftInt, RightInt: integer; const Separator: string): Boolean; overload;
+// SplitText copied from JPL.CmdLineParser.pas
+function SplitText(Text: string; MaxLen, Padding: integer; PadFirstLine: Boolean = False; PaddingChar: Char = ' '; ENDL: string = #13#10): string;
 
 function TrimBounds(s: string; LeftBound, RightBound: string): string;
 function IsBoundedWith(const s: string; LeftBound, RightBound: string; IgnoreCase: Boolean = False): Boolean;
@@ -205,9 +208,39 @@ function SaveStringToFile(const FileName, Content: string): Boolean; overload;
 function LoadStringFromFile(const FileName: string; var s: string; Encoding: TEncoding; ForceEncoding: Boolean = False): Boolean; overload;
 function LoadStringFromFile(const FileName: string; var s: string): Boolean; overload;
 
+function StrInArray(const s: string; const Arr: array of string; const IgnoreCase: Boolean): Boolean;
+function StringArrayToStr(Arr: TStringDynArray; ValueSeparator: string = ', '): string;
+
 
 implementation
 
+
+function StrInArray(const s: string; const Arr: array of string; const IgnoreCase: Boolean): Boolean;
+var
+  i: integer;
+  us: string;
+begin
+  Result := False;
+  if IgnoreCase then us := UpperCase(s);
+
+  for i := 0 to High(Arr) do
+  begin
+    if IgnoreCase then Result := UpperCase(Arr[i]) = us
+    else Result := Arr[i] = s;
+    if Result then Break;
+  end;
+end;
+
+function StringArrayToStr(Arr: TStringDynArray; ValueSeparator: string = ', '): string;
+var
+  i: integer;
+begin
+  Result := '';
+  if Length(Arr) = 0 then Exit;
+  for i := 0 to Length(Arr) - 1 do
+    Result := Result + Arr[i] + ValueSeparator;
+  Result := TrimFromEnd(Result, ValueSeparator);
+end;
 
 {$IFDEF FPC}
 function SaveStringToFile(const FileName, Content: string; Encoding: TEncoding; const WriteBOM: Boolean = True): Boolean; overload;
@@ -351,6 +384,84 @@ begin
   if not TryStrToInt(sLeft, LeftInt) then Exit;
   if not TryStrToInt(sRight, RightInt) then Exit;
   Result := True;
+end;
+
+function SplitText(Text: string; MaxLen, Padding: integer; PadFirstLine: Boolean = False; PaddingChar: Char = ' '; ENDL: string = #13#10): string;
+const
+  Delims: TSysCharset = [
+    ' ',
+    '(', ')', '[', ']', '{', '}', '<', '>',
+    {'`',} '~', '!', '@', '#', '$', '%', '^', '*', '-', {'_',} '+', '=',
+    {'''',} '"', '\', '|', ';', ':', ',', '.'
+  ];
+var
+  i, xDelimPos: integer;
+  s, sr, PaddingStr: string;
+  A: array of string;
+
+  procedure Add(Line: string);
+  begin
+    SetLength(A, Length(A) + 1);
+    A[Length(A) - 1] := Line;
+  end;
+
+  function DelimPos(InStr: string; SearchPosStart: integer): integer;
+  var
+    i: integer;
+  begin
+    Result := -1;
+    if (InStr = '') or (SearchPosStart < 1) or (SearchPosStart > Length(InStr)) then Exit;
+    for i := SearchPosStart downto 1 do
+    begin
+      if CharInSet(InStr[i], Delims) then
+      begin
+        Result := i;
+        Break;
+      end;
+    end;
+  end;
+
+begin
+  if (Length(Text) <= Padding) or (MaxLen = 0) then
+  begin
+    Result := Text;
+    Exit;
+  end;
+
+  SetLength(A, 0);
+              //if Padding > MaxLen then exit;
+  if not PadFirstLine then
+  begin
+    xDelimPos := DelimPos(Text, MaxLen);
+    if xDelimPos < 0 then xDelimPos := MaxLen;
+    s := Copy(Text, 1, xDelimPos);
+
+    Add(s);
+    Text := Copy(Text, xDelimPos + 1, Length(Text));
+  end;
+
+  sr := '';
+  PaddingStr := StringOfChar(PaddingChar, Padding);
+
+
+  while Text <> '' do
+  begin
+
+    xDelimPos := DelimPos(Text, MaxLen - Padding);
+    if xDelimPos < 0 then xDelimPos := MaxLen;
+
+    s := PaddingStr + Trim( Copy(Text, 1, xDelimPos) );
+    Add(s);
+    Text := Copy(Text, xDelimPos + 1, Length(Text));
+    //Writeln(Text);
+
+  end;
+
+
+  for i := 0 to Length(A) - 1 do sr := sr + A[i] + ENDL;
+  sr := TrimRight(sr);
+
+  Result := sr;
 end;
 
 function Capitalize(const s: string): string;
@@ -724,12 +835,8 @@ begin
 end;
 
 function StrRemove(const s, StringToRemove: string; IgnoreCase: Boolean = False): string;
-var
-  rf: TReplaceFlags;
 begin
-  rf := [rfReplaceAll];
-  if IgnoreCase then Include(rf, rfIgnoreCase);
-  Result := StringReplace(s, StringToRemove, '', rf);
+  Result := ReplaceAll(s, StringToRemove, '', IgnoreCase);
 end;
 
 function MyDir(bExcludeTrailingPathDelim: Boolean = True): string;
@@ -814,7 +921,7 @@ var
   rf: TReplaceFlags;
   s: string;
 begin
-  // HTML entities are case sensitive
+  // HTML entities are case sensitive!
   rf := [rfReplaceAll];
   if IgnoreCase then rf := rf + [rfIgnoreCase];
 
@@ -953,7 +1060,7 @@ begin
     Result := StringReplace(Result, Chars[i], '', rf);
 end;
 
-// A po co to?
+// HINT: A po co to?
 function AnsiUpCase(zn: Char; Default: Char): Char;
 var
   s: string;
@@ -963,7 +1070,7 @@ begin
   Result := s[1];
 end;
 
-// A po co to?
+// HINT: A po co to?
 function AnsiLowCase(zn: Char; Default: Char): Char;
 var
   s: string;
@@ -1155,6 +1262,7 @@ begin
 end;
 {$hints on}
 
+// TODO: Change name. This is not the best name for this function.
 function RemoveSlashes(const Text: string): string;
 var
   s: string;
@@ -1359,22 +1467,19 @@ begin
   Result := PadRight(IntToStr(x), Len, PaddingChar);
 end;
 
-
-{$hints off}
-function FixFileName(fName: string; s: string = '_'; ZamieniajCudzyslowy: Boolean = True): string;
+function FixFileName(const ShortFileName: string; ReplaceInvalidCharsWith: string = '_'; ReplaceQuotationMarks: Boolean = True): string;
 begin
-  if ZamieniajCudzyslowy then fName := StringReplace(fName, '"', '''', [rfReplaceAll]);
-  fName := StringReplace(fName, '?', s, [rfReplaceAll]);
-  fName := StringReplace(fName, '*', s, [rfReplaceAll]);
-  fName := StringReplace(fName, ':', s, [rfReplaceAll]);
-  fName := StringReplace(fName, '/', s, [rfReplaceAll]);
-  fName := StringReplace(fName, '\', s, [rfReplaceAll]);
-  fName := StringReplace(fName, '<', s, [rfReplaceAll]);
-  fName := StringReplace(fName, '>', s, [rfReplaceAll]);
-  fName := StringReplace(fName, '|', s, [rfReplaceAll]);
-  Result := fName;
+  Result := ShortFileName;
+  if ReplaceQuotationMarks then Result := ReplaceAll(Result, '"', '''');
+  Result := ReplaceAll(Result, '?', ReplaceInvalidCharsWith);
+  Result := ReplaceAll(Result, '*', ReplaceInvalidCharsWith);
+  Result := ReplaceAll(Result, ':', ReplaceInvalidCharsWith);
+  Result := ReplaceAll(Result, '/', ReplaceInvalidCharsWith);
+  Result := ReplaceAll(Result, '\', ReplaceInvalidCharsWith);
+  Result := ReplaceAll(Result, '<', ReplaceInvalidCharsWith);
+  Result := ReplaceAll(Result, '>', ReplaceInvalidCharsWith);
+  Result := ReplaceAll(Result, '|', ReplaceInvalidCharsWith);
 end;
-{$hints on}
 
 function IsValidShortFileName(const ShortFileName: string): Boolean;
 const
@@ -1436,14 +1541,11 @@ begin
   Result := '"' + s + '"';
 end;
 
-{$hints off}
-function Rbs(Dir: string): string;
+function Rbs(const Directory: string): string;
 begin
-  if Copy(Dir, Length(Dir), 1) = '.' then Delete(Dir, Length(Dir), 1);
-  Dir := ExcludeTrailingPathDelimiter(Dir);
-  Result := Dir;
+  Result := TrimFromEnd(Directory, '.');
+  Result := ExcludeTrailingPathDelimiter(Result);
 end;
-{$hints on}
 
 function IntToStrEx(const x: int64; c: Char = ' '): string;
 var

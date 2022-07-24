@@ -142,6 +142,9 @@ type
 
     class function IsFileMask(const FileName: string): Boolean; static;
 
+    class function StrInArray(const s: string; const Arr: array of string; const IgnoreCase: Boolean): Boolean; static;
+    class function StringArrayToStr(Arr: TStringDynArray; ValueSeparator: string = ', '): string; static;
+
     class property DecimalSeparator: Char read GetDecimalSeparator write SetDecimalSeparator;
     class property ThousandSeparator: Char read GetThousandSeparator write SetThousandSeparator;
     class property DateSeparator: Char read GetDateSeparator write SetDateSeparator;
@@ -469,6 +472,16 @@ end;
 class function TStr.IsFileMask(const FileName: string): Boolean;
 begin
   Result := TStr.Contains(FileName, '*') or TStr.Contains(FileName, '?');
+end;
+
+class function TStr.StrInArray(const s: string; const Arr: array of string; const IgnoreCase: Boolean): Boolean;
+begin
+  Result := JPL.Strings.StrInArray(s, Arr, IgnoreCase);
+end;
+
+class function TStr.StringArrayToStr(Arr: TStringDynArray; ValueSeparator: string = ', '): string;
+begin
+  Result := JPL.Strings.StringArrayToStr(Arr, ValueSeparator);
 end;
 
 class function TStr.GetDecimalSeparator: Char;
