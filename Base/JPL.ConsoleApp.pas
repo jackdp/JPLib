@@ -115,6 +115,7 @@ type
     FCmd: TJPCmdLineParser;
     FDescription: string;
     FExamplesStr: string;
+    FSourcePage: string;
     {$IFDEF MSWINDOWS}
     FTerminateProcedure: TJPConsoleTerminateProc;
     {$ENDIF}
@@ -191,6 +192,7 @@ type
     procedure GoToUrl(const URL: string);
     procedure GoToHomePage;
     procedure GoToHelpPage;
+    procedure GoToSourcePage;
     {$ENDIF}
 
     property Cmd: TJPCmdLineParser read FCmd;
@@ -208,6 +210,7 @@ type
     property Author: string read FAuthor write FAuthor;
     property HomePage: string read FHomePage write FHomePage;
     property HelpPage: string read FHelpPage write FHelpPage;
+    property SourcePage: string read FSourcePage write FSourcePage; // Github, Gitlab, s-f, OSDN...
     property BannerFormat: string read FBannerFormat write FBannerFormat;
     property UsageStr: string read FUsageStr write FUsageStr;
     property ShortUsageStr: string read FShortUsageStr write FShortUsageStr;
@@ -527,6 +530,11 @@ end;
 procedure TJPConsoleApp.GoToHelpPage;
 begin
   GoToUrl(HelpPage);
+end;
+
+procedure TJPConsoleApp.GoToSourcePage;
+begin
+  GoToUrl(SourcePage);
 end;
 
 {$ENDIF}
