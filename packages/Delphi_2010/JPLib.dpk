@@ -86,6 +86,8 @@ contains
   // Containers
   JPL.Win.FileIcons in '..\..\Containers\JPL.Win.FileIcons.pas',
   JPL.StrList in '..\..\Containers\JPL.StrList.pas',
+  JPL.Containers.MultiValueList in '..\..\Containers\JPL.Containers.MultiValueList.pas',
+  JPL.DefinitionList in '..\..\Containers\JPL.DefinitionList.pas',
 
   // Graphics
   JPL.ColorArrays in '..\..\Graphics\JPL.ColorArrays.pas',

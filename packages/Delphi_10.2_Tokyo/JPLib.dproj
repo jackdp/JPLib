@@ -28,6 +28,12 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win64)'!=''">
+        <Cfg_1_Win64>true</Cfg_1_Win64>
+        <CfgParent>Cfg_1</CfgParent>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
         <Cfg_2>true</Cfg_2>
         <CfgParent>Base</CfgParent>
@@ -69,6 +75,9 @@
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
         <DCC_Optimize>false</DCC_Optimize>
@@ -80,6 +89,7 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
+        <DCCReference Include="..\..\Base\JPL.Bytes.pas"/>
         <DCCReference Include="..\..\Base\JPL.CmdLineParser.pas"/>
         <DCCReference Include="..\..\Base\JPL.Console.ColorParser.pas"/>
         <DCCReference Include="..\..\Base\JPL.Console.pas"/>
@@ -89,18 +99,28 @@
         <DCCReference Include="..\..\Base\JPL.Dialogs.pas"/>
         <DCCReference Include="..\..\Base\JPL.Files.pas"/>
         <DCCReference Include="..\..\Base\JPL.FileSearch.pas"/>
+        <DCCReference Include="..\..\Base\JPL.IniFile.pas"/>
+        <DCCReference Include="..\..\Base\JPL.LangMgr.pas"/>
         <DCCReference Include="..\..\Base\JPL.Language.pas"/>
         <DCCReference Include="..\..\Base\JPL.Math.pas"/>
+        <DCCReference Include="..\..\Base\JPL.MemIniFile.pas"/>
+        <DCCReference Include="..\..\Base\JPL.RTTI.pas"/>
         <DCCReference Include="..\..\Base\JPL.StrHash.pas"/>
         <DCCReference Include="..\..\Base\JPL.Strings.pas"/>
         <DCCReference Include="..\..\Base\JPL.Strings.Ext.pas"/>
+        <DCCReference Include="..\..\Base\JPL.TStr.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Units.pas"/>
         <DCCReference Include="..\..\Base\JPL.Utils.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Rects.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.Dialogs.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.FileSystem.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.Processes.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.Shortcuts.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.System.pas"/>
         <DCCReference Include="..\..\Base\JPL.Win.VersionInfo.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.SimpleTimer.pas"/>
+        <DCCReference Include="..\..\Base\JPL.Win.Mouse.pas"/>
+        <DCCReference Include="..\..\Base\JPL.SimpleZip.pas"/>
         <DCCReference Include="..\..\Binary\JPL.Binary.Elf.pas"/>
         <DCCReference Include="..\..\Binary\JPL.Binary.Mach.Types.pas"/>
         <DCCReference Include="..\..\Binary\JPL.Binary.MachFat.pas"/>
@@ -110,10 +130,13 @@
         <DCCReference Include="..\..\Binary\JPL.Binary.Procs.pas"/>
         <DCCReference Include="..\..\Binary\JPL.Binary.Types.pas"/>
         <DCCReference Include="..\..\Binary\JPL.UPX.pas"/>
+        <DCCReference Include="..\..\Containers\JPL.Win.FileIcons.pas"/>
         <DCCReference Include="..\..\Containers\JPL.StrList.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.Colors.pas"/>
-        <DCCReference Include="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
         <DCCReference Include="..\..\Graphics\JPL.ColorArrays.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.Colors.List.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.Colors.pas"/>
+        <DCCReference Include="..\..\Graphics\JPL.PixelConv.pas"/>
         <DCCReference Include="..\..\Logging\JPL.SimpleLogger.pas"/>
         <DCCReference Include="..\..\Logging\JPL.TimeLogger.pas"/>
         <BuildConfiguration Include="Debug">
