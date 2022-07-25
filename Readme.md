@@ -1,5 +1,9 @@
 # JPLib
 
+![](https://tokei.rs/b1/github/jackdp/JPLib?category=code)
+![](https://tokei.rs/b1/github/jackdp/JPLib?category=files)
+![visitors](https://visitor-badge.glitch.me/badge?page_id=jackdp.jplib)
+
 Small library of Pascal units needed to compile my projects published on GitHub.
 
 Supported Delphi versions: **2009**, **2010**, **XE**, **XE2**, **XE3**, **XE4**, **XE5**, **XE6**, **XE7**, **XE8**, **10.0 Seattle**, **10.1 Berlin**, **10.2 Tokyo**, **10.3 Rio**, **10.4 Sydney**, **11.0 Alexandria**.  
