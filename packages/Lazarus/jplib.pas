@@ -14,7 +14,7 @@ uses
   JPL.Win.Mouse, JPL.Containers.MultiValueList, JPL.DefinitionList, JPL.StrList, JPL.Win.FileIcons, JPL.ColorArrays, JPL.Colors.ColorClass, 
   JPL.Colors.List, JPL.Colors, JPL.SimpleLogger, JPL.TimeLogger, JPL.TStr, JPL.TStringsHelper, JPL.Win.SimpleTimer, JPL.Rects, JPL.ArrayIniFile, 
   JPL.Bytes, JPL.Win.Registry, JPL.LangMgr, JPL.SimpleZip, JPL.RoseDiag.BinDataList, JPL.RoseDiag.DataFile, JPL.RoseDiag.Diagram, JPL.PixelConv, 
-  JPL.Delphi.Info, LazarusPackageIntf;
+  JPL.Delphi.Info, JPL.Win.ConsoleAppRun, LazarusPackageIntf;
 
 implementation
 

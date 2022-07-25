@@ -14,7 +14,7 @@
       </SearchPaths>
     </CompilerOptions>
     <Description Value="JPLib"/>
-    <Files Count="53">
+    <Files Count="54">
       <Item1>
         <Filename Value="..\..\Base\JPL.CmdLineParser.pas"/>
         <UnitName Value="JPL.CmdLineParser"/>
@@ -227,6 +227,10 @@
         <Filename Value="..\..\IDE\JPL.Delphi.Info.pas"/>
         <UnitName Value="JPL.Delphi.Info"/>
       </Item53>
+      <Item54>
+        <Filename Value="..\..\Base\JPL.Win.ConsoleAppRun.pas"/>
+        <UnitName Value="JPL.Win.ConsoleAppRun"/>
+      </Item54>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
