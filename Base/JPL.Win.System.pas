@@ -167,12 +167,19 @@ end;
 function SearchPathForFile(const ShortFileName: string; DefResult: string = ''; PathToSearch: string = ''): string;
 var
   Buffer: array[0..511] of Char;
-  lpFilePart: PChar;
   dwX: DWORD;
+  lpFilePart: PChar;
 begin
   Result := DefResult;
   FillChar(Buffer{%H-}, SizeOf(Buffer), 0);
-  dwX := SearchPath(PChar(PathToSearch), PChar(ShortFileName), nil, Length(Buffer), Buffer, lpFilePart{%H-});
+  lpFilePart := nil;
+
+  if PathToSearch <> '' then
+    dwX := SearchPath(PChar(PathToSearch), PChar(ShortFileName), nil, Length(Buffer), Buffer, lpFilePart)
+  else
+    // [FPC] Taka sytuacja: Bez wynilowania PathToSearch funkcja SearchPath siê wykrzacza.
+    dwX := SearchPath(nil, PChar(ShortFileName), nil, Length(Buffer), Buffer, lpFilePart);
+
   if dwX = 0 then Exit;
   Result := Buffer;
 end;
