@@ -7,7 +7,8 @@
 }
 
 {$I .\..\jp.inc}
-{$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
+
+{$IFDEF FPC}{$mode Delphi}{$H+}{$ENDIF}
 
 interface
 
@@ -210,6 +211,23 @@ type
     {$IFDEF FPC}{$IFDEF HAS_INIFILE_WITH_ENCODING}
     property Encoding: TEncoding read GetEncoding;
     {$ENDIF}{$ENDIF}
+  end;
+
+
+  TIni = record
+  public
+    class procedure ReadSection(const IniFile, Section: string; Strings: TStrings); static; // Reads key names from the given section
+    class procedure ReadSections(const IniFile: string; Strings: TStrings); static; // Reads names of all sections
+
+    class function ReadString(const IniFile, Section, Ident: string; Default: string = ''): string; static;
+    class procedure WriteString(const IniFile, Section, Ident, Value: string); static;
+    class function ReadInteger(const IniFile, Section, Ident: string; Default: integer): integer; static;
+    class procedure WriteInteger(const IniFile, Section, Ident: string; Value: integer); static;
+    class function ReadBool(const IniFile, Section, Ident: string; Default: Boolean): Boolean; static;
+    class procedure WriteBool(const IniFile, Section, Ident: string; Value: Boolean); static;
+
+    class procedure ReadFormPos(const IniFile, Section: string; Form: TForm; AllowMaximize: Boolean = True); static;
+    class procedure WriteFormPos(const IniFile, Section: string; Form: TForm); static;
   end;
 
   
@@ -1173,6 +1191,145 @@ end;
 
 
 {$endregion TJppMemIniFile}
+
+
+
+{$region '         TIni             '}
+
+class procedure TIni.ReadSection(const IniFile, Section: string; Strings: TStrings);
+var
+  Ini: TJppMemIniFile;
+begin
+  if not FileExists(IniFile) then Exit;
+  Ini := TJppMemIniFile.Create(IniFile);
+  try
+    Ini.ReadSection(Section, Strings);
+  finally
+    Ini.Free;
+  end;
+end;
+
+class procedure TIni.ReadSections(const IniFile: string; Strings: TStrings);
+var
+  Ini: TJppMemIniFile;
+begin
+  if not FileExists(IniFile) then Exit;
+  Ini := TJppMemIniFile.Create(IniFile);
+  try
+    Ini.ReadSections(Strings);
+  finally
+    Ini.Free;
+  end;
+end;
+
+class function TIni.ReadString(const IniFile, Section, Ident: string; Default: string): string;
+var
+  Ini: TJppMemIniFile;
+begin
+  Result := Default;
+  if not FileExists(IniFile) then Exit;
+  Ini := TJppMemIniFile.Create(IniFile);
+  try
+    Result := Ini.ReadString(Section, Ident, Default);
+  finally
+    Ini.Free;
+  end;
+end;
+
+class procedure TIni.WriteString(const IniFile, Section, Ident, Value: string);
+var
+  Ini: TJppMemIniFile;
+begin
+  Ini := TJppMemIniFile.Create(IniFile);
+  try
+    Ini.WriteString(Section, Ident, Value);
+    Ini.UpdateFile;
+  finally
+    Ini.Free;
+  end;
+end;
+
+class function TIni.ReadInteger(const IniFile, Section, Ident: string; Default: integer): integer;
+var
+  Ini: TJppMemIniFile;
+begin
+  Result := Default;
+  if not FileExists(IniFile) then Exit;
+  Ini := TJppMemIniFile.Create(IniFile);
+  try
+    Result := Ini.ReadInteger(Section, Ident, Default);
+  finally
+    Ini.Free;
+  end;
+end;
+
+class procedure TIni.WriteInteger(const IniFile, Section, Ident: string; Value: integer);
+var
+  Ini: TJppMemIniFile;
+begin
+  Ini := TJppMemIniFile.Create(IniFile);
+  try
+    Ini.WriteInteger(Section, Ident, Value);
+    Ini.UpdateFile;
+  finally
+    Ini.Free;
+  end;
+end;
+
+class function TIni.ReadBool(const IniFile, Section, Ident: string; Default: Boolean): Boolean;
+var
+  Ini: TJppMemIniFile;
+begin
+  Result := Default;
+  if not FileExists(IniFile) then Exit;
+  Ini := TJppMemIniFile.Create(IniFile);
+  try
+    Result := Ini.ReadBool(Section, Ident, Default);
+  finally
+    Ini.Free;
+  end;
+end;
+
+class procedure TIni.WriteBool(const IniFile, Section, Ident: string; Value: Boolean);
+var
+  Ini: TJppMemIniFile;
+begin
+  Ini := TJppMemIniFile.Create(IniFile);
+  try
+    Ini.WriteBool(Section, Ident, Value);
+    Ini.UpdateFile;
+  finally
+    Ini.Free;
+  end;
+end;
+
+class procedure TIni.ReadFormPos(const IniFile, Section: string; Form: TForm; AllowMaximize: Boolean = True);
+var
+  Ini: TJppMemIniFile;
+begin
+  if not FileExists(IniFile) then Exit;
+  Ini := TJppMemIniFile.Create(IniFile);
+  try
+    Ini.ReadFormPos(Section, Form, AllowMaximize);
+  finally
+    Ini.Free;
+  end;
+end;
+
+class procedure TIni.WriteFormPos(const IniFile, Section: string; Form: TForm);
+var
+  Ini: TJppMemIniFile;
+begin
+  Ini := TJppMemIniFile.Create(IniFile);
+  try
+    Ini.WriteFormPos(Section, Form);
+    Ini.UpdateFile;
+  finally
+    Ini.Free;
+  end;
+end;
+
+{$endregion TIni}
 
 
 end.
