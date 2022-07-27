@@ -2,31 +2,37 @@
 
 {
   Jacek Pazera
-  http://www.pazera-software.com
+  https://www.pazera-software.com
+  https://github.com/jackdp
 
 
-  Przydatne linki:
-  https://msdn.microsoft.com/en-us/library/windows/desktop/ms647003(v=vs.85).aspx - GetFileVersionInfo
-  https://msdn.microsoft.com/en-us/library/windows/desktop/ms647464(v=vs.85).aspx - VarQueryValue
-  https://msdn.microsoft.com/en-us/library/windows/desktop/ms647463(v=vs.85).aspx - VerLanguageName
-  https://msdn.microsoft.com/en-us/library/windows/desktop/ms646997(v=vs.85).aspx - VS_FIXEDFILEINFO structure
+  Links
+
+  https://docs.microsoft.com/en-us/windows/win32/api/winver/nf-winver-getfileversioninfoa
+  https://docs.microsoft.com/en-us/windows/win32/api/winver/nf-winver-verqueryvaluea
+  https://docs.microsoft.com/en-us/windows/win32/api/winver/nf-winver-verlanguagenamea
+  https://docs.microsoft.com/en-us/windows/win32/api/verrsrc/ns-verrsrc-vs_fixedfileinfo
 
 
-  Metoda postępowania z TJPVersionInfo:
-  1. Wywołać Create z nazwą pliku. Automatycznie wywoływana jest procedure ReadFile, która próbuje odczytać VersionInfo z podanego pliku.
-  2. Jeśli odczyt się powiedzie, Status będzie wynosił VI_OK, a ValidVersionInfo będzie ustawione na True.
-     W przeciwnym razie Status będzie równy jednej ze stałych VI_ERROR_*.
-  3. W pliku może znajdować się wiele bloków z informacjami tekstowymi. Dostepne są one przez property StringItems.
-     Liczba tych bloków = StringItemsCount.
-  4. Jeśli plik zawiera FixedFileInfo, FixedFileInfoExists jest ustawiane na True.
+  How to use
+
+  1. Call Create with the file name. The ReadFile procedure is called automatically and tries to read the VersionInfo from the given file.
+  2. If the read is successful, Status will be set to VI_OK and ValidVersionInfo will be set to True.
+     Otherwise, the Status will be set to one of the VI_ERROR_* constants.
+  3. There can be multiple blocks of text information in a file. They are accessed via the StringItems property.
+     Number of these blocks = StringItemsCount.
+  4. If the file contains FixedFileInfo, FixedFileInfoExists is set to True.
 
   ------------------------------------
 
-  Alternative solutions:
-  FPC:
-    fileinfo + winpeimagereader: http://wiki.lazarus.freepascal.org/Show_Application_Title,_Version,_and_Company
-    http://forum.lazarus.freepascal.org/index.php/topic,13957.msg233094.html#msg233094
-  Delphi: http://delphidabbler.com/software/verinfo/ (works with FPC after very small modifications)
+  Alternative solutions
+
+  FPC
+    fileinfo + winpeimagereader: https://wiki.lazarus.freepascal.org/Show_Application_Title,_Version,_and_Company
+    https://forum.lazarus.freepascal.org/index.php/topic,13957.msg233094.html#msg233094
+
+  Delphi
+    https://delphidabbler.com/software/verinfo (works with FPC after very small modifications)
 
  }
 
@@ -38,7 +44,7 @@ interface
 {$IFDEF MSWINDOWS}
 
 {$I .\..\jp.inc}
-{$IFDEF FPC}{$MODE OBJFPC}{$H+}{$ENDIF}
+{$IFDEF FPC}{$MODE Delphi}{$H+}{$ENDIF}
 
 uses
   Windows, SysUtils,
@@ -69,13 +75,14 @@ type
     MinorVersion: WORD;
     Revision: WORD;
     Build: WORD;
+    procedure Clear;
+    function AsString(const Separator: string = '.'): string;
   end;
 
   TVIStringInfoItem = record
     TranslateRec: TVITranslate;
     CodePageStr: string;
     LanguageName: string;
-
     ProductName: string;
     ProductVersion: string;
     FileVersion: string;
@@ -88,9 +95,12 @@ type
     PrivateBuild: string;
     SpecialBuild: string;
     Comments: string;
+    procedure Clear;
+    function AsString(bIncludeTranslationRec: Boolean = False; bIncludeLangInfo: Boolean = False; PadStr: string = ''): string;
   end;
 
-  TVIStringItems = {$IFDEF FPC}specialize{$ENDIF} TArray<TVIStringInfoItem>;
+  //TVIStringItems = {$IFDEF FPC}specialize{$ENDIF} TArray<TVIStringInfoItem>;
+  TVIStringItems = TArray<TVIStringInfoItem>;
 
 
   TJPVersionInfo = class
@@ -110,6 +120,7 @@ type
   public
     constructor Create(const FileName: string);
     destructor Destroy; override;
+    function TryGetEnglishStringInfoItem(out sii: TVIStringInfoItem): Boolean;
 
     property FileName: string read FFileName;
 
@@ -137,6 +148,7 @@ type
 procedure VIClearStringInfoItem(var sii: TVIStringInfoItem);
 function VIStringInfoItemToStr(const sii: TVIStringInfoItem; bIncludeTranslationRec: Boolean = False; bIncludeLangInfo: Boolean = False; PadStr: string = ''): string;
 function VIFileVersionToStr(const fv: TVIFileVersion): string;
+function VIFixedFileInfoToStr(const ffi: TVSFIXEDFILEINFO): string;
 
 
 {$ENDIF} // MSWINDOWS
@@ -147,6 +159,23 @@ implementation
 
 {$IFDEF MSWINDOWS}
 
+
+{$region '   helpers   '}
+procedure VIClearStringInfoItem(var sii: TVIStringInfoItem);
+begin
+  sii.Clear;
+end;
+
+function VIStringInfoItemToStr(const sii: TVIStringInfoItem; bIncludeTranslationRec: Boolean = False; bIncludeLangInfo: Boolean = False;
+  PadStr: string = ''): string;
+begin
+  Result := sii.AsString(bIncludeTranslationRec, bIncludeLangInfo, PadStr);
+end;
+
+function VIFileVersionToStr(const fv: TVIFileVersion): string;
+begin
+  Result := fv.AsString('.');
+end;
 
 function VIFixedFileInfoToStr(const ffi: TVSFIXEDFILEINFO): string;
 begin
@@ -165,7 +194,10 @@ begin
     'FileDateMS: ' + IntToStr(ffi.dwFileDateMS) + ENDL +
     'FileDateLS: ' + IntToStr(ffi.dwFileDateLS);
 end;
+{$endregion helpers}
 
+
+{$region '                   TJPVersionInfo                      '}
 
 constructor TJPVersionInfo.Create(const FileName: string);
 begin
@@ -204,6 +236,17 @@ end;
 function TJPVersionInfo.GetStringItems(Index: integer): TVIStringInfoItem;
 begin
   Result := FStringItems[Index];
+end;
+
+function TJPVersionInfo.TryGetEnglishStringInfoItem(out sii: TVIStringInfoItem): Boolean;
+begin
+  Result := False;
+  if not FValidVersionInfo then Exit;
+  if (FEnglishStringItemIndex >= 0) and (FEnglishStringItemIndex < StringItemsCount) then
+  begin
+    sii := StringItems[FEnglishStringItemIndex];
+    Result := True;
+  end;
 end;
 
 procedure TJPVersionInfo.ReadFile;
@@ -364,83 +407,95 @@ begin
 
 end;
 
+{$endregion TJPVersionInfo}
 
-procedure VIClearStringInfoItem(var sii: TVIStringInfoItem);
+
+{ TVIStringInfoItem }
+
+procedure TVIStringInfoItem.Clear;
 begin
-  sii.TranslateRec.wCodePage := 0;
-  sii.TranslateRec.wLanguage := 0;
-  sii.LanguageName := '';
-  sii.CodePageStr := '';
-  sii.ProductName := '';
-  sii.ProductVersion := '';
-  sii.FileVersion := '';
-  sii.FileDescription := '';
-  sii.OriginalFileName := '';
-  sii.InternalName := '';
-  sii.CompanyName := '';
-  sii.LegalCopyright := '';
-  sii.LegalTrademarks := '';
-  sii.PrivateBuild := '';
-  sii.SpecialBuild := '';
-  sii.Comments := '';
+  TranslateRec.wCodePage := 0;
+  TranslateRec.wLanguage := 0;
+  LanguageName := '';
+  CodePageStr := '';
+  ProductName := '';
+  ProductVersion := '';
+  FileVersion := '';
+  FileDescription := '';
+  OriginalFileName := '';
+  InternalName := '';
+  CompanyName := '';
+  LegalCopyright := '';
+  LegalTrademarks := '';
+  PrivateBuild := '';
+  SpecialBuild := '';
+  Comments := '';
 end;
 
-
-
-function VIStringInfoItemToStr(const sii: TVIStringInfoItem; bIncludeTranslationRec: Boolean = False;
-  bIncludeLangInfo: Boolean = False; PadStr: string = ''): string;
+function TVIStringInfoItem.AsString(bIncludeTranslationRec: Boolean = False; bIncludeLangInfo: Boolean = False; PadStr: string = ''): string;
 var
   s: string;
 begin
-  Result := '';
+  Result :=
+    PadStr + 'Product name: ' + ProductName + ENDL +
+    PadStr + 'Product version: ' + ProductVersion + ENDL +
+    PadStr + 'File version: ' + FileVersion + ENDL +
+    PadStr + 'File description: ' + FileDescription + ENDL +
+    PadStr + 'Original file name: ' + OriginalFileName + ENDL +
+    PadStr + 'Internal name: ' + InternalName + ENDL +
+    PadStr + 'Company name: ' + CompanyName + ENDL +
+    PadStr + 'Legal copyright: ' + LegalCopyright + ENDL;
+
+    s := LegalTrademarks;
+    if s<> '' then Result := Result + PadStr + 'Legal trademarks: ' + s + ENDL;
+
+    s := PrivateBuild;
+    if s <> '' then Result := Result + PadStr + 'Private build: ' + s + ENDL;
+
+    s := SpecialBuild;
+    if s <> '' then Result := Result + PadStr + 'Special build: ' + s + ENDL;
+
+    s := Comments;
+    if s <> '' then Result := Result + PadStr + 'Comments: ' + s + ENDL;
+
 
   if bIncludeTranslationRec then
   begin
     Result := Result +
-      PadStr + 'Translation - Language: ' + IntToStr(sii.TranslateRec.wLanguage) + ENDL +
-      PadStr + 'Translation - CodePage: ' + IntToStr(sii.TranslateRec.wCodePage) + ENDL;
+      PadStr + 'Translation - Language: ' + IntToStr(TranslateRec.wLanguage) + ENDL +
+      PadStr + 'Translation - Code page: ' + IntToStr(TranslateRec.wCodePage) + ENDL;
   end;
 
   if bIncludeLangInfo then
   begin
     Result := Result +
-      PadStr + 'Language name: ' + sii.LanguageName + ENDL +
-      PadStr + 'Code page: ' + sii.CodePageStr + ENDL;
+      PadStr + 'Language name: ' + LanguageName + ENDL +
+      PadStr + 'Code page: ' + CodePageStr + ENDL;
   end;
 
-  Result := Result +
-    PadStr + 'ProductName: ' + sii.ProductName + ENDL +
-    PadStr + 'ProductVersion: ' + sii.ProductVersion + ENDL +
-    PadStr + 'FileVersion: ' + sii.FileVersion + ENDL +
-    PadStr + 'FileDescription: ' + sii.FileDescription + ENDL +
-    PadStr + 'OriginalFileName: ' + sii.OriginalFileName + ENDL +
-    PadStr + 'InternalName: ' + sii.InternalName + ENDL +
-    PadStr + 'CompanyName: ' + sii.CompanyName + ENDL +
-    PadStr + 'LegalCopyright: ' + sii.LegalCopyright + ENDL;
-
-    s := sii.LegalTrademarks;
-    if s<> '' then Result := Result + PadStr + 'LegalTrademarks: ' + s + ENDL;
-
-    s := sii.PrivateBuild;
-    if s <> '' then Result := Result + PadStr + 'PrivateBuild: ' + s + ENDL;
-
-    s := sii.SpecialBuild;
-    if s <> '' then Result := Result + PadStr + 'SpecialBuild: ' + s + ENDL;
-
-    s := sii.Comments;
-    if s <> '' then Result := Result + PadStr + 'Comments: ' + s;
-
-    Result := TrimRight(Result);
+  Result := TrimRight(Result);
 end;
 
-function VIFileVersionToStr(const fv: TVIFileVersion): string;
+
+{ TVIFileVersion }
+
+procedure TVIFileVersion.Clear;
+begin
+  MajorVersion := 0;
+  MinorVersion := 0;
+  Revision := 0;
+  Build := 0;
+end;
+
+function TVIFileVersion.AsString(const Separator: string): string;
 begin
   Result :=
-    itos(fv.MajorVersion) + '.' +
-    itos(fv.MinorVersion) + '.' +
-    itos(fv.Revision) + '.' +
-    itos(fv.Build);
+    itos(MajorVersion) + Separator +
+    itos(MinorVersion) + Separator +
+    itos(Revision) + Separator +
+    itos(Build);
 end;
+
 
 
 {$ENDIF} // MSWINDOWS
