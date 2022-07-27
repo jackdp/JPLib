@@ -14,6 +14,7 @@ uses
   {$IFDEF MSWINDOWS}Windows,{$ENDIF}
   SysUtils, Classes,
   {$IFDEF FPC}JwaWinNT,{$ENDIF}
+  {$IFDEF MSWINDOWS}JPL.Win.VersionInfo,{$ENDIF}
   JPL.Strings, JPL.Files,
   JPL.Binary.Types, JPL.UPX, JPL.Conversion
   ;
@@ -581,6 +582,10 @@ type
     FLastAccessTime: TDateTime;
     {$IFDEF MSWINDOWS}
     FAttributes: TFileAttributesRec;
+    FHasFileVersion: Boolean;
+    FFileVersion: TVIFileVersion;
+    FHasVersionInfo: Boolean;
+    FVersionInfo: TVIStringInfoItem;
     {$ENDIF}
     FAddressOfEntryPoint: DWORD;
 
@@ -654,6 +659,10 @@ type
 
     {$IFDEF MSWINDOWS}
     property Attributes: TFileAttributesRec read FAttributes;
+    property HasFileVersion: Boolean read FHasFileVersion;
+    property FileVersion: TVIFileVersion read FFileVersion;
+    property HasVersionInfo: Boolean read FHasVersionInfo; // Has English TVIStringInfoItem
+    property VersionInfo: TVIStringInfoItem read FVersionInfo;
     {$ENDIF}
 
     property InfoStr: string read FInfoStr;
@@ -1062,6 +1071,10 @@ begin
 
   {$IFDEF MSWINDOWS}
   FAttributes.ValidAttributes := False;
+  FHasFileVersion := False;
+  FFileVersion.Clear;
+  FHasVersionInfo := False;
+  FVersionInfo.Clear;
   {$ENDIF}
 
   FreeStreams;
@@ -1116,15 +1129,18 @@ var
   ish: TImageSectionHeader;
   fir: TFileInfoRec;
   Stream: TStream;
+  {$IFDEF MSWINDOWS}
+  vi: TJPVersionInfo;
+  {$ENDIF}
 begin
   ClearInfo;
 
-  if not FileExists(FileName) then Exit;
+  if not FileExists(FFileName) then Exit;
 
   FBits := 0;
   FOptionalHeaderMagicStr := '';
 
-
+  // --------- Attributes, size, dates ----------
   if fir.ReadFileInfo(FFileName) then
   begin
     {$IFDEF MSWINDOWS}
@@ -1137,6 +1153,26 @@ begin
   end
   else FFileSize := FileSizeInt(FFileName);
 
+  // ----------- VersionInfo -------------
+  {$IFDEF MSWINDOWS}
+  vi := TJPVersionInfo.Create(FFileName);
+  try
+    if vi.ValidVersionInfo then
+    begin
+      if vi.FixedFileInfoExists then
+      begin
+        FHasFileVersion := True;
+        FFileVersion := vi.FileVersion;
+      end;
+      FHasVersionInfo := vi.TryGetEnglishStringInfoItem(FVersionInfo);
+    end;
+  finally
+    vi.Free;
+  end;
+  {$ENDIF} // MSWINDOWS
+
+
+  // -------------- Stream -----------------
   if FFileSize <= FMaxMemoryStreamSize then
   begin
     ms := TMemoryStream.Create;
@@ -1148,6 +1184,7 @@ begin
     fs := TFileStream.Create(FFileName, fmOpenRead or fmShareDenyWrite);
     Stream := fs;
   end;
+
 
   FIsFileLoaded := True;
 
