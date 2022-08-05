@@ -386,9 +386,11 @@ var
   i: integer;
   s: string;
 begin
+  if Trim(TaggedText) = '' then Exit;
+
   if not FUseColors then
   begin
-    Write(TaggedText); // ToDo: Dodać usuwanie znaczników <color>
+    Write(StripColorTags(TaggedText)); // Done: Dodać usuwanie znaczników <color>
     Exit;
   end;
 
