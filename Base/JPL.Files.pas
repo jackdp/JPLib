@@ -41,6 +41,13 @@ const
 
 type
 
+  TFileDates = record
+    Creation: TDateTime;
+    Modification: TDateTime;
+    Access: TDateTime;
+    procedure Clear;
+  end;
+
   TFileSystemItemType = (fsitFile, fsitDirectory, fsitUnknown);
 
   TFileNameRec = record
@@ -764,5 +771,16 @@ begin
 end;
 
 {$endregion TFileInfoRec}
+
+
+
+{ TFileDates }
+
+procedure TFileDates.Clear;
+begin
+  Creation := EMPTY_DATE;
+  Modification := EMPTY_DATE;
+  Access := EMPTY_DATE;
+end;
 
 end.
