@@ -141,6 +141,8 @@
         <DCCReference Include="..\..\Binary\JPL.UPX.pas"/>
         <DCCReference Include="..\..\Containers\JPL.Win.FileIcons.pas"/>
         <DCCReference Include="..\..\Containers\JPL.StrList.pas"/>
+        <DCCReference Include="..\..\Containers\JPL.Containers.MultiValueList.pas"/>
+        <DCCReference Include="..\..\Containers\JPL.DefinitionList.pas"/>
         <DCCReference Include="..\..\Graphics\JPL.ColorArrays.pas"/>
         <DCCReference Include="..\..\Graphics\JPL.Colors.ColorClass.pas"/>
         <DCCReference Include="..\..\Graphics\JPL.Colors.List.pas"/>
