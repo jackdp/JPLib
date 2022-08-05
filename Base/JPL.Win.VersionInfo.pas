@@ -99,6 +99,13 @@ type
     function AsString(bIncludeTranslationRec: Boolean = False; bIncludeLangInfo: Boolean = False; PadStr: string = ''): string;
   end;
 
+  TExeVersionInfo = record
+    FileVersion: TVIFileVersion;
+    StringInfo: TVIStringInfoItem;
+    function ReadFromFile(const FileName: string): Boolean;
+    procedure Clear;
+  end;
+
   //TVIStringItems = {$IFDEF FPC}specialize{$ENDIF} TArray<TVIStringInfoItem>;
   TVIStringItems = TArray<TVIStringInfoItem>;
 
@@ -498,6 +505,41 @@ end;
 
 
 
+{ TExeVersionInfo }
+
+procedure TExeVersionInfo.Clear;
+begin
+  FileVersion.Clear;
+  StringInfo.Clear;
+end;
+
+function TExeVersionInfo.ReadFromFile(const FileName: string): Boolean;
+var
+  vi: TJPVersionInfo;
+begin
+  Result := False;
+  Clear;
+  if not FileExists(FileName) then Exit;
+
+  vi := TJPVersionInfo.Create(FileName);
+  try
+    if not vi.ValidVersionInfo then Exit;
+
+    Self.FileVersion := vi.FileVersion;
+    if not vi.TryGetEnglishStringInfoItem(Self.StringInfo) then Exit;
+
+    Result := True;
+  finally
+    vi.Free;
+  end;
+end;
+
+
+
 {$ENDIF} // MSWINDOWS
+
+
+
+
 
 end.
