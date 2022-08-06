@@ -23,6 +23,8 @@ uses
   SysUtils,
   JPL.Strings;
 
+type
+  TTimeUnit = (tuMillisecond, tuSecond, tuMinute, tuHour, tuDay {24h});
 
 
 function BoolToStr(const b: Boolean; TrueStr: string = 'True'; FalseStr: string = 'False'): string;
@@ -127,7 +129,7 @@ function TryHexToInt(Hex: string; var xInt: Int64): Boolean; overload;
 function TryHexToInt(Hex: string; var xInt: integer): Boolean; overload;
 function TryHexToByte(Hex: string; var xb: Byte): Boolean;
 
-function TryGetMilliseconds(const NumStr: string; out MilliSeconds: Int64): Boolean;
+function TryGetMilliseconds(const NumStr: string; out MilliSeconds: Int64; DefaultTimeUnit: TTimeUnit = tuMillisecond): Boolean;
 
 
 
@@ -137,7 +139,7 @@ uses
   JPL.TStr;
 
 
-function TryGetMilliseconds(const NumStr: string; out MilliSeconds: Int64): Boolean;
+function TryGetMilliseconds(const NumStr: string; out MilliSeconds: Int64; DefaultTimeUnit: TTimeUnit = tuMillisecond): Boolean;
 var
   s: string;
   dx64: Double;
@@ -176,7 +178,16 @@ begin
     bDays := True;
     s := TStr.TrimFromEnd(s, 'd');
   end
-  else bSeconds := True;
+  else
+  begin
+    // No time unit specified. Using DefaultTimeUnit
+    case DefaultTimeUnit of
+      tuSecond: bSeconds := True;
+      tuMinute: bMinutes := True;
+      tuHour: bHours := True;
+      tuDay: bDays := True;
+    end;
+  end;
 
   dx64 := 0;
   if (TStr.StartsWithHexPrefix(s)) or (Copy(s, 1, 1) = '%') then
@@ -191,11 +202,8 @@ begin
   else if bHours then dx64 := dx64 * 1000 * 60 * 60
   else if bDays then dx64 := dx64 * 1000 * 60 * 60 * 24;
 
-  //if dx64 > TIME_MAX then Exit;
-
   MilliSeconds := Int64(Round(dx64));
   Result := True;
-
 end;
 
 function TryHexToByte(Hex: string; var xb: Byte): Boolean;
