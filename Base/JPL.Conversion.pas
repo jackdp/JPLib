@@ -953,23 +953,31 @@ end;
 
 function StrToDec(const s: string): integer;
 var
-  s2: string;
+  s2, sOne, sTwo: string;
 begin
-  s2 := RemoveSpaces(s);
-  if Copy(s2, 1, 1) = '$' then Result := HexToInt(s2)
-  else if Copy(s2, 1, 1) = '%' then Result := BinToInt(s2)
-  else if UpperCase(Copy(s, 1, 2)) = '0X' then Result := HexToInt(Copy(s, 3, Length(s)))
+  s2 := UpperCase(RemoveSpaces(s));
+  sOne := Copy(s2, 1, 1);
+  sTwo := Copy(s2, 1, 2);
+
+  if sOne = '$' then Result := HexToInt(s2)
+  else if sTwo = '0X' then Result := HexToInt('$' + Copy(s2, 3, Length(s2)))
+  else if sTwo = '-%' then raise EConvertError.Create('StrToDec: Only positive binary numbers are supported!')
+  else if sOne = '%' then Result := BinToInt(s2)
   else Result := StrToInt(s2);
 end;
 
 function StrToDec64(const s: string): Int64;
 var
-  s2: string;
+  s2, sOne, sTwo: string;
 begin
-  s2 := RemoveSpaces(s);
-  if Copy(s2, 1, 1) = '$' then Result := HexToInt(s2)
-  else if Copy(s2, 1, 1) = '%' then Result := BinToInt64(s2)
-  else if UpperCase(Copy(s, 1, 2)) = '0X' then Result := HexToInt64(Copy(s, 3, Length(s)))
+  s2 := UpperCase(RemoveSpaces(s));
+  sOne := Copy(s2, 1, 1);
+  sTwo := Copy(s2, 1, 2);
+
+  if sOne = '$' then Result := HexToInt64(s2)
+  else if sTwo = '0X' then Result := HexToInt64('$' + Copy(s2, 3, Length(s2)))
+  else if sTwo = '-%' then raise EConvertError.Create('StrToDec64: Only positive binary numbers are supported!')
+  else if sOne = '%' then Result := BinToInt64(s2)
   else Result := StrToInt64(s2);
 end;
 
