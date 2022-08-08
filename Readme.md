@@ -3,6 +3,7 @@
 ![](https://tokei.rs/b1/github/jackdp/JPLib?category=code)
 ![](https://tokei.rs/b1/github/jackdp/JPLib?category=files)
 ![visitors](https://visitor-badge.glitch.me/badge?page_id=jackdp.jplib)
+![GitHub Repo size](https://img.shields.io/github/repo-size/jackdp/JPLib)
 
 A library of general-purpose pascal units needed to compile my projects published on GitHub.
 
@@ -33,6 +34,7 @@ But in some units I use code from other open source projects, so you should look
 2022.08.06  
 JPL.Conversion.pas  
 ```pascal
-function TryGetMilliseconds(const NumStr: string; out MilliSeconds: Int64; DefaultTimeUnit: TTimeUnit = tuMillisecond): Boolean;
+function TryGetMilliseconds(const NumStr: string; out MilliSeconds: Int64;
+  DefaultTimeUnit: TTimeUnit = tuMillisecond): Boolean;
 ```
 The `DefaultTimeUnit` parameter has been added. It specifies the default time unit to be used if it is not given in `NumStr`. Now the default unit is a **millisecond**, before the change it was a second.
